@@ -1,0 +1,17 @@
+{
+  "fileUpload": {
+    "failedFiles": "These files failed to upload",
+    "successfulFiles": "These files were uploaded successfully",
+    "uploadingFiles": "These files are currently being uploaded",
+    "allFiles": "All files",
+    "errorReasons": {
+
+    }
+  },
+  "pages": {
+    "upload": {
+      "title": "Upload Files",
+      "description": "Drop your files here to upload them or use the button below"
+    }
+  }
+}
