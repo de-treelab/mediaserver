@@ -16,6 +16,7 @@ import * as cors from "cors";
 import { apiHandler } from "./ApiHandler.js";
 import { WebSocketService } from "./websocket/WebSocketService.js";
 import { tagRouter } from "./routers/TagRouter.js";
+import { TagService } from "./tags/TagService.js";
 
 async function run(envService: EnvironmentService) {
   const app = express.default();
@@ -94,6 +95,7 @@ async function main() {
 
   const envService = diContainer.get<EnvironmentService>(services.environment);
   const dbService = diContainer.get<DbService>(services.db);
+  const tagService = diContainer.get<TagService>(services.tag);
   const migrationService = diContainer.get<MigrationService>(
     services.migration,
   );
@@ -101,6 +103,7 @@ async function main() {
   await dbService.connect();
   await migrationService.migrate();
   await webSocketServer.start();
+  await tagService.initIdCache();
 
   await run(envService);
 }

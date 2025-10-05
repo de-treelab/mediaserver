@@ -153,4 +153,9 @@ export class TagRepository {
       throw new TagParseError(sql.message);
     }
   }
+
+  public async enumerateTags() {
+    const rows = await this.dbService.any(tagRowSchema, `SELECT * FROM tags`);
+    return rows;
+  }
 }

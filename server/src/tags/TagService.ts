@@ -1,4 +1,4 @@
-import { MetaTag, Tag } from "@lars_hagemann/tags";
+import { MetaTag, Tag, TagIdCache } from "@lars_hagemann/tags";
 import type { ApiTag, TagRepository } from "./TagRepository.js";
 
 export type ListTagsRequest = {
@@ -8,7 +8,10 @@ export type ListTagsRequest = {
 };
 
 export class TagService {
-  constructor(private tagRepository: TagRepository) {}
+  constructor(
+    private tagRepository: TagRepository,
+    private readonly tagIdCache: TagIdCache,
+  ) {}
 
   private normalizeTag(tag: string): Tag | MetaTag {
     const parts = tag.split(":", 2);
@@ -39,5 +42,15 @@ export class TagService {
   public async removeTagFromDocument(documentId: string, tag: string) {
     const tagObject = this.normalizeTag(tag);
     await this.tagRepository.removeTagFromDocument(documentId, tagObject);
+  }
+
+  public async initIdCache(): Promise<void> {
+    const tags = await this.tagRepository.enumerateTags();
+    this.tagIdCache.init(
+      tags.map((tag) => ({
+        tagId: tag.id.toString(),
+        tag: this.normalizeTag(`${tag.key}${tag.value ? `:${tag.value}` : ""}`),
+      })),
+    );
   }
 }

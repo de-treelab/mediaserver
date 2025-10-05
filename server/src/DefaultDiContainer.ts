@@ -73,7 +73,8 @@ export const defaultDiContainer = (diContainer: ContainerBuilder) => {
 
   diContainer
     .register(services.tag, TagService)
-    .addArgument(new Reference(repositories.tag));
+    .addArgument(new Reference(repositories.tag))
+    .addArgument(new Reference(repositories.tagIdCache));
 
   diContainer
     .register(repositories.document, DocumentRepository)
