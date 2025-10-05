@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from "react";
 import { UploadContext, type FileProxy } from "./UploadContext";
-import { useSet } from "../util/useSet";
+import { useSet } from "../hooks/useSet";
 import {
   useWebSocketContext,
   type WebSocketIncomingMessageSchema,

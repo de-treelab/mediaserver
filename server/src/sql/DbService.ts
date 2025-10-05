@@ -10,26 +10,27 @@ import { RowSchemaMismatchError } from "./errors/RowSchemaMismatchError.js";
 
 export type DbServiceConfig = ClientConfig;
 
+type ZodSchemaType = z.ZodObject | z.ZodIntersection;
+
 abstract class DbTask {
-  abstract one<ResultSchema extends z.ZodObject>(
+  abstract one<ResultSchema extends ZodSchemaType>(
     schema: ResultSchema,
     queryTextOrConfig: string | QueryConfig<unknown[]>,
     values?: unknown[] | Record<string, unknown>,
   ): Promise<z.infer<ResultSchema>>;
 
-  abstract many<ResultSchema extends z.ZodObject>(
+  abstract many<ResultSchema extends ZodSchemaType>(
     schema: ResultSchema,
     queryTextOrConfig: string | QueryConfig<unknown[]>,
     values?: unknown[] | Record<string, unknown>,
   ): Promise<z.infer<ResultSchema>[]>;
 
-  abstract any<ResultSchema extends z.ZodObject>(
+  abstract any<ResultSchema extends ZodSchemaType>(
     schema: ResultSchema,
     queryTextOrConfig: string | QueryConfig<unknown[]>,
     values?: unknown[] | Record<string, unknown>,
   ): Promise<z.infer<ResultSchema>[]>;
-
-  abstract oneOrNone<ResultSchema extends z.ZodObject>(
+  abstract oneOrNone<ResultSchema extends ZodSchemaType>(
     schema: ResultSchema,
     queryTextOrConfig: string | QueryConfig<unknown[]>,
     values?: unknown[] | Record<string, unknown>,
@@ -55,13 +56,17 @@ const escapeValues = (
     return [queryTextOrConfig, values];
   }
 
+  const toPlaceholder = Object.fromEntries(
+    Object.keys(values).map((key, index) => [key, `$${index + 1}`]),
+  );
+
   // parse $keyInValuesObject and $otherKeyInValuesObject into
   // $1, $2, etc...
-  const keys = Object.keys(values);
-  const placeholders = keys.map((_, i) => `$${i + 1}`);
   const query =
     typeof queryTextOrConfig === "string"
-      ? queryTextOrConfig.replace(/\$(\w+)/g, () => placeholders.shift()!)
+      ? queryTextOrConfig.replace(/\$(\w+)/g, (_match, key) => {
+          return toPlaceholder[key] || "failed-to-escape-value";
+        })
       : queryTextOrConfig;
 
   return [query, Object.values(values)];
@@ -99,11 +104,15 @@ export class DbService implements DbTask {
     });
 
     await this.client.connect();
-    this.client.on("notice", (msg) => this.logger.info("Postgres notice", msg));
+    this.client.on(
+      "notice",
+      (msg) =>
+        msg.severity !== "NOTICE" && this.logger.info("Postgres notice", msg),
+    );
     const originalQuery = this.client.query.bind(this.client);
     // @ts-expect-error abcd
     this.client.query = async (...args: Parameters<typeof originalQuery>) => {
-      this.logger.debug("Postgres query", args[0]);
+      this.logger.debug(args[0]);
       return originalQuery(...args);
     };
   }
@@ -114,7 +123,7 @@ export class DbService implements DbTask {
   }
 
   @withErrorHandler
-  async one<ResultSchema extends z.ZodObject>(
+  async one<ResultSchema extends ZodSchemaType>(
     schema: ResultSchema,
     queryTextOrConfig: string | QueryConfig<unknown[]>,
     values?: unknown[] | Record<string, unknown>,
@@ -125,17 +134,16 @@ export class DbService implements DbTask {
     if (result.rowCount !== 1) {
       throw new InvalidRowNumberError(result.rowCount, 1, 1);
     }
-    const row = result.rows[0];
-    const { data, success } = schema.safeParse(row);
-    if (!success) {
-      throw new RowSchemaMismatchError();
+    const { data, success, error } = z.array(schema).safeParse(result.rows);
+    if (!success || data.length !== 1 || !data[0]) {
+      throw new RowSchemaMismatchError(error?.issues);
     }
 
-    return data;
+    return data[0];
   }
 
   @withErrorHandler
-  async many<ResultSchema extends z.ZodObject>(
+  async many<ResultSchema extends ZodSchemaType>(
     schema: ResultSchema,
     queryTextOrConfig: string | QueryConfig<unknown[]>,
     values?: unknown[] | Record<string, unknown>,
@@ -149,13 +157,13 @@ export class DbService implements DbTask {
     const rows = result.rows;
     const parsed = z.array(schema).safeParse(rows);
     if (!parsed.success) {
-      throw new RowSchemaMismatchError();
+      throw new RowSchemaMismatchError(parsed.error?.issues);
     }
     return parsed.data;
   }
 
   @withErrorHandler
-  async any<ResultSchema extends z.ZodObject>(
+  async any<ResultSchema extends ZodSchemaType>(
     schema: ResultSchema,
     queryTextOrConfig: string | QueryConfig<unknown[]>,
     values?: unknown[] | Record<string, unknown>,
@@ -169,13 +177,13 @@ export class DbService implements DbTask {
     const rows = result.rows;
     const parsed = z.array(schema).safeParse(rows);
     if (!parsed.success) {
-      throw new RowSchemaMismatchError();
+      throw new RowSchemaMismatchError(parsed.error?.issues);
     }
     return parsed.data;
   }
 
   @withErrorHandler
-  async oneOrNone<ResultSchema extends z.ZodObject>(
+  async oneOrNone<ResultSchema extends ZodSchemaType>(
     schema: ResultSchema,
     queryTextOrConfig: string | QueryConfig<unknown[]>,
     values?: unknown[] | Record<string, unknown>,
@@ -186,13 +194,12 @@ export class DbService implements DbTask {
     if (result.rowCount === 0) {
       return null;
     }
-    const row = result.rows[0];
-    const { data, success } = schema.safeParse(row);
+    const { data, success, error } = z.array(schema).safeParse(result.rows);
     if (!success) {
-      throw new RowSchemaMismatchError();
+      throw new RowSchemaMismatchError(error?.issues);
     }
 
-    return data;
+    return data[0] || null;
   }
 
   @withErrorHandler

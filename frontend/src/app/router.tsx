@@ -3,6 +3,7 @@ import { Layout } from "../pages/Layout";
 import { GalleryPage } from "../pages/GalleryPage";
 import { UploadPage } from "../pages/UploadPage";
 import { TagsPage } from "../pages/TagsPage";
+import { NavigateToGalleryPage } from "../pages/NavigateToGalleryPage";
 
 export const router = createBrowserRouter([
   {
@@ -11,6 +12,10 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
+        Component: NavigateToGalleryPage,
+      },
+      {
+        path: "gallery",
         Component: GalleryPage,
       },
       {

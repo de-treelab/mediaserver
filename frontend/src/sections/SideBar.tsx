@@ -11,9 +11,9 @@ export const SideBar = () => {
     <div className="flex flex-col h-[100vh] inline-block p-2 bg-gray-700">
       <SideBarButton
         Icon={RiGalleryView2}
-        pathPrefix="/"
+        pathPrefix="/gallery"
         onClick={() => {
-          navigate("/");
+          navigate("/gallery");
         }}
       />
       <SideBarButton

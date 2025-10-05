@@ -20,6 +20,7 @@ type UploadFinishedMessage = {
   id: string;
   basePath: string;
   filename: string;
+  mimeType: string;
   webSocketClientId: string;
 };
 
@@ -124,6 +125,7 @@ export class WorkerMessageService extends MessageService {
         id,
         basePath,
         filename,
+        mimeType: upload.mimeType,
         webSocketClientId: upload.webSocketClientId,
       });
     } catch (error) {
@@ -176,6 +178,7 @@ export class MainMessageService extends MessageService {
       id: finished.id,
       basePath: finished.basePath,
       filename: finished.filename,
+      type: finished.mimeType,
     });
 
     await this.webSocketServer.send(

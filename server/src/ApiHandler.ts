@@ -7,6 +7,13 @@ import type { EmptyObject } from "./common/EmptyObject.js";
 import { LoggingService } from "./common/LoggingService.js";
 import { services } from "./DefaultDiContainer.js";
 
+export class FileDownload {
+  constructor(
+    public readonly filepath: string,
+    public readonly mimeType: string,
+  ) {}
+}
+
 type ApiResult<Response extends object> = {
   status: number;
   body: Response;
@@ -53,15 +60,21 @@ export const apiHandler = <
         params: req.params,
         files: req.files,
       });
-      res.status(result.status).json(result.body);
+      if (result.body instanceof FileDownload) {
+        res
+          .header("Content-Type", result.body.mimeType)
+          .download(result.body.filepath);
+      } else {
+        res.status(result.status).json(result.body);
+      }
     } catch (error) {
+      DI_CONTAINER.get<LoggingService>(services.logger).error(
+        "Error occurred while processing API request",
+        error,
+      );
       if (error instanceof ApiError) {
         res.status(error.status).json(error);
       } else {
-        DI_CONTAINER.get<LoggingService>(services.logger).error(
-          "Error occurred while processing API request",
-          error,
-        );
         res.status(500).json({
           status: 500,
           message: "Internal Server Error",

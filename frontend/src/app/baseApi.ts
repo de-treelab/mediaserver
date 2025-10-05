@@ -8,5 +8,6 @@ export type BaseQuery = typeof baseQuery;
 export const baseApi = createApi({
   baseQuery,
   endpoints: () => ({}),
+  tagTypes: ["document", "tag"],
   reducerPath: "api",
 });

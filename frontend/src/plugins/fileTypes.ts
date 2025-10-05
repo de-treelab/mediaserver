@@ -1,9 +1,9 @@
 import type { IconType } from "react-icons";
-import type { FileProxy } from "../upload/UploadContext";
 
 export type FileTypePlugin = {
-  matcher: (file: FileProxy) => boolean;
+  matcher: (fileType: string) => boolean;
   icon: IconType;
+  render: (objectUrl: string) => React.ReactNode;
 };
 
 export const fileTypes: FileTypePlugin[] = [];

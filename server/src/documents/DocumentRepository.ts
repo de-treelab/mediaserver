@@ -1,18 +1,110 @@
+import z from "zod";
 import type { DbService } from "../sql/DbService.js";
+import {
+  paginated,
+  toPaginatedResponse,
+  type PaginatedResponse,
+} from "../util/PaginatedResponse.js";
 
 export type CreateDocumentRequest = {
   id: string;
   basePath: string;
   filename: string;
+  type: string;
 };
+
+export type ListDocumentsRequest = {
+  offset: number;
+  limit: number;
+};
+
+export type Document = {
+  id: string;
+  mime: string;
+  previousId: string | undefined;
+  nextId: string | undefined;
+  queryIndex: number;
+};
+
+export type DocumentWithPathInfo = Document & {
+  base_path: string;
+  filename: string;
+};
+
+const documentRowSchema = z.object({
+  id: z.string(),
+  mime: z.string(),
+  previous_id: z.string().nullable(),
+  next_id: z.string().nullable(),
+  query_index: z.coerce.number().int().min(0),
+});
+
+const documentWithPathInfoSchema = z.object({
+  id: z.string(),
+  mime: z.string(),
+  base_path: z.string(),
+  filename: z.string(),
+});
 
 export class DocumentRepository {
   constructor(private readonly dbService: DbService) {}
 
   public async createDocument(request: CreateDocumentRequest): Promise<void> {
     await this.dbService.none(
-      "INSERT INTO documents (id, base_path, filename) VALUES ($id, $basePath, $filename)",
+      "INSERT INTO documents (id, base_path, filename, mime) VALUES ($id, $basePath, $filename, $type)",
       request,
     );
+  }
+
+  public async listDocuments({
+    offset,
+    limit,
+  }: ListDocumentsRequest): Promise<PaginatedResponse<Document>> {
+    const items = await this.dbService.any(
+      paginated(documentRowSchema),
+      `
+        SELECT 
+          row_number() OVER (ORDER BY created_at DESC) - 1 AS query_index,
+          id, 
+          mime, 
+          LAG(id) OVER (ORDER BY created_at DESC) AS previous_id,
+          LEAD(id) OVER (ORDER BY created_at DESC) AS next_id,
+          COUNT(*) OVER()::Integer AS __total 
+        FROM 
+          documents 
+        ORDER BY created_at DESC 
+        LIMIT $limit OFFSET $offset`,
+      { limit, offset },
+    );
+
+    return toPaginatedResponse(
+      items.map((item) => ({
+        id: item.id,
+        mime: item.mime,
+        previousId: item.previous_id ?? undefined,
+        nextId: item.next_id ?? undefined,
+        queryIndex: item.query_index,
+        __total: item.__total,
+      })),
+    );
+  }
+
+  public async getDocumentWithPathInfo(
+    id: string,
+  ): Promise<DocumentWithPathInfo> {
+    const result = await this.dbService.one(
+      documentWithPathInfoSchema,
+      "SELECT id, mime, base_path, filename FROM documents WHERE id = $id",
+      { id },
+    );
+    return {
+      id: result.id,
+      mime: result.mime,
+      base_path: result.base_path,
+      filename: result.filename,
+      previousId: undefined,
+      nextId: undefined,
+      queryIndex: 0,
+    };
   }
 }

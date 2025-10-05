@@ -93,6 +93,7 @@ export class MigrationService {
       `
       SELECT name, checksum, created_at
       FROM migrations
+      ORDER BY created_at ASC
       `,
     );
     const migrationFiles = await this.listMigrationFiles();
@@ -112,7 +113,7 @@ export class MigrationService {
       if (migrationFileIndex !== 0) {
         throw new MigrationOrderMismatchError(
           migration.name,
-          migrationFile.name,
+          migrationFiles[migrationFileIndex]!.name,
         );
       }
 
@@ -124,7 +125,7 @@ export class MigrationService {
             `| Ignoring checksum mismatch for migration ${migrationFile.name}`,
           );
           migrationsToBeReapplied.push({
-            ...migration,
+            checksum: migrationFile.checksum,
             name: migrationFile.name,
           });
         } else {
@@ -156,8 +157,8 @@ export class MigrationService {
 
     await this.dbService.none(
       `
-      INSERT INTO migrations (name, checksum)
-      VALUES ($1, $2)
+      INSERT INTO migrations (name, checksum, created_at)
+      VALUES ($1, $2, NOW())
       ON CONFLICT (name) DO UPDATE SET checksum = EXCLUDED.checksum
       `,
       [path.basename(migrationPath, ".sql"), migration.checksum],

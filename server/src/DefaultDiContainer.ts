@@ -11,6 +11,9 @@ import {
   MessageServiceClient,
 } from "./common/MessageService.js";
 import { WebSocketService } from "./websocket/WebSocketService.js";
+import { TagIdCache } from "@lars_hagemann/tags";
+import { TagRepository } from "./tags/TagRepository.js";
+import { TagService } from "./tags/TagService.js";
 
 export const services = {
   environment: "service.environment",
@@ -22,10 +25,13 @@ export const services = {
   messageClient: "service.messageClient",
   messageServer: "service.messageServer",
   websocket: "service.websocket",
+  tag: "service.tag",
 };
 
 export const repositories = {
   document: "repository.document",
+  tag: "repository.tag",
+  tagIdCache: "repository.tagIdCache",
 };
 
 export const defaultDiContainer = (diContainer: ContainerBuilder) => {
@@ -45,10 +51,6 @@ export const defaultDiContainer = (diContainer: ContainerBuilder) => {
     .addArgument(new Reference(services.logger));
 
   diContainer
-    .register(repositories.document, DocumentRepository)
-    .addArgument(new Reference(services.db));
-
-  diContainer
     .register(services.document, DocumentService)
     .addArgument(new Reference(repositories.document));
 
@@ -62,10 +64,26 @@ export const defaultDiContainer = (diContainer: ContainerBuilder) => {
     .addArgument(new Reference(services.logger));
 
   diContainer.register(services.messageClient, MessageServiceClient);
+
   diContainer
     .register(services.messageServer, MainMessageService)
     .addArgument(new Reference(services.websocket))
     .addArgument(new Reference(services.document));
+
+  diContainer
+    .register(services.tag, TagService)
+    .addArgument(new Reference(repositories.tag));
+
+  diContainer
+    .register(repositories.document, DocumentRepository)
+    .addArgument(new Reference(services.db));
+
+  diContainer.register(repositories.tagIdCache, TagIdCache);
+
+  diContainer
+    .register(repositories.tag, TagRepository)
+    .addArgument(new Reference(services.db))
+    .addArgument(new Reference(repositories.tagIdCache));
 
   return diContainer;
 };

@@ -6,7 +6,7 @@ import { Provider } from "react-redux";
 import { store } from "./app/store.ts";
 import { WebSocketContextProvider } from "./websocket/WebSocketProvider.tsx";
 import { UploadContextProvider } from "./upload/UploadContextProvider.tsx";
-import * as plugins from "./plugins/standardPlugins.ts";
+import * as plugins from "./plugins/standardPlugins.tsx";
 import { addFileTypePlugin } from "./plugins/fileTypes.ts";
 
 import "./i18n.ts";

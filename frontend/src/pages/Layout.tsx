@@ -3,9 +3,9 @@ import { SideBar } from "../sections/SideBar";
 
 export const Layout = () => {
   return (
-    <div className="h-full flex flex-row">
+    <div className="h-full flex flex-row max-h-[100vh]">
       <SideBar />
-      <div className="flex-1 p-2">
+      <div className="flex-1 p-2 max-h-full overflow-y-auto">
         <Outlet />
       </div>
     </div>

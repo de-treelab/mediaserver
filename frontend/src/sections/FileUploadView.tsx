@@ -54,11 +54,8 @@ const fileProxyStatusToIcon = (file: FileProxy) => {
 const FileList = ({ files }: { files: FileProxy[] }) => {
   return (
     <div className="bg-white p-2 basis-full">
-      {files.map((file) => (
-        <div
-          className="flex flex-row text-center p-1 items-center"
-          key={file.name}
-        >
+      {files.map((file, idx) => (
+        <div className="flex flex-row text-center p-1 items-center" key={idx}>
           <Icon
             Icon={fileIconFromFile(file)}
             size="xxlarge"
@@ -142,8 +139,12 @@ export const FileUploadView: React.FC = () => {
     [allFiles, failedFiles, processedFiles, toBeProcessed, t],
   );
 
+  if (allFiles.length === 0) {
+    return null;
+  }
+
   return (
-    <div className="w-1/5 overflow-y-hidden absolute right-12 bottom-0 text-black rounded-t-md">
+    <div className="w-1/5 overflow-y-hidden fixed right-12 bottom-0 text-black rounded-t-md">
       <div className="max-h-[30vh] overflow-y-auto">
         {currentTab === "All" && <FileList files={allFiles} />}
         {currentTab === "Uploading" && (

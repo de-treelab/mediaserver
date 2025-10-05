@@ -15,6 +15,7 @@ import { documentRouter } from "./routers/DocumentRouter.js";
 import * as cors from "cors";
 import { apiHandler } from "./ApiHandler.js";
 import { WebSocketService } from "./websocket/WebSocketService.js";
+import { tagRouter } from "./routers/TagRouter.js";
 
 async function run(envService: EnvironmentService) {
   const app = express.default();
@@ -43,7 +44,8 @@ async function run(envService: EnvironmentService) {
     }),
   );
 
-  app.use("/document", documentRouter);
+  app.use("/documents", documentRouter);
+  app.use("/tags", tagRouter);
 
   app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
@@ -80,7 +82,7 @@ async function main() {
     webSocketServer.stop();
   });
 
-  let i = 5;
+  let i = 20;
   while (!messageService.acked && i > 0) {
     await new Promise((resolve) => setTimeout(resolve, 100));
     i--;

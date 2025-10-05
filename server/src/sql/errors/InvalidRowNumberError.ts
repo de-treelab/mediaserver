@@ -8,7 +8,7 @@ export class InvalidRowNumberError extends ApiError {
   ) {
     super(
       "InvalidRowNumberError",
-      400,
+      500,
       `Invalid row number: ${rows}. Expected between ${minExpected} and ${maxExpected}.`,
     );
   }

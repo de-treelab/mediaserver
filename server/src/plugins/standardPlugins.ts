@@ -40,7 +40,13 @@ export const imagePlugin: FileTypePlugin = {
     // Implement image thumbnail creation logic
     const tmpId = uuidv4();
     const tmpPath = "/tmp/" + tmpId + "_thumbnail.jpg";
-    await sharp(path).resize(120, 120).jpeg({ mozjpeg: true }).toFile(tmpPath);
+    await sharp(path)
+      .rotate()
+      .resize(120, 120, {
+        fit: "inside",
+      })
+      .jpeg({ mozjpeg: true })
+      .toFile(tmpPath);
 
     return { path: tmpPath };
   },
