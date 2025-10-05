@@ -1,5 +1,5 @@
 import { MetaTag, Tag } from "@lars_hagemann/tags";
-import type { TagRepository } from "./TagRepository.js";
+import type { ApiTag, TagRepository } from "./TagRepository.js";
 
 export type ListTagsRequest = {
   limit: number;
@@ -24,6 +24,10 @@ export class TagService {
       ...request,
       tag: this.normalizeTag(request.query),
     });
+  }
+
+  public async getTagsForDocument(documentId: string): Promise<ApiTag[]> {
+    return await this.tagRepository.getTagsForDocument(documentId);
   }
 
   public async addTagToDocument(documentId: string, tag: string) {

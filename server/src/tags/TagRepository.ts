@@ -8,8 +8,8 @@ import {
 import { TagParseError } from "./TagParseError.js";
 import {
   buildQueryFromDeleteStatement,
+  buildQueryFromInsertStatement,
   buildQueryFromSelectStatement,
-  buildQueryFromUpdateStatement,
   TagSqlBuilder,
 } from "./TagSqlBuilder.js";
 import z from "zod";
@@ -86,21 +86,27 @@ export class TagRepository {
   }
 
   public async addTags(tags: (Tag | MetaTag)[]): Promise<void> {
-    let i = 0;
+    let i = 1;
     const valuesStmt = tags
       .map(() => {
         return `($${i++}, $${i++})`;
       })
       .join(", ");
 
-    await this.dbService.none(
-      `INSERT INTO tags (key, value) VALUES ${valuesStmt} ON CONFLICT DO NOTHING`,
+    const result = await this.dbService.any(
+      z.object({ id: z.number() }),
+      `INSERT INTO tags (key, value) VALUES ${valuesStmt} ON CONFLICT DO NOTHING RETURNING id`,
       tags
         .map((tag) =>
           tag instanceof MetaTag ? [tag.key, tag.value] : [tag.key, null],
         )
         .flat(1),
     );
+
+    let j = 0;
+    for (const row of result) {
+      this.tagIdCache.onTagAdded(tags[j++]!, row.id.toString());
+    }
   }
 
   public async addTagToDocument(
@@ -109,7 +115,7 @@ export class TagRepository {
   ): Promise<void> {
     const a = this.sqlBuilder.buildAddTagToEntityQuery(tag);
     if (a.success) {
-      await this.dbService.none(buildQueryFromUpdateStatement(a.stmt), {
+      await this.dbService.none(buildQueryFromInsertStatement(a.stmt), {
         entityId: documentId,
       });
     } else {
@@ -128,6 +134,23 @@ export class TagRepository {
       });
     } else {
       throw new TagParseError(a.message);
+    }
+  }
+
+  public async getTagsForDocument(documentId: string): Promise<ApiTag[]> {
+    const sql = this.sqlBuilder.buildListEntityTagsQuery();
+    if (sql.success) {
+      const rows = await this.dbService.any(
+        tagRowSchema,
+        buildQueryFromSelectStatement(sql.stmt),
+        { entityId: documentId },
+      );
+      return rows.map((row) => ({
+        key: row.key,
+        value: row.value ?? undefined,
+      }));
+    } else {
+      throw new TagParseError(sql.message);
     }
   }
 }

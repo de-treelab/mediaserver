@@ -6,6 +6,7 @@ import type {
   DocumentRepository,
   ListDocumentsRequest,
 } from "./DocumentRepository.js";
+import type { TagService } from "../tags/TagService.js";
 
 type GetDocumentResponse = {
   path: string;
@@ -13,10 +14,22 @@ type GetDocumentResponse = {
 };
 
 export class DocumentService {
-  constructor(private readonly documentRepository: DocumentRepository) {}
+  constructor(
+    private readonly documentRepository: DocumentRepository,
+    private readonly tagService: TagService,
+  ) {}
 
   public async createDocument(request: CreateDocumentRequest): Promise<void> {
     await this.documentRepository.createDocument(request);
+    await this.tagService.addTagToDocument(
+      request.id,
+      `uploaded:${new Date().toLocaleDateString("de")}`,
+    );
+    await this.tagService.addTagToDocument(request.id, request.type);
+    await this.tagService.addTagToDocument(
+      request.id,
+      request.type.replaceAll("/", ":"),
+    );
   }
 
   public async listDocuments(

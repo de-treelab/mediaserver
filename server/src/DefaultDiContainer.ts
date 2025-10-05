@@ -52,7 +52,8 @@ export const defaultDiContainer = (diContainer: ContainerBuilder) => {
 
   diContainer
     .register(services.document, DocumentService)
-    .addArgument(new Reference(repositories.document));
+    .addArgument(new Reference(repositories.document))
+    .addArgument(new Reference(services.tag));
 
   diContainer
     .register(services.file, FileService)

@@ -14,7 +14,7 @@ type Document = {
   queryIndex: number;
 };
 
-type ApiTag = {
+export type ApiTag = {
   key: string;
   value?: string;
 };
@@ -46,6 +46,7 @@ export const api = baseApi.injectEndpoints({
           body: formData,
         };
       },
+      invalidatesTags: ["tag", "document"],
     }),
 
     listDocuments: build.query<
@@ -56,6 +57,16 @@ export const api = baseApi.injectEndpoints({
         url: `/documents?limit=${limit}&offset=${offset}`,
         method: "GET",
       }),
+    }),
+
+    getDocumentTags: build.query<{ tags: ApiTag[] }, string>({
+      query: (documentId) => ({
+        url: `/tags/${encodeURIComponent(documentId)}`,
+        method: "GET",
+      }),
+      providesTags: (_result, _error, documentId) => [
+        { type: "tag", id: documentId },
+      ],
     }),
 
     listTags: build.query<

@@ -23,6 +23,23 @@ tagRouter.get(
   }),
 );
 
+tagRouter.get(
+  "/:documentId",
+  apiHandler<
+    { tags: ApiTag[] },
+    EmptyObject,
+    EmptyObject,
+    { documentId: string }
+  >(async ({ diContainer, params: { documentId } }) => {
+    const tagService = diContainer.get<TagService>(services.tag);
+    const tags = await tagService.getTagsForDocument(documentId);
+    return {
+      status: 200,
+      body: { tags },
+    };
+  }),
+);
+
 tagRouter.post(
   "/:documentId/add",
   apiHandler<EmptyObject, EmptyObject, { tag: string }, { documentId: string }>(

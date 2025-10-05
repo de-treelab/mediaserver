@@ -25,9 +25,12 @@ export type SelectStatement = {
   }[];
   groupBy?: string;
   having?: string;
-  sortBy?: "timestamp" | "random";
+  sort?: {
+    field: "timestamp" | "random" | string;
+    direction?: "asc" | "desc";
+    nulls?: "first" | "last";
+  }[];
   where?: string;
-  sortDirection?: "asc" | "desc";
   limit?: string | number;
   offset?: string | number;
 };
@@ -54,6 +57,13 @@ export type DeleteStatement = {
   where?: string;
 };
 
+export type InsertStatement = {
+  table: string;
+  columns: string[];
+  values: (string | number)[];
+  onConflict?: OnConflict;
+};
+
 export const buildQueryFromSelectStatement = (stmt: SelectStatement) => {
   const query = `SELECT ${stmt.select} FROM ${stmt.from}`;
   const joinClauses = (stmt.joins ?? [])
@@ -62,9 +72,15 @@ export const buildQueryFromSelectStatement = (stmt: SelectStatement) => {
   const whereClause = stmt.where ? `WHERE ${stmt.where}` : "";
   const groupByClause = stmt.groupBy ? `GROUP BY ${stmt.groupBy}` : "";
   const havingClause = stmt.having ? `HAVING ${stmt.having}` : "";
-  const orderByClause = stmt.sortBy
-    ? `ORDER BY ${stmt.sortBy} ${stmt.sortDirection ?? "desc"}`
-    : "";
+  const orderByClause =
+    stmt.sort && stmt.sort.length > 0
+      ? `ORDER BY ${stmt.sort
+          .map(
+            (s) =>
+              `${s.field} ${s.direction?.toUpperCase() || ""} ${s.nulls ? `NULLS ${s.nulls.toUpperCase()}` : ""}`,
+          )
+          .join(", ")}`
+      : "";
   const limitClause = stmt.limit ? `LIMIT ${stmt.limit}` : "";
   const offsetClause = stmt.offset ? `OFFSET ${stmt.offset}` : "";
 
@@ -100,6 +116,18 @@ export const buildQueryFromUpdateStatement = (stmt: UpdateStatement) => {
 export const buildQueryFromDeleteStatement = (stmt: DeleteStatement) => {
   const whereClause = stmt.where ? `WHERE ${stmt.where}` : "";
   return `DELETE FROM ${stmt.table} ${whereClause}`;
+};
+
+export const buildQueryFromInsertStatement = (stmt: InsertStatement) => {
+  const columnsClause = `(${stmt.columns.join(", ")})`;
+  const valuesClause = `VALUES (${stmt.values
+    .map((val) => (typeof val === "string" ? val : val.toString()))
+    .join(", ")})`;
+  const onConflictClause = stmt.onConflict
+    ? `ON CONFLICT ${buildOnConflictAction(stmt.onConflict)}`
+    : "";
+
+  return `INSERT INTO ${stmt.table} ${columnsClause} ${valuesClause} ${onConflictClause}`;
 };
 
 export type TagSqlBuilderResult<
@@ -214,8 +242,12 @@ export class TagSqlBuilder {
           ],
           groupBy: `u.${this.builderConfig.userdataTableIdColumn}`,
           having: `${this.sqlFilterConditions(filter)}`,
-          sortBy: this.currentParse.sortBy,
-          sortDirection: this.currentParse.sortDirection,
+          sort: [
+            {
+              field: this.currentParse.sortBy,
+              direction: this.currentParse.sortDirection,
+            },
+          ],
         },
       };
     } catch (error) {
@@ -244,6 +276,17 @@ export class TagSqlBuilder {
               on: `t.id = ut.tag_id`,
             },
           ],
+          groupBy: `t.id`,
+          sort: [
+            {
+              field: "t.key",
+              direction: "asc",
+            },
+            {
+              field: "t.value",
+              direction: "asc",
+            },
+          ],
         },
       };
     } catch (error) {
@@ -256,17 +299,15 @@ export class TagSqlBuilder {
 
   public buildAddTagToEntityQuery(
     tag: Tag | MetaTag,
-  ): TagSqlBuilderResult<UpdateStatement, ["$entityId"]> {
+  ): TagSqlBuilderResult<InsertStatement, ["$entityId"]> {
     try {
       const id = this.tagIdCache.tagToTagId(tag);
       return {
         success: true,
         stmt: {
           table: "userdata_tags",
-          set: {
-            userdata_id: "$entityId",
-            tag_id: id,
-          },
+          columns: ["userdata_id", "tag_id"],
+          values: ["$entityId", id],
           onConflict: {
             action: "DO NOTHING",
           },
@@ -323,6 +364,20 @@ export class TagSqlBuilder {
           limit: "$limit",
           offset: "$offset",
           where: `t.key ILIKE '%' || $tagKey || '%' AND ($tagValue::text IS NULL OR (t.value ILIKE '%' || $tagValue::text || '%' AND t.key = $tagKey))`,
+          sort: [
+            {
+              field: "usage_count",
+              direction: "desc",
+            },
+            {
+              field: "t.key",
+              direction: "asc",
+            },
+            {
+              field: "t.value",
+              direction: "asc",
+            },
+          ],
         },
       };
     } catch (error) {
