@@ -1,4 +1,4 @@
-import { MetaTag, Tag, TagIdCache } from "@lars_hagemann/tags";
+import { MetaTag, Tag, TagIdCache, TagParser } from "@lars_hagemann/tags";
 import type { DbService } from "../sql/DbService.js";
 import {
   paginated,
@@ -13,12 +13,27 @@ import {
   TagSqlBuilder,
 } from "./TagSqlBuilder.js";
 import z from "zod";
+import type { Document } from "../documents/DocumentRepository.js";
 
 export interface ListTagsRequest {
   limit: number;
   offset: number;
   tag: Tag | MetaTag;
 }
+
+export type ListDocumentsRequest = {
+  offset: number;
+  limit: number;
+  query: string;
+};
+
+const documentRowSchema = z.object({
+  id: z.string(),
+  mime: z.string(),
+  previous_id: z.string().nullable(),
+  next_id: z.string().nullable(),
+  query_index: z.coerce.number().int().min(0),
+});
 
 const tagRowSchema = z.object({
   id: z.number(),
@@ -49,11 +64,47 @@ export class TagRepository {
     this.sqlBuilder = new TagSqlBuilder(
       {
         userdataTableName: "documents",
-        userdataTableColumns: ["id"],
+        userdataTableColumns: [
+          "id",
+          "mime",
+          "row_number() OVER (ORDER BY created_at DESC) - 1 AS query_index",
+          "LAG(id) OVER (ORDER BY created_at DESC) AS previous_id",
+          "LEAD(id) OVER (ORDER BY created_at DESC) AS next_id",
+        ],
         userdataTableIdColumn: "id",
       },
       tagIdCache,
     );
+  }
+
+  public async listDocuments({
+    offset,
+    limit,
+    query,
+  }: ListDocumentsRequest): Promise<PaginatedResponse<Document>> {
+    const filter = new TagParser(query).parse();
+    const sql = this.sqlBuilder.buildListFilteredEntitiesQuery(filter);
+
+    if (sql.success) {
+      const items = await this.dbService.any(
+        paginated(documentRowSchema),
+        buildQueryFromSelectStatement(sql.stmt),
+        { limit, offset },
+      );
+
+      return toPaginatedResponse(
+        items.map((item) => ({
+          id: item.id,
+          mime: item.mime,
+          previousId: item.previous_id ?? undefined,
+          nextId: item.next_id ?? undefined,
+          queryIndex: item.query_index,
+          __total: item.__total,
+        })),
+      );
+    } else {
+      throw new TagParseError(sql.message);
+    }
   }
 
   public async listTags(

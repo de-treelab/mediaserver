@@ -3,6 +3,7 @@ import { enhancedApi } from "../app/enhancedApi";
 import { TagList } from "../components/TagList";
 import { usePageOffsetAndLimitParams } from "../hooks/usePageOffsetAndLimitParams";
 import { Pagination } from "../components/Pagination";
+import { useNavigate } from "react-router";
 
 export const TagsPage = () => {
   const { limit, offset, page, setPage } = usePageOffsetAndLimitParams();
@@ -14,6 +15,8 @@ export const TagsPage = () => {
 
   const total = useMemo(() => data?.total || 0, [data?.total]);
 
+  const navigate = useNavigate();
+
   return (
     <div>
       <Pagination
@@ -22,7 +25,12 @@ export const TagsPage = () => {
         currentPage={page}
         onPageChange={setPage}
       />
-      <TagList tags={data?.items ?? []} onClick={() => {}} />
+      <TagList
+        tags={data?.items ?? []}
+        onClick={(tag) =>
+          navigate(`../gallery?q=${tag.key}${tag.value ? `:${tag.value}` : ""}`)
+        }
+      />
     </div>
   );
 };

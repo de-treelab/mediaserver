@@ -1,5 +1,11 @@
 import { MetaTag, Tag, TagIdCache } from "@lars_hagemann/tags";
-import type { ApiTag, TagRepository } from "./TagRepository.js";
+import type {
+  ApiTag,
+  ListDocumentsRequest,
+  TagRepository,
+} from "./TagRepository.js";
+import type { PaginatedResponse } from "../util/PaginatedResponse.js";
+import type { Document } from "../documents/DocumentRepository.js";
 
 export type ListTagsRequest = {
   limit: number;
@@ -27,6 +33,12 @@ export class TagService {
       ...request,
       tag: this.normalizeTag(request.query),
     });
+  }
+
+  public async listDocuments(
+    request: ListDocumentsRequest,
+  ): Promise<PaginatedResponse<Document>> {
+    return this.tagRepository.listDocuments(request);
   }
 
   public async getTagsForDocument(documentId: string): Promise<ApiTag[]> {

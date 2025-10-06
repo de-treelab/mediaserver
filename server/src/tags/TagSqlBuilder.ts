@@ -16,7 +16,7 @@ export type TagSqlBuilderConfig = {
 };
 
 export type SelectStatement = {
-  select: string;
+  select: string[];
   from: string;
   joins?: {
     join: "INNER" | "LEFT" | "RIGHT";
@@ -64,6 +64,21 @@ export type InsertStatement = {
   onConflict?: OnConflict;
 };
 
+const buildQueryOrderByStatement = (stmt: SelectStatement["sort"]) => {
+  const orderByClause =
+    stmt && stmt.length > 0
+      ? `ORDER BY ${stmt
+          .map((s) =>
+            s.field === "random"
+              ? "RANDOM()"
+              : `${s.field} ${s.direction?.toUpperCase() || ""} ${s.nulls ? `NULLS ${s.nulls.toUpperCase()}` : ""}`,
+          )
+          .join(", ")}`
+      : "";
+
+  return orderByClause;
+};
+
 export const buildQueryFromSelectStatement = (stmt: SelectStatement) => {
   const query = `SELECT ${stmt.select} FROM ${stmt.from}`;
   const joinClauses = (stmt.joins ?? [])
@@ -72,15 +87,8 @@ export const buildQueryFromSelectStatement = (stmt: SelectStatement) => {
   const whereClause = stmt.where ? `WHERE ${stmt.where}` : "";
   const groupByClause = stmt.groupBy ? `GROUP BY ${stmt.groupBy}` : "";
   const havingClause = stmt.having ? `HAVING ${stmt.having}` : "";
-  const orderByClause =
-    stmt.sort && stmt.sort.length > 0
-      ? `ORDER BY ${stmt.sort
-          .map(
-            (s) =>
-              `${s.field} ${s.direction?.toUpperCase() || ""} ${s.nulls ? `NULLS ${s.nulls.toUpperCase()}` : ""}`,
-          )
-          .join(", ")}`
-      : "";
+  const orderByClause = buildQueryOrderByStatement(stmt.sort);
+
   const limitClause = stmt.limit ? `LIMIT ${stmt.limit}` : "";
   const offsetClause = stmt.offset ? `OFFSET ${stmt.offset}` : "";
 
@@ -144,7 +152,7 @@ export type TagSqlBuilderResult<
     };
 
 type CurrentParse = {
-  sortBy: "timestamp" | "random";
+  sortBy: "created_at" | "random";
   sortDirection: "asc" | "desc";
 };
 
@@ -156,7 +164,7 @@ export class TagSqlBuilder {
     private readonly tagIdCache: TagIdCache,
   ) {
     this.currentParse = {
-      sortBy: "timestamp",
+      sortBy: "created_at",
       sortDirection: "asc",
     };
   }
@@ -168,11 +176,11 @@ export class TagSqlBuilder {
           this.currentParse.sortBy = "random";
           break;
         case "oldest":
-          this.currentParse.sortBy = "timestamp";
+          this.currentParse.sortBy = "created_at";
           this.currentParse.sortDirection = "asc";
           break;
         case "newest":
-          this.currentParse.sortBy = "timestamp";
+          this.currentParse.sortBy = "created_at";
           this.currentParse.sortDirection = "desc";
           break;
       }
@@ -193,8 +201,8 @@ export class TagSqlBuilder {
       } catch (err) {
         if (err instanceof Error && err.message.includes("Tag not found")) {
           // This could be the key of a meta tag that is not listed in the tag id cache
-          // For meta tags person:a, person:b etc. and filter 'person' we want to match any person:*
-          return "";
+          // For meta tags person:a, person:b etc. and filter 'person' we want to match any key=person and value=<any>
+          return `EXISTS (SELECT * FROM userdata_tags sut INNER JOIN tags ON tags.id = sut.tag_id WHERE tags.key = '${filter.key}' AND sut.userdata_id = u.id)`;
         }
         throw err;
       }
@@ -218,24 +226,27 @@ export class TagSqlBuilder {
   }
 
   private setupParse() {
-    this.currentParse.sortBy = "timestamp";
-    this.currentParse.sortDirection = "asc";
+    this.currentParse.sortBy = "created_at";
+    this.currentParse.sortDirection = "desc";
   }
 
-  public buildListFilteredEntitiesQuery(filter: Filter): TagSqlBuilderResult {
+  public buildListFilteredEntitiesQuery(
+    filter: Filter,
+  ): TagSqlBuilderResult<SelectStatement, ["$limit", "$offset"]> {
     this.setupParse();
 
     try {
       return {
         success: true,
         stmt: {
-          select: `${this.builderConfig.userdataTableColumns
-            .map((col) => `u.${col}`)
-            .join(", ")}, COUNT(*) OVER()::int AS __total`,
+          select: [
+            "COUNT(*) OVER()::int AS __total",
+            ...this.builderConfig.userdataTableColumns,
+          ],
           from: `${this.builderConfig.userdataTableName} u`,
           joins: [
             {
-              join: "INNER",
+              join: "LEFT",
               table: "userdata_tags ut",
               on: `u.${this.builderConfig.userdataTableIdColumn} = ut.userdata_id`,
             },
@@ -248,6 +259,8 @@ export class TagSqlBuilder {
               direction: this.currentParse.sortDirection,
             },
           ],
+          limit: "$limit",
+          offset: "$offset",
         },
       };
     } catch (error) {
@@ -266,7 +279,7 @@ export class TagSqlBuilder {
       return {
         success: true,
         stmt: {
-          select: `t.*, COUNT(ut.userdata_id) AS usage_count`,
+          select: ["t.*", "COUNT(ut.userdata_id) AS usage_count"],
           from: `tags t`,
           where: `ut.userdata_id = $entityId`,
           joins: [
@@ -351,7 +364,11 @@ export class TagSqlBuilder {
       return {
         success: true,
         stmt: {
-          select: `t.*, COUNT(ut.userdata_id)::int AS usage_count, COUNT(*) OVER()::int AS __total`,
+          select: [
+            "t.*",
+            "COUNT(ut.userdata_id)::int AS usage_count",
+            "COUNT(*) OVER()::int AS __total",
+          ],
           from: `tags t`,
           joins: [
             {

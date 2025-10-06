@@ -3,18 +3,19 @@ import type { ApiTag } from "../app/api";
 
 type Props = {
   tags: (ApiTag & { usageCount?: number })[];
+  className?: string;
   onClick?: (tag: ApiTag) => void;
 };
 
-export const TagList = ({ tags, onClick }: Props) => {
+export const TagList = ({ tags, onClick, className }: Props) => {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className={twMerge("flex flex-row flex-wrap gap-2", className)}>
       {tags.map((tag) => (
         <div
           key={`${tag.key}:${tag.value}`}
           onClick={() => onClick?.(tag)}
           className={twMerge(
-            "px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-sm duration-200 flex items-center z-100",
+            "px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-sm duration-200 flex h-8 items-center z-100",
             onClick
               ? "cursor-pointer hover:bg-red-400 dark:hover:bg-red-600  "
               : "cursor-default",

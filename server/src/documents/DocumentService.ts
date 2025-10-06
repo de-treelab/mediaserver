@@ -1,10 +1,7 @@
 import path from "path";
-import type { PaginatedResponse } from "../util/PaginatedResponse.js";
 import type {
   CreateDocumentRequest,
-  Document,
   DocumentRepository,
-  ListDocumentsRequest,
 } from "./DocumentRepository.js";
 import type { TagService } from "../tags/TagService.js";
 
@@ -30,12 +27,6 @@ export class DocumentService {
       request.id,
       request.type.replaceAll("/", ":"),
     );
-  }
-
-  public async listDocuments(
-    request: ListDocumentsRequest,
-  ): Promise<PaginatedResponse<Document>> {
-    return this.documentRepository.listDocuments(request);
   }
 
   public async getDocumentThumbnail(id: string): Promise<string> {

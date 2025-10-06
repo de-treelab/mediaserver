@@ -1,4 +1,5 @@
 import type { PaginatedResponse } from "../util/PaginatedResponse";
+import { tagToString } from "../util/tag";
 import { baseApi } from "./baseApi";
 
 type DocumentUpload = {
@@ -51,12 +52,18 @@ export const api = baseApi.injectEndpoints({
 
     listDocuments: build.query<
       PaginatedResponse<Document>,
-      { limit?: number; offset?: number }
+      { limit?: number; offset?: number; query?: string }
     >({
-      query: ({ limit = 100, offset = 0 }) => ({
-        url: `/documents?limit=${limit}&offset=${offset}`,
+      query: ({ limit = 100, offset = 0, query = "" }) => ({
+        url: `/documents?limit=${limit}&offset=${offset}&query=${encodeURIComponent(query)}`,
         method: "GET",
       }),
+      providesTags: (response) => [
+        "document",
+        ...(response?.items.map(
+          (doc) => ({ type: "document", id: doc.id }) as const,
+        ) || []),
+      ],
     }),
 
     getDocumentTags: build.query<{ tags: ApiTag[] }, string>({
@@ -64,8 +71,12 @@ export const api = baseApi.injectEndpoints({
         url: `/tags/${encodeURIComponent(documentId)}`,
         method: "GET",
       }),
-      providesTags: (_result, _error, documentId) => [
-        { type: "tag", id: documentId },
+      providesTags: (result, _result, documentId) => [
+        "tag",
+        { type: "document", id: documentId },
+        ...(result?.tags.map(
+          (t) => ({ type: "tag", id: tagToString(t) }) as const,
+        ) || []),
       ],
     }),
 
@@ -89,7 +100,10 @@ export const api = baseApi.injectEndpoints({
           method: "POST",
           body: { tag },
         }),
-        invalidatesTags: ["tag"],
+        invalidatesTags: (_result, _error, arg) => [
+          "tag",
+          { type: "document", id: arg.documentId },
+        ],
       },
     ),
 
@@ -102,7 +116,10 @@ export const api = baseApi.injectEndpoints({
         method: "POST",
         body: { tag },
       }),
-      invalidatesTags: ["tag"],
+      invalidatesTags: (_result, _error, arg) => [
+        "tag",
+        { type: "document", id: arg.documentId },
+      ],
     }),
   }),
 });

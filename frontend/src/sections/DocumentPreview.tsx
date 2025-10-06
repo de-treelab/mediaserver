@@ -3,13 +3,17 @@ import { enhancedApi } from "../app/enhancedApi";
 import { TagList } from "../components/TagList";
 import { useDocument } from "../hooks/useDocument";
 import { useDocumentPlugin } from "../hooks/useDocumentPlugin";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router";
+import { TagInput } from "./TagInput";
 
 type Props = {
   id: string;
 };
 
 export const DocumentPreview = ({ id }: Props) => {
+  const [tagInput, setTagInput] = useState("");
+
   const { objectUrl, blob } = useDocument(id);
   const plugin = useDocumentPlugin(blob?.type);
 
@@ -30,6 +34,17 @@ export const DocumentPreview = ({ id }: Props) => {
 
   const { data } = enhancedApi.useGetDocumentTagsQuery(id);
 
+  const navigate = useNavigate();
+
+  const [addTag] = enhancedApi.useAddTagToDocumentMutation();
+
+  const addTagToDocument = useCallback(
+    (tag: string) => {
+      addTag({ documentId: id, tag });
+    },
+    [addTag, id],
+  );
+
   if (!blob || !objectUrl) {
     return null;
   }
@@ -38,11 +53,25 @@ export const DocumentPreview = ({ id }: Props) => {
     <>
       <div
         className={twMerge(
-          "absolute top-0 w-1/4 h-full z-0 bg-gray-800 p-2 border-b-2 border-gray-700 duration-200",
+          "absolute flex flex-col gap-2 top-0 w-1/4 h-full z-0 bg-gray-800 p-2 border-b-2 border-gray-700 duration-200",
           tagListOpen ? "left-0" : "-left-1/4",
         )}
       >
-        <TagList tags={data?.tags || []} onClick={() => {}} />
+        <TagList
+          tags={data?.tags || []}
+          onClick={(tag) =>
+            navigate(`?q=${tag.key}${tag.value ? `:${tag.value}` : ""}`)
+          }
+          className="grow"
+        />
+        <TagInput
+          value={tagInput}
+          onChange={setTagInput}
+          onSubmit={addTagToDocument}
+          direction="up"
+          className="text-white"
+          clearOnSubmit
+        />
       </div>
       <div
         className={twMerge(

@@ -45,7 +45,7 @@ export const useEasySearchParams = <RelevantSearchParams extends string>(
 
   const params = useMemo(() => {
     return Object.fromEntries(
-      searchParamKeys.map((key) => [key, searchParams.get(key)]),
+      searchParamKeys.map((key) => [key, searchParams.get(key) ?? undefined]),
     ) as Record<RelevantSearchParams, string | undefined>;
   }, [searchParams, searchParamKeys]);
 

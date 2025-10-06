@@ -35,7 +35,7 @@
     "typescript-eslint": "^8.41.0"
   },
   "dependencies": {
-    "@lars_hagemann/tags": "^0.1.0",
+    "@lars_hagemann/tags": "^1.0.4",
     "check-disk-space": "^3.4.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",

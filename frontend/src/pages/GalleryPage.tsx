@@ -1,11 +1,12 @@
 import { enhancedApi } from "../app/enhancedApi";
 import { ThumbnailContainer } from "../components/ThumbnailContainer";
 import { Pagination } from "../components/Pagination";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PreviewContainer } from "../sections/PreviewContainer";
 import { useEasySearchParams } from "../hooks/useEasySearchParams";
 import { usePageOffsetAndLimitParams } from "../hooks/usePageOffsetAndLimitParams";
+import { TagInput } from "../sections/TagInput";
 
 export const GalleryPage = () => {
   const { t } = useTranslation();
@@ -13,14 +14,17 @@ export const GalleryPage = () => {
   const { limit, offset, page, setPage } = usePageOffsetAndLimitParams();
 
   const {
-    params: { preview: previewDocumentSearchParam },
+    params: { preview: previewDocumentSearchParam, q: query },
     addSearchParam,
     removeSearchParam,
-  } = useEasySearchParams(["preview", "page"]);
+  } = useEasySearchParams(["preview", "q"]);
+
+  const [tagInput, setTagInput] = useState(query ?? "");
 
   const { currentData: data } = enhancedApi.useListDocumentsQuery({
     limit: limit,
     offset: offset,
+    query: query,
   });
 
   const idToDocument = useMemo(
@@ -61,10 +65,16 @@ export const GalleryPage = () => {
     }
   }, [setPreviewDocument, previewDocument]);
 
-  useEffect(() => {}, []);
-
   return (
     <>
+      <TagInput
+        value={tagInput}
+        onChange={setTagInput}
+        onValidChange={() => {}}
+        onSubmit={(value) => addSearchParam("q", value)}
+        className="mb-2"
+        blurOnSubmit
+      />
       <Pagination
         total={total}
         limit={limit}
@@ -100,7 +110,7 @@ export const GalleryPage = () => {
           nextPreviewImage={nextPreviewImage}
           previousPreviewImage={prevPreviewImage}
           previewImageIndex={previewDocument.queryIndex}
-          queryParams={{ limit, offset }}
+          queryParams={{ limit, offset, query }}
           onClose={() => setPreviewDocument(undefined)}
         />
       )}

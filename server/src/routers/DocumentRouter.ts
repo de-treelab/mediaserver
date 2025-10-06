@@ -7,6 +7,7 @@ import type { EmptyObject } from "../common/EmptyObject.js";
 import type { DocumentService } from "../documents/DocumentService.js";
 import type { PaginatedResponse } from "../util/PaginatedResponse.js";
 import type { Document } from "../documents/DocumentRepository.js";
+import type { TagService } from "../tags/TagService.js";
 
 export const documentRouter = Router();
 
@@ -54,18 +55,21 @@ documentRouter.post(
 
 documentRouter.get(
   "/",
-  apiHandler<PaginatedResponse<Document>, { limit?: number; offset?: number }>(
-    async ({ diContainer, query: { limit = 100, offset = 0 } }) => {
-      const documentService = diContainer.get<DocumentService>(
-        services.document,
-      );
-      const response = await documentService.listDocuments({ limit, offset });
-      return {
-        status: 200,
-        body: response,
-      };
-    },
-  ),
+  apiHandler<
+    PaginatedResponse<Document>,
+    { limit?: number; offset?: number; query?: string }
+  >(async ({ diContainer, query: { limit = 100, offset = 0, query = "" } }) => {
+    const tagService = diContainer.get<TagService>(services.tag);
+    const response = await tagService.listDocuments({
+      limit,
+      offset,
+      query: decodeURIComponent(query),
+    });
+    return {
+      status: 200,
+      body: response,
+    };
+  }),
 );
 
 documentRouter.get(

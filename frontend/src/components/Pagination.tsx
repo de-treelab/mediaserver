@@ -24,7 +24,6 @@ export const Pagination = ({
         style["pagination"],
       )}
       pageCount={Math.ceil(total / limit)}
-      initialPage={currentPage}
       onPageChange={({ selected }) => onPageChange(selected)}
       previousLabel="<"
       nextLabel=">"
