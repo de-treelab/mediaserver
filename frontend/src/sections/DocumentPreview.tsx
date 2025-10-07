@@ -6,6 +6,8 @@ import { useDocumentPlugin } from "../hooks/useDocumentPlugin";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { TagInput } from "./TagInput";
+import type { ApiTag } from "../app/api";
+import { tagToString } from "../util/tag";
 
 type Props = {
   id: string;
@@ -37,12 +39,20 @@ export const DocumentPreview = ({ id }: Props) => {
   const navigate = useNavigate();
 
   const [addTag] = enhancedApi.useAddTagToDocumentMutation();
+  const [removeTag] = enhancedApi.useRemoveTagFromDocumentMutation();
 
   const addTagToDocument = useCallback(
     (tag: string) => {
       addTag({ documentId: id, tag });
     },
     [addTag, id],
+  );
+
+  const removeTagFromDocument = useCallback(
+    (tag: ApiTag) => {
+      removeTag({ documentId: id, tag: tagToString(tag) });
+    },
+    [removeTag, id],
   );
 
   if (!blob || !objectUrl) {
@@ -53,25 +63,29 @@ export const DocumentPreview = ({ id }: Props) => {
     <>
       <div
         className={twMerge(
-          "absolute flex flex-col gap-2 top-0 w-1/4 h-full z-0 bg-gray-800 p-2 border-b-2 border-gray-700 duration-200",
+          "absolute flex flex-col items-start gap-2 top-0 w-1/4 h-full z-0 bg-gray-800 p-2 border-b-2 border-gray-700 duration-200",
           tagListOpen ? "left-0" : "-left-1/4",
         )}
       >
-        <TagList
-          tags={data?.tags || []}
-          onClick={(tag) =>
-            navigate(`?q=${tag.key}${tag.value ? `:${tag.value}` : ""}`)
-          }
-          className="grow"
-        />
-        <TagInput
-          value={tagInput}
-          onChange={setTagInput}
-          onSubmit={addTagToDocument}
-          direction="up"
-          className="text-white"
-          clearOnSubmit
-        />
+        <div className="flex-col grow w-full overflow-y-auto">
+          <TagList
+            tags={data?.tags || []}
+            onClick={(tag) =>
+              navigate(`?q=${tag.key}${tag.value ? `:${tag.value}` : ""}`)
+            }
+            onDelete={removeTagFromDocument}
+          />
+        </div>
+        <div className="flex-col w-full">
+          <TagInput
+            value={tagInput}
+            onChange={setTagInput}
+            onSubmit={addTagToDocument}
+            direction="up"
+            className="text-white"
+            clearOnSubmit
+          />
+        </div>
       </div>
       <div
         className={twMerge(
