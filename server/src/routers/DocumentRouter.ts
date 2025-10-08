@@ -8,13 +8,27 @@ import type { DocumentService } from "../documents/DocumentService.js";
 import type { PaginatedResponse } from "../util/PaginatedResponse.js";
 import type { Document } from "../documents/DocumentRepository.js";
 import type { TagService } from "../tags/TagService.js";
+import z from "zod";
 
 export const documentRouter = Router();
 
+type DocumentUpload = {
+  tags: string;
+};
+
 documentRouter.post(
   "/upload",
-  apiHandler<EmptyObject, { webSocketClientId: string; extension: string }>(
-    async ({ diContainer, files, query: { webSocketClientId, extension } }) => {
+  apiHandler<
+    EmptyObject,
+    { webSocketClientId: string; extension: string },
+    DocumentUpload
+  >(
+    async ({
+      diContainer,
+      files,
+      query: { webSocketClientId, extension },
+      body: { tags },
+    }) => {
       const file = files?.upload;
       if (!file || Array.isArray(file)) {
         throw new ApiError(
@@ -43,6 +57,11 @@ documentRouter.post(
         mimeType: file.mimetype,
         webSocketClientId: decodeURIComponent(webSocketClientId),
         extension,
+        tags: z
+          .array(
+            z.object({ key: z.string(), value: z.string().or(z.undefined()) }),
+          )
+          .parse(JSON.parse(tags)),
       });
 
       return {

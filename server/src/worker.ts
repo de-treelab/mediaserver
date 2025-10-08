@@ -9,13 +9,33 @@ import {
   videoPlugin,
 } from "./plugins/standardPlugins.js";
 import { addFileTypePlugin } from "./plugins/fileTypes.js";
+import { setupDiContainer } from "./DiContainer.js";
+import { TagService } from "./tags/TagService.js";
+import { services } from "./DefaultDiContainer.js";
+import type { DbService } from "./sql/DbService.js";
+import { DocumentService } from "./documents/DocumentService.js";
+import { RedisClient } from "./redis/RedisClient.js";
+import { type Logger } from "./common/LoggingService.js";
 
 addFileTypePlugin(imagePlugin);
 addFileTypePlugin(videoPlugin);
 addFileTypePlugin(pdfPlugin);
 
+const diContainer = await setupDiContainer();
+
+const logger = diContainer.get<Logger>(services.logger);
+
+await diContainer.get<DbService>(services.db).connect();
+await diContainer.get<RedisClient>(services.redis).connect();
+
+const tagService = diContainer.get<TagService>(services.tag);
+await tagService.initIdCache();
+
 const messageServiceClient = new MessageServiceClient();
-const messageServiceServer = new WorkerMessageService();
+const messageServiceServer = new WorkerMessageService(
+  tagService,
+  diContainer.get<DocumentService>(services.document),
+);
 messageServiceServer.client = messageServiceClient;
 
 const { port1, port2 } = new MessageChannel();
@@ -33,6 +53,8 @@ let isRunning = true;
 parentPort?.on("close", () => {
   isRunning = false;
 });
+
+logger.info("Worker started");
 
 while (isRunning) {
   await messageServiceServer.processMessages();

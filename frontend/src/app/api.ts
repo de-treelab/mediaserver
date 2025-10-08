@@ -5,6 +5,7 @@ import { baseApi } from "./baseApi";
 type DocumentUpload = {
   file: File;
   webSocketClientId: string;
+  tags: ApiTag[];
 };
 
 type Document = {
@@ -34,9 +35,10 @@ export const api = baseApi.injectEndpoints({
     }),
 
     documentUpload: build.mutation<void, DocumentUpload>({
-      query: ({ file, webSocketClientId }) => {
+      query: ({ file, webSocketClientId, tags }) => {
         const formData = new FormData();
         formData.append("upload", file);
+        formData.append("tags", JSON.stringify(tags));
         return {
           url: `/documents/upload?webSocketClientId=${encodeURIComponent(
             webSocketClientId,

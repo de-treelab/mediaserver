@@ -93,4 +93,12 @@ export class EnvironmentService {
       ),
     };
   }
+
+  public get redisHost(): string {
+    return this.getRequiredStringEnvVar("REDIS_HOST");
+  }
+
+  public get redisPort(): number {
+    return this.getRequiredNumberEnvVar("REDIS_PORT");
+  }
 }

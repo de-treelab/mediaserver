@@ -1,4 +1,4 @@
-import { MetaTag, Tag, TagIdCache, TagParser } from "@lars_hagemann/tags";
+import { MetaTag, Tag, TagParser } from "@lars_hagemann/tags";
 import type { DbService } from "../sql/DbService.js";
 import {
   paginated,
@@ -14,6 +14,7 @@ import {
 } from "./TagSqlBuilder.js";
 import z from "zod";
 import type { Document } from "../documents/DocumentRepository.js";
+import type { TagCache } from "./TagCache.js";
 
 export interface ListTagsRequest {
   limit: number;
@@ -59,7 +60,7 @@ export class TagRepository {
 
   constructor(
     private readonly dbService: DbService,
-    private readonly tagIdCache: TagIdCache,
+    private readonly tagCache: TagCache,
   ) {
     this.sqlBuilder = new TagSqlBuilder(
       {
@@ -73,7 +74,7 @@ export class TagRepository {
         ],
         userdataTableIdColumn: "id",
       },
-      tagIdCache,
+      tagCache,
     );
   }
 
@@ -83,7 +84,7 @@ export class TagRepository {
     query,
   }: ListDocumentsRequest): Promise<PaginatedResponse<Document>> {
     const filter = new TagParser(query).parse();
-    const sql = this.sqlBuilder.buildListFilteredEntitiesQuery(filter);
+    const sql = await this.sqlBuilder.buildListFilteredEntitiesQuery(filter);
 
     if (sql.success) {
       const items = await this.dbService.any(
@@ -156,7 +157,7 @@ export class TagRepository {
 
     let j = 0;
     for (const row of result) {
-      this.tagIdCache.onTagAdded(tags[j++]!, row.id.toString());
+      this.tagCache.onTagAdded(tags[j++]!, row.id.toString());
     }
   }
 
@@ -164,7 +165,7 @@ export class TagRepository {
     documentId: string,
     tag: Tag | MetaTag,
   ): Promise<void> {
-    const a = this.sqlBuilder.buildAddTagToEntityQuery(tag);
+    const a = await this.sqlBuilder.buildAddTagToEntityQuery(tag);
     if (a.success) {
       await this.dbService.none(buildQueryFromInsertStatement(a.stmt), {
         entityId: documentId,

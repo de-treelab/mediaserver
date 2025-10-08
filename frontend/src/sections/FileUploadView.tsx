@@ -55,13 +55,22 @@ const FileList = ({ files }: { files: FileProxy[] }) => {
   return (
     <div className="bg-white p-2 basis-full">
       {files.map((file, idx) => (
-        <div className="flex flex-row text-center p-1 items-center" key={idx}>
+        <div
+          title={file.errorReason}
+          className="flex flex-row text-center p-1 items-center"
+          key={idx}
+        >
           <Icon
             Icon={fileIconFromFile(file)}
             size="xxlarge"
             className="text-gray-500 mr-4 basis-12"
           />
-          <span className="text-lg grow basis-full text-left">{file.name}</span>
+          <span
+            title={file.name}
+            className="text-lg grow basis-full text-left grow-0 overflow-x-hidden text-ellipsis"
+          >
+            {file.name}
+          </span>
           {fileProxyStatusToIcon(file)}
         </div>
       ))}

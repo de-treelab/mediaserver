@@ -4,10 +4,10 @@ import {
   NotTag,
   OrTag,
   Tag,
-  TagIdCache,
   TrueTag,
   type Filter,
 } from "@lars_hagemann/tags";
+import type { TagCache } from "./TagCache.js";
 
 export type TagSqlBuilderConfig = {
   userdataTableName: string;
@@ -161,7 +161,7 @@ export class TagSqlBuilder {
 
   constructor(
     private readonly builderConfig: TagSqlBuilderConfig,
-    private readonly tagIdCache: TagIdCache,
+    private readonly tagCache: TagCache,
   ) {
     this.currentParse = {
       sortBy: "created_at",
@@ -169,7 +169,7 @@ export class TagSqlBuilder {
     };
   }
 
-  private parseMetaTag(tag: MetaTag): string {
+  private async parseMetaTag(tag: MetaTag): Promise<string> {
     if (tag.key === "sort") {
       switch (tag.value) {
         case "random":
@@ -187,15 +187,15 @@ export class TagSqlBuilder {
       return `1=1`;
     }
 
-    return `SUM(CASE WHEN ut.tag_id = '${this.tagIdCache.tagToTagId(
+    return `SUM(CASE WHEN ut.tag_id = '${await this.tagCache.tagToTagId(
       tag,
     )}' THEN 1 ELSE 0 END) > 0`;
   }
 
-  private sqlFilterConditions(filter: Filter): string {
+  private async sqlFilterConditions(filter: Filter): Promise<string> {
     if (filter instanceof Tag) {
       try {
-        return `SUM(CASE WHEN ut.tag_id = '${this.tagIdCache.tagToTagId(
+        return `SUM(CASE WHEN ut.tag_id = '${await this.tagCache.tagToTagId(
           filter,
         )}' THEN 1 ELSE 0 END) > 0`;
       } catch (err) {
@@ -207,19 +207,19 @@ export class TagSqlBuilder {
         throw err;
       }
     } else if (filter instanceof MetaTag) {
-      return this.parseMetaTag(filter);
+      return await this.parseMetaTag(filter);
     } else if (filter instanceof TrueTag) {
       return `1=1`;
     } else if (filter instanceof OrTag) {
-      return `(${this.sqlFilterConditions(
+      return `(${await this.sqlFilterConditions(
         filter.left,
-      )} OR ${this.sqlFilterConditions(filter.right)})`;
+      )} OR ${await this.sqlFilterConditions(filter.right)})`;
     } else if (filter instanceof AndTag) {
-      return `(${this.sqlFilterConditions(
+      return `(${await this.sqlFilterConditions(
         filter.left,
-      )} AND ${this.sqlFilterConditions(filter.right)})`;
+      )} AND ${await this.sqlFilterConditions(filter.right)})`;
     } else if (filter instanceof NotTag) {
-      return `NOT (${this.sqlFilterConditions(filter.inner)})`;
+      return `NOT (${await this.sqlFilterConditions(filter.inner)})`;
     }
 
     return "1=1";
@@ -230,9 +230,9 @@ export class TagSqlBuilder {
     this.currentParse.sortDirection = "desc";
   }
 
-  public buildListFilteredEntitiesQuery(
+  public async buildListFilteredEntitiesQuery(
     filter: Filter,
-  ): TagSqlBuilderResult<SelectStatement, ["$limit", "$offset"]> {
+  ): Promise<TagSqlBuilderResult<SelectStatement, ["$limit", "$offset"]>> {
     this.setupParse();
 
     try {
@@ -252,7 +252,7 @@ export class TagSqlBuilder {
             },
           ],
           groupBy: `u.${this.builderConfig.userdataTableIdColumn}`,
-          having: `${this.sqlFilterConditions(filter)}`,
+          having: `${await this.sqlFilterConditions(filter)}`,
           sort: [
             {
               field: this.currentParse.sortBy,
@@ -310,11 +310,11 @@ export class TagSqlBuilder {
     }
   }
 
-  public buildAddTagToEntityQuery(
+  public async buildAddTagToEntityQuery(
     tag: Tag | MetaTag,
-  ): TagSqlBuilderResult<InsertStatement, ["$entityId"]> {
+  ): Promise<TagSqlBuilderResult<InsertStatement, ["$entityId"]>> {
     try {
-      const id = this.tagIdCache.tagToTagId(tag);
+      const id = await this.tagCache.tagToTagId(tag);
       return {
         success: true,
         stmt: {
@@ -338,7 +338,7 @@ export class TagSqlBuilder {
     tag: Tag | MetaTag,
   ): TagSqlBuilderResult<DeleteStatement, ["$entityId"]> {
     try {
-      const id = this.tagIdCache.tagToTagId(tag);
+      const id = this.tagCache.tagToTagId(tag);
       return {
         success: true,
         stmt: {
