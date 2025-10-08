@@ -1,22 +1,36 @@
+import { useMemo } from "react";
 import { enhancedApi } from "../app/enhancedApi";
+import { TagList } from "../components/TagList";
+import { usePageOffsetAndLimitParams } from "../hooks/usePageOffsetAndLimitParams";
+import { Pagination } from "../components/Pagination";
+import { useNavigate } from "react-router";
 
 export const TagsPage = () => {
-  const { data, error, isLoading } = enhancedApi.useListTagsQuery({});
+  const { limit, offset, page, setPage } = usePageOffsetAndLimitParams();
+
+  const { data } = enhancedApi.useListTagsQuery({
+    limit: limit,
+    offset: offset,
+  });
+
+  const total = useMemo(() => data?.total || 0, [data?.total]);
+
+  const navigate = useNavigate();
 
   return (
     <div>
-      <h3>Tags</h3>
-      <ul>
-        {error && <li>Error loading tags: {JSON.stringify(error)}</li>}
-        {isLoading && <li>Loading tags...</li>}
-        {!isLoading && data?.items.length === 0 && <li>No tags found.</li>}
-        {data?.items.map((tag) => (
-          <li key={`${tag.key}:${tag.value ?? ""}`}>
-            {tag.key}
-            {tag.value ? `:${tag.value}` : ""} (used {tag.usageCount} times)
-          </li>
-        ))}
-      </ul>
+      <Pagination
+        total={total}
+        limit={limit}
+        currentPage={page}
+        onPageChange={setPage}
+      />
+      <TagList
+        tags={data?.items ?? []}
+        onClick={(tag) =>
+          navigate(`../gallery?q=${tag.key}${tag.value ? `:${tag.value}` : ""}`)
+        }
+      />
     </div>
   );
 };

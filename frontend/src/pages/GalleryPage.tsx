@@ -3,19 +3,28 @@ import { ThumbnailContainer } from "../components/ThumbnailContainer";
 import { Pagination } from "../components/Pagination";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useSearchParams } from "react-router";
 import { PreviewContainer } from "../sections/PreviewContainer";
+import { useEasySearchParams } from "../hooks/useEasySearchParams";
+import { usePageOffsetAndLimitParams } from "../hooks/usePageOffsetAndLimitParams";
+import { TagInput } from "../sections/TagInput";
 
 export const GalleryPage = () => {
   const { t } = useTranslation();
 
-  const [currentPage, setCurrentPage] = useState(0);
-  const limit = useMemo(() => 60, []);
-  const offset = useMemo(() => currentPage * limit, [currentPage, limit]);
+  const { limit, offset, page, setPage } = usePageOffsetAndLimitParams();
+
+  const {
+    params: { preview: previewDocumentSearchParam, q: query },
+    addSearchParam,
+    removeSearchParam,
+  } = useEasySearchParams(["preview", "q"]);
+
+  const [tagInput, setTagInput] = useState(query ?? "");
 
   const { currentData: data } = enhancedApi.useListDocumentsQuery({
     limit: limit,
     offset: offset,
+    query: query,
   });
 
   const idToDocument = useMemo(
@@ -25,9 +34,6 @@ export const GalleryPage = () => {
 
   const total = useMemo(() => data?.total || 0, [data?.total]);
 
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  const previewDocumentSearchParam = searchParams.get("preview");
   const previewDocument = useMemo(
     () =>
       previewDocumentSearchParam
@@ -39,20 +45,12 @@ export const GalleryPage = () => {
   const setPreviewDocument = useCallback(
     (previewDocumentId: string | undefined) => {
       if (previewDocumentId) {
-        setSearchParams((prev) => {
-          const newParams = new URLSearchParams(prev);
-          newParams.set("preview", previewDocumentId);
-          return newParams;
-        });
+        addSearchParam("preview", previewDocumentId);
       } else {
-        setSearchParams((prev) => {
-          const newParams = new URLSearchParams(prev);
-          newParams.delete("preview");
-          return newParams;
-        });
+        removeSearchParam("preview");
       }
     },
-    [setSearchParams],
+    [addSearchParam, removeSearchParam],
   );
 
   const nextPreviewImage = useCallback(() => {
@@ -69,11 +67,19 @@ export const GalleryPage = () => {
 
   return (
     <>
+      <TagInput
+        value={tagInput}
+        onChange={setTagInput}
+        onValidChange={() => {}}
+        onSubmit={(value) => addSearchParam("q", value)}
+        className="mb-2"
+        blurOnSubmit
+      />
       <Pagination
         total={total}
         limit={limit}
-        currentPage={currentPage}
-        onPageChange={setCurrentPage}
+        currentPage={page}
+        onPageChange={setPage}
       />
       <ThumbnailContainer
         ids={data?.items.map((doc) => doc.id) || []}
@@ -91,8 +97,8 @@ export const GalleryPage = () => {
       <Pagination
         total={total}
         limit={limit}
-        currentPage={currentPage}
-        onPageChange={setCurrentPage}
+        currentPage={page}
+        onPageChange={setPage}
       />
       {previewDocument && (
         <PreviewContainer
@@ -104,7 +110,7 @@ export const GalleryPage = () => {
           nextPreviewImage={nextPreviewImage}
           previousPreviewImage={prevPreviewImage}
           previewImageIndex={previewDocument.queryIndex}
-          queryParams={{ limit, offset }}
+          queryParams={{ limit, offset, query }}
           onClose={() => setPreviewDocument(undefined)}
         />
       )}

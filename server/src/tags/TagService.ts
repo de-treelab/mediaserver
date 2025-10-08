@@ -1,5 +1,12 @@
 import { MetaTag, Tag } from "@lars_hagemann/tags";
-import type { TagRepository } from "./TagRepository.js";
+import type {
+  ApiTag,
+  ListDocumentsRequest,
+  TagRepository,
+} from "./TagRepository.js";
+import type { PaginatedResponse } from "../util/PaginatedResponse.js";
+import type { Document } from "../documents/DocumentRepository.js";
+import type { TagCache } from "./TagCache.js";
 
 export type ListTagsRequest = {
   limit: number;
@@ -8,9 +15,12 @@ export type ListTagsRequest = {
 };
 
 export class TagService {
-  constructor(private tagRepository: TagRepository) {}
+  constructor(
+    private tagRepository: TagRepository,
+    private readonly tagCache: TagCache,
+  ) {}
 
-  private normalizeTag(tag: string): Tag | MetaTag {
+  public static normalizeTag(tag: string): Tag | MetaTag {
     const parts = tag.split(":", 2);
     if (parts.length === 1) {
       return new Tag(parts[0]!.trim());
@@ -19,21 +29,47 @@ export class TagService {
     }
   }
 
+  public static toString(tag: Tag | MetaTag) {
+    return `${tag.key}${"value" in tag ? `:${tag.value}` : ""}`;
+  }
+
   public async listTags(request: ListTagsRequest) {
     return this.tagRepository.listTags({
       ...request,
-      tag: this.normalizeTag(request.query),
+      tag: TagService.normalizeTag(request.query),
     });
   }
 
+  public async listDocuments(
+    request: ListDocumentsRequest,
+  ): Promise<PaginatedResponse<Document>> {
+    return this.tagRepository.listDocuments(request);
+  }
+
+  public async getTagsForDocument(documentId: string): Promise<ApiTag[]> {
+    return await this.tagRepository.getTagsForDocument(documentId);
+  }
+
   public async addTagToDocument(documentId: string, tag: string) {
-    const tagObject = this.normalizeTag(tag);
+    const tagObject = TagService.normalizeTag(tag);
     await this.tagRepository.addTags([tagObject]);
     await this.tagRepository.addTagToDocument(documentId, tagObject);
   }
 
   public async removeTagFromDocument(documentId: string, tag: string) {
-    const tagObject = this.normalizeTag(tag);
+    const tagObject = TagService.normalizeTag(tag);
     await this.tagRepository.removeTagFromDocument(documentId, tagObject);
+  }
+
+  public async initIdCache(): Promise<void> {
+    const tags = await this.tagRepository.enumerateTags();
+    this.tagCache.init(
+      tags.map((tag) => ({
+        tagId: tag.id.toString(),
+        tag: TagService.normalizeTag(
+          `${tag.key}${tag.value ? `:${tag.value}` : ""}`,
+        ),
+      })),
+    );
   }
 }

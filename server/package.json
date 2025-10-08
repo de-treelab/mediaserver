@@ -35,7 +35,7 @@
     "typescript-eslint": "^8.41.0"
   },
   "dependencies": {
-    "@lars_hagemann/tags": "^0.1.0",
+    "@lars_hagemann/tags": "^1.0.4",
     "check-disk-space": "^3.4.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
@@ -44,6 +44,7 @@
     "node-dependency-injection": "^3.2.2",
     "pdf-thumbnail": "^1.0.6",
     "pg": "^8.16.3",
+    "redis": "^5.8.3",
     "sharp": "^0.34.3",
     "uuid": "^11.1.0",
     "ws": "^8.18.3",

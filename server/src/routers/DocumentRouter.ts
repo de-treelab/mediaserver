@@ -7,13 +7,28 @@ import type { EmptyObject } from "../common/EmptyObject.js";
 import type { DocumentService } from "../documents/DocumentService.js";
 import type { PaginatedResponse } from "../util/PaginatedResponse.js";
 import type { Document } from "../documents/DocumentRepository.js";
+import type { TagService } from "../tags/TagService.js";
+import z from "zod";
 
 export const documentRouter = Router();
 
+type DocumentUpload = {
+  tags: string;
+};
+
 documentRouter.post(
   "/upload",
-  apiHandler<EmptyObject, { webSocketClientId: string; extension: string }>(
-    async ({ diContainer, files, query: { webSocketClientId, extension } }) => {
+  apiHandler<
+    EmptyObject,
+    { webSocketClientId: string; extension: string },
+    DocumentUpload
+  >(
+    async ({
+      diContainer,
+      files,
+      query: { webSocketClientId, extension },
+      body: { tags },
+    }) => {
       const file = files?.upload;
       if (!file || Array.isArray(file)) {
         throw new ApiError(
@@ -42,6 +57,11 @@ documentRouter.post(
         mimeType: file.mimetype,
         webSocketClientId: decodeURIComponent(webSocketClientId),
         extension,
+        tags: z
+          .array(
+            z.object({ key: z.string(), value: z.string().or(z.undefined()) }),
+          )
+          .parse(JSON.parse(tags)),
       });
 
       return {
@@ -54,18 +74,21 @@ documentRouter.post(
 
 documentRouter.get(
   "/",
-  apiHandler<PaginatedResponse<Document>, { limit?: number; offset?: number }>(
-    async ({ diContainer, query: { limit = 100, offset = 0 } }) => {
-      const documentService = diContainer.get<DocumentService>(
-        services.document,
-      );
-      const response = await documentService.listDocuments({ limit, offset });
-      return {
-        status: 200,
-        body: response,
-      };
-    },
-  ),
+  apiHandler<
+    PaginatedResponse<Document>,
+    { limit?: number; offset?: number; query?: string }
+  >(async ({ diContainer, query: { limit = 100, offset = 0, query = "" } }) => {
+    const tagService = diContainer.get<TagService>(services.tag);
+    const response = await tagService.listDocuments({
+      limit,
+      offset,
+      query: decodeURIComponent(query),
+    });
+    return {
+      status: 200,
+      body: response,
+    };
+  }),
 );
 
 documentRouter.get(

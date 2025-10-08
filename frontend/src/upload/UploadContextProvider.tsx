@@ -1,11 +1,16 @@
 import React, { useCallback, useEffect } from "react";
-import { UploadContext, type FileProxy } from "./UploadContext";
+import {
+  UploadContext,
+  type FileProxy,
+  type FileWithTags,
+} from "./UploadContext";
 import { useSet } from "../hooks/useSet";
 import {
   useWebSocketContext,
   type WebSocketIncomingMessageSchema,
 } from "../websocket/WebSocketContext";
 import { enhancedApi } from "../app/enhancedApi";
+import type { ApiTag } from "../app/api";
 
 export const UploadContextProvider: React.FC<{
   children: React.ReactNode;
@@ -14,7 +19,7 @@ export const UploadContextProvider: React.FC<{
     set: toBeUploaded,
     add: addToBeUploaded,
     remove: removeFromBeUploaded,
-  } = useSet<File>();
+  } = useSet<FileWithTags>();
   const {
     set: toBeProcessed,
     add: addToBeProcessed,
@@ -24,19 +29,21 @@ export const UploadContextProvider: React.FC<{
   const { set: failedFiles, add: addFailedFile } = useSet<FileProxy>();
 
   const markFileAsToBeUploaded = useCallback(
-    (file: File) => {
-      addToBeUploaded(file);
+    (file: File, tags: ApiTag[]) => {
+      addToBeUploaded({ file, tags });
     },
     [addToBeUploaded],
   );
 
   const markFileAsBeingProcessed = useCallback(
     (file: string) => {
-      const fileObj = Array.from(toBeUploaded).find((f) => f.name === file);
+      const fileObj = Array.from(toBeUploaded).find(
+        (f) => f.file.name === file,
+      );
       if (fileObj) {
         addToBeProcessed({
-          name: fileObj.name,
-          type: fileObj.type,
+          name: fileObj.file.name,
+          type: fileObj.file.type,
           status: "uploading",
         });
         removeFromBeUploaded(fileObj);
@@ -126,8 +133,12 @@ export const UploadContextProvider: React.FC<{
 
   useEffect(() => {
     if (toBeUploaded.size > 0 && webSocketClientId) {
-      const file = Array.from(toBeUploaded)[0];
-      uploadDocument({ file, webSocketClientId });
+      const { file, tags } = Array.from(toBeUploaded)[0];
+      uploadDocument({
+        file,
+        webSocketClientId,
+        tags,
+      });
       markFileAsBeingProcessed(file.name);
     }
   }, [

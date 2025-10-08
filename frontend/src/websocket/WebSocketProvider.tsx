@@ -22,8 +22,10 @@ export const WebSocketContextProvider: React.FC<{
     readyState,
     sendMessage: rawSendMessage,
   } = useWebSocket(import.meta.env.VITE_WEBSOCKET_URL, {
-    reconnectAttempts: 5,
-    reconnectInterval: 1000,
+    reconnectInterval: (lastAttemptNumber: number) =>
+      Math.min(1000 * 2 ** lastAttemptNumber, 5000),
+    shouldReconnect: () => true,
+    retryOnError: true,
     protocols: [],
   });
 

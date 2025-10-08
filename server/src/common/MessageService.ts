@@ -2,6 +2,9 @@ import type { MessagePort } from "worker_threads";
 import type { WebSocketService } from "../websocket/WebSocketService.js";
 import { FileService } from "../files/FileService.js";
 import { ApiError } from "./ApiError.js";
+import type { ApiTag } from "../tags/TagRepository.js";
+import type { TagService } from "../tags/TagService.js";
+import { tagToString } from "../util/tag.js";
 import type { DocumentService } from "../documents/DocumentService.js";
 
 type ProcessUploadMessage = {
@@ -12,6 +15,7 @@ type ProcessUploadMessage = {
   mimeType: string;
   extension: string;
   webSocketClientId: string;
+  tags: ApiTag[];
 };
 
 type UploadFinishedMessage = {
@@ -108,6 +112,13 @@ abstract class MessageService {
 }
 
 export class WorkerMessageService extends MessageService {
+  constructor(
+    private readonly tagService: TagService,
+    private readonly documentService: DocumentService,
+  ) {
+    super(false);
+  }
+
   private readonly fileService = new FileService();
 
   async processUploadMessage(upload: ProcessUploadMessage): Promise<void> {
@@ -117,6 +128,19 @@ export class WorkerMessageService extends MessageService {
         upload.mimeType,
         upload.extension,
         upload.size,
+      );
+
+      await this.documentService.createDocument({
+        id,
+        basePath,
+        filename,
+        type: upload.mimeType,
+      });
+
+      await Promise.all(
+        upload.tags.map((tag) =>
+          this.tagService.addTagToDocument(id, tagToString(tag)),
+        ),
       );
 
       this.client_?.sendMessage({
@@ -159,10 +183,7 @@ export class WorkerMessageService extends MessageService {
 }
 
 export class MainMessageService extends MessageService {
-  constructor(
-    private readonly webSocketServer: WebSocketService,
-    private readonly documentService: DocumentService,
-  ) {
+  constructor(private readonly webSocketServer: WebSocketService) {
     super(true);
   }
 
@@ -174,13 +195,6 @@ export class MainMessageService extends MessageService {
   async processUploadFinishedMessage(
     finished: UploadFinishedMessage,
   ): Promise<void> {
-    await this.documentService.createDocument({
-      id: finished.id,
-      basePath: finished.basePath,
-      filename: finished.filename,
-      type: finished.mimeType,
-    });
-
     await this.webSocketServer.send(
       JSON.stringify({
         type: "upload-finished",

@@ -8,7 +8,7 @@ export const SideBar = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col h-[100vh] inline-block p-2 bg-gray-700">
+    <div className="flex flex-col h-[100vh] inline-block p-2 bg-gray-700 z-200">
       <SideBarButton
         Icon={RiGalleryView2}
         pathPrefix="/gallery"

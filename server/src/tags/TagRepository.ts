@@ -1,4 +1,4 @@
-import { MetaTag, Tag, TagIdCache } from "@lars_hagemann/tags";
+import { MetaTag, Tag, TagParser } from "@lars_hagemann/tags";
 import type { DbService } from "../sql/DbService.js";
 import {
   paginated,
@@ -8,17 +8,33 @@ import {
 import { TagParseError } from "./TagParseError.js";
 import {
   buildQueryFromDeleteStatement,
+  buildQueryFromInsertStatement,
   buildQueryFromSelectStatement,
-  buildQueryFromUpdateStatement,
   TagSqlBuilder,
 } from "./TagSqlBuilder.js";
 import z from "zod";
+import type { Document } from "../documents/DocumentRepository.js";
+import type { TagCache } from "./TagCache.js";
 
 export interface ListTagsRequest {
   limit: number;
   offset: number;
   tag: Tag | MetaTag;
 }
+
+export type ListDocumentsRequest = {
+  offset: number;
+  limit: number;
+  query: string;
+};
+
+const documentRowSchema = z.object({
+  id: z.string(),
+  mime: z.string(),
+  previous_id: z.string().nullable(),
+  next_id: z.string().nullable(),
+  query_index: z.coerce.number().int().min(0),
+});
 
 const tagRowSchema = z.object({
   id: z.number(),
@@ -44,16 +60,52 @@ export class TagRepository {
 
   constructor(
     private readonly dbService: DbService,
-    private readonly tagIdCache: TagIdCache,
+    private readonly tagCache: TagCache,
   ) {
     this.sqlBuilder = new TagSqlBuilder(
       {
         userdataTableName: "documents",
-        userdataTableColumns: ["id"],
+        userdataTableColumns: [
+          "id",
+          "mime",
+          "row_number() OVER (ORDER BY created_at DESC) - 1 AS query_index",
+          "LAG(id) OVER (ORDER BY created_at DESC) AS previous_id",
+          "LEAD(id) OVER (ORDER BY created_at DESC) AS next_id",
+        ],
         userdataTableIdColumn: "id",
       },
-      tagIdCache,
+      tagCache,
     );
+  }
+
+  public async listDocuments({
+    offset,
+    limit,
+    query,
+  }: ListDocumentsRequest): Promise<PaginatedResponse<Document>> {
+    const filter = new TagParser(query).parse();
+    const sql = await this.sqlBuilder.buildListFilteredEntitiesQuery(filter);
+
+    if (sql.success) {
+      const items = await this.dbService.any(
+        paginated(documentRowSchema),
+        buildQueryFromSelectStatement(sql.stmt),
+        { limit, offset },
+      );
+
+      return toPaginatedResponse(
+        items.map((item) => ({
+          id: item.id,
+          mime: item.mime,
+          previousId: item.previous_id ?? undefined,
+          nextId: item.next_id ?? undefined,
+          queryIndex: item.query_index,
+          __total: item.__total,
+        })),
+      );
+    } else {
+      throw new TagParseError(sql.message);
+    }
   }
 
   public async listTags(
@@ -86,30 +138,36 @@ export class TagRepository {
   }
 
   public async addTags(tags: (Tag | MetaTag)[]): Promise<void> {
-    let i = 0;
+    let i = 1;
     const valuesStmt = tags
       .map(() => {
         return `($${i++}, $${i++})`;
       })
       .join(", ");
 
-    await this.dbService.none(
-      `INSERT INTO tags (key, value) VALUES ${valuesStmt} ON CONFLICT DO NOTHING`,
+    const result = await this.dbService.any(
+      z.object({ id: z.number() }),
+      `INSERT INTO tags (key, value) VALUES ${valuesStmt} ON CONFLICT DO NOTHING RETURNING id`,
       tags
         .map((tag) =>
           tag instanceof MetaTag ? [tag.key, tag.value] : [tag.key, null],
         )
         .flat(1),
     );
+
+    let j = 0;
+    for (const row of result) {
+      this.tagCache.onTagAdded(tags[j++]!, row.id.toString());
+    }
   }
 
   public async addTagToDocument(
     documentId: string,
     tag: Tag | MetaTag,
   ): Promise<void> {
-    const a = this.sqlBuilder.buildAddTagToEntityQuery(tag);
+    const a = await this.sqlBuilder.buildAddTagToEntityQuery(tag);
     if (a.success) {
-      await this.dbService.none(buildQueryFromUpdateStatement(a.stmt), {
+      await this.dbService.none(buildQueryFromInsertStatement(a.stmt), {
         entityId: documentId,
       });
     } else {
@@ -129,5 +187,27 @@ export class TagRepository {
     } else {
       throw new TagParseError(a.message);
     }
+  }
+
+  public async getTagsForDocument(documentId: string): Promise<ApiTag[]> {
+    const sql = this.sqlBuilder.buildListEntityTagsQuery();
+    if (sql.success) {
+      const rows = await this.dbService.any(
+        tagRowSchema,
+        buildQueryFromSelectStatement(sql.stmt),
+        { entityId: documentId },
+      );
+      return rows.map((row) => ({
+        key: row.key,
+        value: row.value ?? undefined,
+      }));
+    } else {
+      throw new TagParseError(sql.message);
+    }
+  }
+
+  public async enumerateTags() {
+    const rows = await this.dbService.any(tagRowSchema, `SELECT * FROM tags`);
+    return rows;
   }
 }

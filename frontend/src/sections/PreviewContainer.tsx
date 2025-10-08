@@ -31,7 +31,10 @@ export const PreviewContainer = ({
   const { data } = enhancedApi.useListDocumentsQuery({
     ...queryParams,
     limit: 5,
-    offset: Math.min(Math.max(previewImageIndex - 2, 0), totalDocuments - 5),
+    offset: Math.min(
+      Math.max(previewImageIndex - 2, 0),
+      Math.max(totalDocuments - 5, 0),
+    ),
   });
 
   useEffect(() => {
@@ -53,6 +56,12 @@ export const PreviewContainer = ({
 
   return (
     <>
+      <div
+        className="fixed top-4 right-4 z-200 text-3xl cursor-pointer"
+        onClick={onClose}
+      >
+        X
+      </div>
       <div className="fixed top-0 right-0 w-[calc(100%-4.25rem)] h-[calc(100%-120px-1rem)] bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
         <DocumentPreview id={previewImageId} />
       </div>

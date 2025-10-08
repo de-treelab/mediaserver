@@ -11,9 +11,10 @@ import {
   MessageServiceClient,
 } from "./common/MessageService.js";
 import { WebSocketService } from "./websocket/WebSocketService.js";
-import { TagIdCache } from "@lars_hagemann/tags";
 import { TagRepository } from "./tags/TagRepository.js";
 import { TagService } from "./tags/TagService.js";
+import { TagCache } from "./tags/TagCache.js";
+import { RedisClient } from "./redis/RedisClient.js";
 
 export const services = {
   environment: "service.environment",
@@ -26,12 +27,13 @@ export const services = {
   messageServer: "service.messageServer",
   websocket: "service.websocket",
   tag: "service.tag",
+  redis: "service.redis",
 };
 
 export const repositories = {
   document: "repository.document",
   tag: "repository.tag",
-  tagIdCache: "repository.tagIdCache",
+  tagCache: "repository.tagCache",
 };
 
 export const defaultDiContainer = (diContainer: ContainerBuilder) => {
@@ -52,7 +54,8 @@ export const defaultDiContainer = (diContainer: ContainerBuilder) => {
 
   diContainer
     .register(services.document, DocumentService)
-    .addArgument(new Reference(repositories.document));
+    .addArgument(new Reference(repositories.document))
+    .addArgument(new Reference(services.tag));
 
   diContainer
     .register(services.file, FileService)
@@ -72,18 +75,25 @@ export const defaultDiContainer = (diContainer: ContainerBuilder) => {
 
   diContainer
     .register(services.tag, TagService)
-    .addArgument(new Reference(repositories.tag));
+    .addArgument(new Reference(repositories.tag))
+    .addArgument(new Reference(repositories.tagCache));
+
+  diContainer
+    .register(services.redis, RedisClient)
+    .addArgument(new Reference(services.environment));
 
   diContainer
     .register(repositories.document, DocumentRepository)
     .addArgument(new Reference(services.db));
 
-  diContainer.register(repositories.tagIdCache, TagIdCache);
+  diContainer
+    .register(repositories.tagCache, TagCache)
+    .addArgument(new Reference(services.redis));
 
   diContainer
     .register(repositories.tag, TagRepository)
     .addArgument(new Reference(services.db))
-    .addArgument(new Reference(repositories.tagIdCache));
+    .addArgument(new Reference(repositories.tagCache));
 
   return diContainer;
 };

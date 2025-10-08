@@ -1,11 +1,9 @@
 import path from "path";
-import type { PaginatedResponse } from "../util/PaginatedResponse.js";
 import type {
   CreateDocumentRequest,
-  Document,
   DocumentRepository,
-  ListDocumentsRequest,
 } from "./DocumentRepository.js";
+import type { TagService } from "../tags/TagService.js";
 
 type GetDocumentResponse = {
   path: string;
@@ -13,16 +11,22 @@ type GetDocumentResponse = {
 };
 
 export class DocumentService {
-  constructor(private readonly documentRepository: DocumentRepository) {}
+  constructor(
+    private readonly documentRepository: DocumentRepository,
+    private readonly tagService: TagService,
+  ) {}
 
   public async createDocument(request: CreateDocumentRequest): Promise<void> {
     await this.documentRepository.createDocument(request);
-  }
-
-  public async listDocuments(
-    request: ListDocumentsRequest,
-  ): Promise<PaginatedResponse<Document>> {
-    return this.documentRepository.listDocuments(request);
+    await this.tagService.addTagToDocument(
+      request.id,
+      `uploaded:${new Date().toLocaleDateString("de")}`,
+    );
+    await this.tagService.addTagToDocument(request.id, request.type);
+    await this.tagService.addTagToDocument(
+      request.id,
+      request.type.replaceAll("/", ":"),
+    );
   }
 
   public async getDocumentThumbnail(id: string): Promise<string> {

@@ -1,4 +1,5 @@
 import { createContext, useContext } from "react";
+import type { ApiTag } from "../app/api";
 
 export type FileProxy = {
   type: string;
@@ -7,13 +8,18 @@ export type FileProxy = {
   errorReason?: string;
 };
 
+export type FileWithTags = {
+  file: File;
+  tags: ApiTag[];
+};
+
 type UploadContextType = {
-  toBeUploaded: Set<File>;
+  toBeUploaded: Set<FileWithTags>;
   toBeProcessed: Set<FileProxy>;
   processedFiles: Set<FileProxy>;
   failedFiles: Set<FileProxy>;
 
-  markFileAsToBeUploaded: (file: File) => void;
+  markFileAsToBeUploaded: (file: File, tags: ApiTag[]) => void;
   markFileAsBeingProcessed: (file: string) => void;
   markFileAsProcessed: (file: string) => void;
   markFileAsFailed: (file: string, errorReason: string) => void;
