@@ -6,14 +6,14 @@ import { Provider } from "react-redux";
 import { store } from "./app/store.ts";
 import { WebSocketContextProvider } from "./websocket/WebSocketProvider.tsx";
 import { UploadContextProvider } from "./upload/UploadContextProvider.tsx";
-import * as plugins from "./plugins/standardPlugins.tsx";
+import { standardPlugins } from "./plugins/standardPlugins.tsx";
 import { addFileTypePlugin } from "./plugins/fileTypes.ts";
 
 import "./i18n.ts";
 
-addFileTypePlugin(plugins.imagePlugin);
-addFileTypePlugin(plugins.videoPlugin);
-addFileTypePlugin(plugins.pdfPlugin);
+standardPlugins.forEach((plugin) => {
+  addFileTypePlugin(plugin);
+});
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

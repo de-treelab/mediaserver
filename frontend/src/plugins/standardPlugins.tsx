@@ -1,4 +1,10 @@
-import { FaFile, FaFilePdf, FaImage, FaVideo } from "react-icons/fa";
+import {
+  FaFile,
+  FaFileAudio,
+  FaFilePdf,
+  FaImage,
+  FaVideo,
+} from "react-icons/fa";
 import type { FileTypePlugin } from "./fileTypes";
 
 export const pdfPlugin: FileTypePlugin = {
@@ -28,6 +34,21 @@ export const videoPlugin: FileTypePlugin = {
     <video className="w-full h-full" src={objectUrl} controls />
   ),
 };
+
+export const audioPlugin: FileTypePlugin = {
+  matcher: (type) => type.startsWith("audio"),
+  icon: FaFileAudio,
+  render: (objectUrl) => (
+    <audio className="w-full h-full" src={objectUrl} controls />
+  ),
+};
+
+export const standardPlugins = [
+  imagePlugin,
+  videoPlugin,
+  pdfPlugin,
+  audioPlugin,
+];
 
 export const unsupportedTypePlugin: FileTypePlugin = {
   matcher: () => true,
