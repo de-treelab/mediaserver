@@ -3,11 +3,7 @@ import {
   MessageServiceClient,
   WorkerMessageService,
 } from "./common/MessageService.js";
-import {
-  imagePlugin,
-  pdfPlugin,
-  videoPlugin,
-} from "./plugins/standardPlugins.js";
+import { standardPlugins } from "./plugins/standardPlugins.js";
 import { addFileTypePlugin } from "./plugins/fileTypes.js";
 import { setupDiContainer } from "./DiContainer.js";
 import { TagService } from "./tags/TagService.js";
@@ -17,9 +13,9 @@ import { DocumentService } from "./documents/DocumentService.js";
 import { RedisClient } from "./redis/RedisClient.js";
 import { type Logger } from "./common/LoggingService.js";
 
-addFileTypePlugin(imagePlugin);
-addFileTypePlugin(videoPlugin);
-addFileTypePlugin(pdfPlugin);
+standardPlugins.forEach((plugin) => {
+  addFileTypePlugin(plugin);
+});
 
 const diContainer = await setupDiContainer();
 
