@@ -1,7 +1,7 @@
 import { enhancedApi } from "../app/enhancedApi";
 import { ThumbnailContainer } from "../components/ThumbnailContainer";
 import { Pagination } from "../components/Pagination";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PreviewContainer } from "../sections/PreviewContainer";
 import { useEasySearchParams } from "../hooks/useEasySearchParams";
@@ -19,7 +19,11 @@ export const GalleryPage = () => {
     removeSearchParam,
   } = useEasySearchParams(["preview", "q"]);
 
-  const [tagInput, setTagInput] = useState(query ?? "");
+  const [tagInput, setTagInput] = useState("");
+
+  useEffect(() => {
+    setTagInput((prev) => query || prev);
+  }, [query]);
 
   const { currentData: data } = enhancedApi.useListDocumentsQuery({
     limit: limit,
