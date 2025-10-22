@@ -11,22 +11,28 @@ type Props<T> = {
   values: DropdownItem<T>[];
   className?: string;
   direction?: "up" | "down";
-  onClick?: (value: T) => void;
+  onSelect?: (value: T) => void;
 };
 
 export const Dropdown = <T,>({
   values,
-  onClick,
   className,
   direction = "down",
+  onSelect,
 }: Props<T>) => {
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       if (event.key === "ArrowDown") {
+        event.preventDefault();
+        event.stopPropagation();
+
         setHighlightedIndex((prev) => Math.min(prev + 1, values.length - 1));
       } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        event.stopPropagation();
+
         setHighlightedIndex((prev) => Math.max(prev - 1, 0));
       } else if (event.key === "Enter" && highlightedIndex >= 0) {
         event.preventDefault();
@@ -34,11 +40,11 @@ export const Dropdown = <T,>({
 
         const item = values[highlightedIndex];
         if (item) {
-          onClick?.(item.value);
+          onSelect?.(item.value);
         }
       }
     },
-    [highlightedIndex, onClick, values],
+    [highlightedIndex, onSelect, values],
   );
 
   useEffect(() => {
@@ -52,21 +58,26 @@ export const Dropdown = <T,>({
   return (
     <div
       className={twMerge(
-        "absolute bg-white -mt-2 border-b border-gray-300 max-h-60 overflow-y-auto w-full z-10 text-black",
+        "absolute block bg-white -mt-2 border-b border-gray-300 max-h-60 overflow-y-auto w-full z-10 text-black",
         direction === "up"
           ? "bottom-full rounded-t-md"
           : "top-full rounded-b-md",
         className,
       )}
     >
-      {values.map(({ value, node, key }, index) => (
+      {values.map(({ node, key }, index) => (
         <div
           key={key}
           className={twMerge(
-            "px-2 py-1 hover:bg-gray-200 cursor-pointer",
+            "px-2 py-1 block hover:bg-gray-200 cursor-pointer",
             index === highlightedIndex ? "bg-gray-200" : "",
           )}
-          onClick={() => onClick?.(value)}
+          onMouseEnter={() => setHighlightedIndex(index)}
+          onMouseDown={(e) => {
+            // Prevent input from losing focus
+            e.preventDefault();
+            onSelect?.(values[index].value);
+          }}
         >
           {node}
         </div>

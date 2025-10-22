@@ -13,6 +13,7 @@ import { useTagCompletion } from "../hooks/useTagCompletion";
 import { Dropdown } from "../components/Dropdown";
 import { getWordFromCursor } from "../util/getWordFromCursor";
 import { useCursorPos } from "../hooks/useCursorPos";
+import { replaceWordAtCursor } from "../util/replaceWordAtCursor";
 
 type Props = {
   value: string;
@@ -85,7 +86,11 @@ export const TagInput = ({
 
   return (
     <>
-      <div className={twMerge("text-gray-800 relative", className)}>
+      <div
+        className={twMerge("text-gray-800 relative", className)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+      >
         <input
           ref={inputRef}
           value={value}
@@ -106,19 +111,24 @@ export const TagInput = ({
           autoComplete="false"
           autoCapitalize="false"
           spellCheck="false"
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
         />
         {focused && suggestions.length > 0 && (
           <Dropdown
-            values={suggestions.map((s) => ({
-              value: s,
-              key: s,
-              node: s,
+            values={suggestions.map((s, index) => ({
+              value: s.tag,
+              key: index.toString(),
+              node: `${s.tag} (${s.usageCount})`,
             }))}
-            onClick={(value) => {
-              onChange(value.replace(/\s*\(\d+\)$/, ""));
-              setFocused(false);
+            onSelect={(value) => {
+              const { newText, newCursorPos } = replaceWordAtCursor(
+                inputRef.current?.value || "",
+                cursorPos,
+                value,
+              );
+              onChange(newText);
+              requestAnimationFrame(() => {
+                inputRef.current?.setSelectionRange(newCursorPos, newCursorPos);
+              });
             }}
             direction={direction}
           />

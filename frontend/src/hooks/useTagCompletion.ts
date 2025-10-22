@@ -2,8 +2,13 @@ import { useEffect, useState } from "react";
 import { enhancedApi } from "../app/enhancedApi";
 import { useDebounce } from "./useDebounce";
 
+interface TagCompletionItem {
+  tag: string;
+  usageCount: number;
+}
+
 export const useTagCompletion = (query: string) => {
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<TagCompletionItem[]>([]);
   const debouncedQuery = useDebounce(query, 300);
 
   const { data, isLoading, error } = enhancedApi.useListTagsQuery({
@@ -15,10 +20,10 @@ export const useTagCompletion = (query: string) => {
   useEffect(() => {
     if (data) {
       setSuggestions(
-        data.items.map(
-          (tag) =>
-            `${tag.key}${tag.value ? `:${tag.value}` : ""} (${tag.usageCount})`,
-        ),
+        data.items.map((tag) => ({
+          tag: `${tag.key}${tag.value ? `:${tag.value}` : ""}`,
+          usageCount: tag.usageCount,
+        })),
       );
     } else {
       setSuggestions([]);
