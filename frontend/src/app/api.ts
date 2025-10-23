@@ -16,6 +16,18 @@ type Document = {
   queryIndex: number;
 };
 
+interface StoreState {
+  free: number;
+  total: number;
+  used: number;
+  numberOfDocuments: number;
+  basePath: string;
+}
+
+interface BackendState {
+  stores: StoreState[];
+}
+
 export type ApiTag = {
   key: string;
   value?: string;
@@ -122,6 +134,13 @@ export const api = baseApi.injectEndpoints({
         "tag",
         { type: "document", id: arg.documentId },
       ],
+    }),
+
+    getBackendState: build.query<BackendState, void>({
+      query: () => ({
+        url: `/state`,
+        method: "GET",
+      }),
     }),
   }),
 });

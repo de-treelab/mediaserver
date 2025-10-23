@@ -18,6 +18,7 @@ import { WebSocketService } from "./websocket/WebSocketService.js";
 import { tagRouter } from "./routers/TagRouter.js";
 import { TagService } from "./tags/TagService.js";
 import { RedisClient } from "./redis/RedisClient.js";
+import { stateRouter } from "./routers/StateRouter.js";
 
 async function run(envService: EnvironmentService) {
   const app = express.default();
@@ -54,6 +55,7 @@ async function run(envService: EnvironmentService) {
 
   app.use("/documents", documentRouter);
   app.use("/tags", tagRouter);
+  app.use("/state", stateRouter);
 
   app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

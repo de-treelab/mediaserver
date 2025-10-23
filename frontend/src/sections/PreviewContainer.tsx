@@ -3,6 +3,8 @@ import { enhancedApi } from "../app/enhancedApi";
 import { ThumbnailContainer } from "../components/ThumbnailContainer";
 import { DocumentPreview } from "./DocumentPreview";
 import { useEffect } from "react";
+import { DocumentPreviewControls } from "../components/DocumentPreviewControls";
+import { useDocumentUrl } from "../hooks/useDocumentUrl";
 
 type Props = {
   previewImageId: string;
@@ -54,6 +56,8 @@ export const PreviewContainer = ({
     };
   }, [nextPreviewImage, previousPreviewImage, onClose]);
 
+  const documentDownloadUrl = useDocumentUrl(previewImageId);
+
   return (
     <>
       <div
@@ -64,6 +68,18 @@ export const PreviewContainer = ({
       </div>
       <div className="fixed top-0 right-0 w-[calc(100%-4.25rem)] h-[calc(100%-120px-1rem)] bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
         <DocumentPreview id={previewImageId} />
+        <DocumentPreviewControls
+          nextDocument={nextPreviewImage}
+          previousDocument={previousPreviewImage}
+          downloadDocument={() => {
+            const link = document.createElement("a");
+            link.href = documentDownloadUrl;
+            link.download = "";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }}
+        />
       </div>
       <div className="fixed flex flex-row flex-wrap bottom-0 right-0 w-[calc(100%-4.25rem)] h-[calc(120px+1rem)] z-100 p-2 bg-gray-800 overflow-y-hidden">
         <ThumbnailContainer
