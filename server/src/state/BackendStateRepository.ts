@@ -1,0 +1,68 @@
+import z from "zod";
+import type { FileService } from "../files/FileService.js";
+import type { DbService } from "../sql/DbService.js";
+import * as cds from "check-disk-space";
+
+export interface StoreState {
+  free: number;
+  total: number;
+  used: number;
+  numberOfDocuments: number;
+  basePath: string;
+}
+
+export interface BackendState {
+  stores: StoreState[];
+}
+
+export class BackendStateRepository {
+  constructor(
+    private readonly dbService: DbService,
+    private readonly fileService: FileService,
+  ) {}
+
+  private async getStoreState(): Promise<StoreState[]> {
+    const config = this.fileService.getFileServiceConfig();
+    if (!config) {
+      throw new Error("FileService config not ready");
+    }
+
+    const states: StoreState[] = [];
+
+    await Promise.all(
+      config.stores.map(async (store) => {
+        const result = await this.dbService.one(
+          z.object({
+            number_of_documents: z.number(),
+          }),
+          `
+            SELECT COUNT(*)::INTEGER AS number_of_documents
+            FROM documents
+            WHERE base_path = $1
+          `,
+          [store.path],
+        );
+
+        // @ts-expect-error This is correct
+        const diskSpace = await cds.default(store.path);
+
+        states.push({
+          basePath: store.path,
+          free: diskSpace.free,
+          total: diskSpace.size,
+          used: diskSpace.size - diskSpace.free,
+          numberOfDocuments: result.number_of_documents ?? 0,
+        });
+      }),
+    );
+
+    return states;
+  }
+
+  async getBackendState(): Promise<BackendState> {
+    const stores = await this.getStoreState();
+    return {
+      stores,
+    };
+  }
+}

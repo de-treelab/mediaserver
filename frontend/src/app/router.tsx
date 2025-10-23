@@ -4,6 +4,7 @@ import { GalleryPage } from "../pages/GalleryPage";
 import { UploadPage } from "../pages/UploadPage";
 import { TagsPage } from "../pages/TagsPage";
 import { NavigateToGalleryPage } from "../pages/NavigateToGalleryPage";
+import { StatePage } from "../pages/StatePage";
 
 export const router = createBrowserRouter([
   {
@@ -25,6 +26,10 @@ export const router = createBrowserRouter([
       {
         path: "tags",
         Component: TagsPage,
+      },
+      {
+        path: "state",
+        Component: StatePage,
       },
     ],
   },

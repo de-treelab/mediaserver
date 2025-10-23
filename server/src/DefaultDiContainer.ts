@@ -15,6 +15,8 @@ import { TagRepository } from "./tags/TagRepository.js";
 import { TagService } from "./tags/TagService.js";
 import { TagCache } from "./tags/TagCache.js";
 import { RedisClient } from "./redis/RedisClient.js";
+import { BackendStateService } from "./state/BackendStateService.js";
+import { BackendStateRepository } from "./state/BackendStateRepository.js";
 
 export const services = {
   environment: "service.environment",
@@ -28,12 +30,14 @@ export const services = {
   websocket: "service.websocket",
   tag: "service.tag",
   redis: "service.redis",
+  backendState: "service.backendState",
 };
 
 export const repositories = {
   document: "repository.document",
   tag: "repository.tag",
   tagCache: "repository.tagCache",
+  backendState: "repository.backendState",
 };
 
 export const defaultDiContainer = (diContainer: ContainerBuilder) => {
@@ -83,6 +87,10 @@ export const defaultDiContainer = (diContainer: ContainerBuilder) => {
     .addArgument(new Reference(services.environment));
 
   diContainer
+    .register(services.backendState, BackendStateService)
+    .addArgument(new Reference(repositories.backendState));
+
+  diContainer
     .register(repositories.document, DocumentRepository)
     .addArgument(new Reference(services.db));
 
@@ -94,6 +102,11 @@ export const defaultDiContainer = (diContainer: ContainerBuilder) => {
     .register(repositories.tag, TagRepository)
     .addArgument(new Reference(services.db))
     .addArgument(new Reference(repositories.tagCache));
+
+  diContainer
+    .register(repositories.backendState, BackendStateRepository)
+    .addArgument(new Reference(services.db))
+    .addArgument(new Reference(services.file));
 
   return diContainer;
 };

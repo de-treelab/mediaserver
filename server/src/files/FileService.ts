@@ -42,6 +42,12 @@ export class FileService {
     });
   }
 
+  public getFileServiceConfig():
+    | z.infer<typeof documentStoreConfigSchema>
+    | undefined {
+    return this.storeConfig;
+  }
+
   private async findBasePathForDocument(
     source: string,
     size: number,

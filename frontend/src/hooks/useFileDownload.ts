@@ -35,5 +35,5 @@ export const useFileDownload = (url: string) => {
       .finally(() => setIsLoading(false));
   }, [url]);
 
-  return { objectUrl, isLoading, error, blob };
+  return { objectUrl, isLoading, error, blob, remoteUrl: url };
 };

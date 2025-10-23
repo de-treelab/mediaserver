@@ -16,5 +16,12 @@
   },
   "pagination": {
     "range": "Displaying {{start}} - {{end}} of {{total}}"
+  },
+  "state": {
+    "free": "Free",
+    "serviceState": "Service State",
+    "healthy": "Healthy",
+    "degraded": "Degraded",
+    "unhealthy": "Unhealthy"
   }
 }

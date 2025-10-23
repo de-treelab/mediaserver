@@ -3,6 +3,7 @@ import { RiGalleryView2 } from "react-icons/ri";
 import { FaHashtag } from "react-icons/fa";
 import { SideBarButton } from "../components/SideBarButton";
 import { useNavigate } from "react-router";
+import { BiSolidServer } from "react-icons/bi";
 
 export const SideBar = () => {
   const navigate = useNavigate();
@@ -28,6 +29,13 @@ export const SideBar = () => {
         pathPrefix="/tags"
         onClick={() => {
           navigate("/tags");
+        }}
+      />
+      <SideBarButton
+        Icon={BiSolidServer}
+        pathPrefix="/state"
+        onClick={() => {
+          navigate("/state");
         }}
       />
     </div>
