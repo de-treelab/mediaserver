@@ -2,7 +2,7 @@ import type { SkipToken } from "@reduxjs/toolkit/query";
 import { enhancedApi } from "../app/enhancedApi";
 import { ThumbnailContainer } from "../components/ThumbnailContainer";
 import { DocumentPreview } from "./DocumentPreview";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { DocumentPreviewControls } from "../components/DocumentPreviewControls";
 import { useDocumentUrl } from "../hooks/useDocumentUrl";
 
@@ -39,6 +39,9 @@ export const PreviewContainer = ({
     ),
   });
 
+  const [diashowMode, setDiashowMode] = useState<boolean>(false);
+  const [wasFullscreen, setWasFullscreen] = useState<boolean>(false);
+
   useEffect(() => {
     const keyDownHandler = (event: KeyboardEvent) => {
       if (event.key === "ArrowRight") {
@@ -47,6 +50,8 @@ export const PreviewContainer = ({
         previousPreviewImage();
       } else if (event.key === "Escape") {
         onClose?.();
+      } else if (event.key === "p") {
+        setDiashowMode((mode) => !mode);
       }
     };
 
@@ -56,18 +61,33 @@ export const PreviewContainer = ({
     };
   }, [nextPreviewImage, previousPreviewImage, onClose]);
 
+  useEffect(() => {
+    if (diashowMode) {
+      setWasFullscreen(!!document.fullscreenElement);
+      document.body.requestFullscreen();
+    } else {
+      if (!wasFullscreen && document.fullscreenElement) {
+        document.exitFullscreen();
+      }
+    }
+  }, [diashowMode, wasFullscreen]);
+
   const documentDownloadUrl = useDocumentUrl(previewImageId);
 
   return (
     <>
       <div
-        className="fixed top-4 right-4 z-200 text-3xl cursor-pointer"
+        className="absolute top-4 right-4 z-100 text-3xl cursor-pointer"
         onClick={onClose}
       >
         X
       </div>
-      <div className="fixed top-0 right-0 w-[calc(100%-4.25rem)] h-[calc(100%-120px-1rem)] bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
-        <DocumentPreview id={previewImageId} />
+      <div className="absolute top-0 w-full h-[calc(100%-120px-1rem)] bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 overflow-visible">
+        <DocumentPreview
+          id={previewImageId}
+          diashow={diashowMode}
+          nextDocument={nextPreviewImage}
+        />
         <DocumentPreviewControls
           nextDocument={nextPreviewImage}
           previousDocument={previousPreviewImage}
@@ -79,9 +99,10 @@ export const PreviewContainer = ({
             link.click();
             document.body.removeChild(link);
           }}
+          toggleDiashow={() => setDiashowMode(!diashowMode)}
         />
       </div>
-      <div className="fixed flex flex-row flex-wrap bottom-0 right-0 w-[calc(100%-4.25rem)] h-[calc(120px+1rem)] z-100 p-2 bg-gray-800 overflow-y-hidden">
+      <div className="absolute flex flex-row flex-wrap bottom-0 right-0 w-full h-[calc(120px+1rem)] z-30 p-2 bg-gray-800 overflow-y-hidden">
         <ThumbnailContainer
           alignment="center"
           ids={data?.items.map((doc) => doc.id) || []}

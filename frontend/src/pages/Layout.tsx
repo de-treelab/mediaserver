@@ -5,7 +5,7 @@ export const Layout = () => {
   return (
     <div className="h-full flex flex-row max-h-[100vh]">
       <SideBar />
-      <div className="flex-1 p-2 max-h-full overflow-y-auto">
+      <div className="flex-1 max-h-full overflow-y-auto">
         <Outlet />
       </div>
     </div>
