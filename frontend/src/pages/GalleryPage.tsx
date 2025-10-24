@@ -70,13 +70,13 @@ export const GalleryPage = () => {
   }, [setPreviewDocument, previewDocument]);
 
   return (
-    <>
+    <div className="relative h-full">
       <TagInput
         value={tagInput}
         onChange={setTagInput}
         onValidChange={() => {}}
         onSubmit={(value) => addSearchParam("q", value)}
-        className="mb-2"
+        className="mb-2 p-2"
         blurOnSubmit
       />
       <Pagination
@@ -86,12 +86,13 @@ export const GalleryPage = () => {
         onPageChange={setPage}
       />
       <ThumbnailContainer
+        className="p-2"
         ids={data?.items.map((doc) => doc.id) || []}
         onClick={(id) => {
           setPreviewDocument(id);
         }}
       />
-      <span>
+      <span className="p-2">
         {t("pagination.range", {
           start: offset + 1,
           end: Math.min(offset + limit, total),
@@ -118,6 +119,6 @@ export const GalleryPage = () => {
           onClose={() => setPreviewDocument(undefined)}
         />
       )}
-    </>
+    </div>
   );
 };

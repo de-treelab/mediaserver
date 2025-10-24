@@ -22,6 +22,7 @@ type Props = {
   direction?: keyof typeof directions;
   wrap?: keyof typeof flexWrap;
   selected?: string;
+  className?: string;
 };
 
 export const ThumbnailContainer = ({
@@ -31,10 +32,11 @@ export const ThumbnailContainer = ({
   direction = "row",
   wrap = "wrap",
   selected,
+  className,
 }: Props) => {
   return (
     <div
-      className={`flex ${directions[direction]} ${flexWrap[wrap]} gap-2 ${alignments[alignment]} min-w-full`}
+      className={`flex ${directions[direction]} ${flexWrap[wrap]} gap-2 ${alignments[alignment]} min-w-full ${className}`}
     >
       {ids.map((id, idx) => (
         <Thumbnail

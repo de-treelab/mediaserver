@@ -9,7 +9,7 @@ export const SideBar = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col h-[100vh] inline-block p-2 bg-gray-700 z-200">
+    <div className="relative z-20 flex flex-col h-[100vh] inline-block p-2 bg-gray-700">
       <SideBarButton
         Icon={RiGalleryView2}
         pathPrefix="/gallery"

@@ -1,25 +1,28 @@
 import type React from "react";
 import { useState } from "react";
 import { FaCaretLeft, FaCaretRight, FaDownload } from "react-icons/fa";
+import { LuPresentation } from "react-icons/lu";
 import { twMerge } from "tailwind-merge";
 
 type Props = {
   nextDocument: () => void;
   previousDocument: () => void;
   downloadDocument: () => void;
+  toggleDiashow: () => void;
 };
 
 export const DocumentPreviewControls: React.FC<Props> = ({
   nextDocument,
   previousDocument,
   downloadDocument,
+  toggleDiashow,
 }) => {
   const [hovered, setHovered] = useState(false);
 
   return (
     <div
       className={twMerge(
-        "absolute bg-gray-700 bottom-4 w-1/3 h-16 rounded-lg outline-offset-2 ",
+        "absolute bg-gray-700 bottom-4 w-1/3 h-16 rounded-lg outline-offset-2 z-60",
         "outline-gray-600 outline-2 duration-200 transition-all",
         "flex flex-row justify-around items-center",
         hovered ? "opacity-80" : "opacity-0",
@@ -42,6 +45,14 @@ export const DocumentPreviewControls: React.FC<Props> = ({
         }}
       >
         <FaDownload size="1.5rem" />
+      </div>
+      <div
+        className="hover:bg-gray-600 rounded-md p-2 cursor-pointer"
+        onClick={() => {
+          toggleDiashow();
+        }}
+      >
+        <LuPresentation size="2rem" />
       </div>
       <div
         className="hover:bg-gray-600 rounded-md p-2 cursor-pointer"
