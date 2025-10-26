@@ -34,8 +34,6 @@ ENV IGNORE_MIGRATION_CHECKSUM_MISMATCHES=false
 ENV MAX_FILE_UPLOAD_SIZE=2147483648
 ENV STAGE=production
 
-RUN npm install --production
-
-HEALTHCHECK --interval=1m --timeout=5s --start-period=10s CMD curl -f http://localhost:3000/health || exit 1
+RUN npm install --omit=dev
 
 CMD ["node", "dist/index.js"]

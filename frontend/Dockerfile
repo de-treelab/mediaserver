@@ -11,18 +11,20 @@ COPY index.html ./
 COPY tsconfig*.json ./
 COPY vite.config.ts ./
 
+ENV VITE_BACKEND_URL=MEDIASERVER_BACKEND_URL
+ENV VITE_WEBSOCKET_URL=MEDIASERVER_WEBSOCKET_URL
+
 RUN npm run build
 
-FROM node:20
+FROM nginx:alpine
 
-WORKDIR /usr/src/app
+COPY ./nginx.conf /etc/nginx/nginx.conf
 
-COPY --from=builder /usr/src/app/dist ./dist
-COPY ./public/translations ./public/translations
-COPY ./package*.json ./
+COPY --from=builder /usr/src/app/dist /var/www/html/
 
-RUN npm install --production
+COPY ./env.sh /docker-entrypoint.d/env.sh
+RUN dos2unix /docker-entrypoint.d/env.sh
+RUN chmod +x /docker-entrypoint.d/env.sh
 
-HEALTHCHECK --interval=1m --timeout=5s --start-period=10s CMD curl -f http://localhost:3000/health || exit 1
-
-CMD ["npm", "run", "preview"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["nginx", "-g", "daemon off;"]

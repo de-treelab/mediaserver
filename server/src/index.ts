@@ -64,7 +64,13 @@ async function run(envService: EnvironmentService) {
 
 async function main() {
   const diContainer = await setupDiContainer();
-  const webSocketServer = diContainer.get<WebSocketService>(services.websocket);
+  const dbService = diContainer.get<DbService>(services.db);
+  const migrationService = diContainer.get<MigrationService>(
+    services.migration,
+  );
+
+  await dbService.connect();
+  await migrationService.migrate();
 
   const messageService = diContainer.get<MainMessageService>(
     services.messageServer,
@@ -105,6 +111,8 @@ async function main() {
     process.exit(code === 0 ? 0 : 1);
   });
 
+  const webSocketServer = diContainer.get<WebSocketService>(services.websocket);
+
   process.on("exit", () => {
     worker.terminate();
     webSocketServer.stop();
@@ -121,15 +129,9 @@ async function main() {
   }
 
   const envService = diContainer.get<EnvironmentService>(services.environment);
-  const dbService = diContainer.get<DbService>(services.db);
   const tagService = diContainer.get<TagService>(services.tag);
-  const migrationService = diContainer.get<MigrationService>(
-    services.migration,
-  );
   const redisClient = diContainer.get<RedisClient>(services.redis);
 
-  await dbService.connect();
-  await migrationService.migrate();
   await webSocketServer.start();
   await redisClient.connect();
   await tagService.initIdCache();
@@ -137,4 +139,21 @@ async function main() {
   await run(envService);
 }
 
-void main();
+void main().catch((err) => {
+  console.error(err, new Error().stack);
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error(
+    "Unhandled Rejection at:",
+    promise,
+    "reason:",
+    reason instanceof Error ? reason.stack : reason,
+  );
+});
+
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception thrown:", err, err.stack);
+  process.exit(1);
+});
