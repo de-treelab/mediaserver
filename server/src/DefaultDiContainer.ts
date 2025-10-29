@@ -43,7 +43,9 @@ export const repositories = {
 export const defaultDiContainer = (diContainer: ContainerBuilder) => {
   diContainer.register(services.environment, EnvironmentService);
 
-  diContainer.register(services.logger, LoggingService);
+  diContainer
+    .register(services.logger, LoggingService)
+    .addArgument(new Reference(services.environment));
 
   diContainer
     .register(services.db, DbService)
