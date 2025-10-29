@@ -1,7 +1,7 @@
 import * as express from "express";
 import { EnvironmentService } from "./common/EnvironmentService.js";
 import { services } from "./DefaultDiContainer.js";
-import { setupDiContainer } from "./DiContainer.js";
+import { DI_CONTAINER, setupDiContainer } from "./DiContainer.js";
 import { MigrationService } from "./sql/MigrationService.js";
 import { DbService } from "./sql/DbService.js";
 import fileUpload from "express-fileupload";
@@ -19,6 +19,7 @@ import { tagRouter } from "./routers/TagRouter.js";
 import { TagService } from "./tags/TagService.js";
 import { RedisClient } from "./redis/RedisClient.js";
 import { stateRouter } from "./routers/StateRouter.js";
+import type { LoggingService } from "./common/LoggingService.js";
 
 async function run(envService: EnvironmentService) {
   const app = express.default();
@@ -57,8 +58,10 @@ async function run(envService: EnvironmentService) {
   app.use("/tags", tagRouter);
   app.use("/state", stateRouter);
 
+  const logger = DI_CONTAINER.get<LoggingService>(services.logger);
+
   app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+    logger.info(`Server is running on http://localhost:${port}`);
   });
 }
 
@@ -97,10 +100,10 @@ async function main() {
     port.postMessage({ type: "ack" });
   });
   worker.stdout?.on("data", (data) => {
-    process.stdout.write(`[WORKER]  ${data}`);
+    process.stdout.write(`[WORKER] -> ${data}`);
   });
   worker.stderr?.on("data", (data) => {
-    process.stderr.write(`[WORKER] ${data}`);
+    process.stderr.write(`[WORKER] -> ${data}`);
   });
   worker.on("error", (err) => {
     console.error("[WORKER] ", err);

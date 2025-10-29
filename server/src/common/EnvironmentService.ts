@@ -101,4 +101,18 @@ export class EnvironmentService {
   public get redisPort(): number {
     return this.getRequiredNumberEnvVar("REDIS_PORT");
   }
+
+  public get logLevel(): string {
+    const level = this.getStringEnvVar("LOG_LEVEL") || "info";
+    if (
+      !["debug", "info", "warn", "error", "critical", undefined].includes(level)
+    ) {
+      throw new InvalidEnvironmentVariableError(
+        "LOG_LEVEL",
+        level,
+        "debug, info, warn, error, critical",
+      );
+    }
+    return level;
+  }
 }

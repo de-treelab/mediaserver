@@ -27,7 +27,6 @@ export const pdfPlugin: FileTypePlugin = {
       pdfThumbnailStream.on("end", () => resolve(Buffer.concat(chunks)));
       pdfThumbnailStream.on("error", reject);
     });
-    console.log("Thumbnail buffer size:", thumbnailBuffer.byteLength);
     const tmpPath = "/tmp/" + tmpId + "_thumbnail.jpg";
     fs2.writeFileSync(tmpPath, thumbnailBuffer);
     return { path: tmpPath };
