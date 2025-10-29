@@ -37,6 +37,7 @@ export class FileService {
 
   constructor() {
     this.config = new EnvironmentService().fileServiceConfig;
+
     fs.readFile(this.config.documentStoreConfigPath, "utf-8").then((data) => {
       this.storeConfig = documentStoreConfigSchema.parse(JSON.parse(data));
     });

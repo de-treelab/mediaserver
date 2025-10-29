@@ -11,7 +11,8 @@
     "lint:check": "eslint .",
     "lint:fix": "eslint . --fix",
     "style:check": "prettier --check src/**/*.ts",
-    "style:fix": "prettier --write src/**/*.ts"
+    "style:fix": "prettier --write src/**/*.ts",
+    "test": "echo \"Error: no test specified\""
   },
   "author": "",
   "license": "ISC",
