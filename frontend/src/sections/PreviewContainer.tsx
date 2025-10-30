@@ -102,10 +102,10 @@ export const PreviewContainer = ({
           toggleDiashow={() => setDiashowMode(!diashowMode)}
         />
       </div>
-      <div className="absolute flex flex-row flex-wrap bottom-0 right-0 w-full h-[calc(120px+1rem)] z-30 p-2 bg-gray-800 overflow-y-hidden">
+      <div className="absolute flex flex-row flex-wrap bottom-0 right-0 w-full h-[calc(120px+1rem)] z-30 p-2 bg-gray-800 overflow-y-hidden justify-center">
         <ThumbnailContainer
           alignment="center"
-          ids={data?.items.map((doc) => doc.id) || []}
+          thumbnails={data?.items || []}
           onClick={(id) => {
             onThumbnailClicked(id);
           }}

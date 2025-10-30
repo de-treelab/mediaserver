@@ -11,17 +11,37 @@
   "pages": {
     "upload": {
       "title": "Upload Files",
-      "description": "Drop your files here to upload them or use the button below"
+      "description": "Drop your files here to upload them. Use the input below to automatically assign tags to all uploaded files.",
+      "tagInputPlaceholder": "Enter tags to assign to all uploaded files"
+    },
+    "gallery": {
+      "tagInputPlaceholder": "Search by tag..."
     }
   },
   "pagination": {
-    "range": "Displaying {{start}} - {{end}} of {{total}}"
+    "range": "Displaying {{start}} - {{end}} of {{total}}",
+    "previous": "Previous",
+    "next": "Next"
   },
   "state": {
     "free": "Free",
     "serviceState": "Service State",
     "healthy": "Healthy",
     "degraded": "Degraded",
-    "unhealthy": "Unhealthy"
+    "unhealthy": "Unhealthy",
+    "uptime": "Uptime",
+    "totalDocuments": "Total Documents",
+    "totalStorageUsed": "Total Storage Used",
+    "storage": "Storage"
+  },
+  "sidebar": {
+    "gallery": "Gallery",
+    "upload": "Upload",
+    "settings": "Settings",
+    "tags": "Tags",
+    "serverState": "Server Status"
+  },
+  "document": {
+    "addTagPlaceholder": "Add a tag..."
   }
 }
