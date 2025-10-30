@@ -16,6 +16,7 @@
     "@lars_hagemann/tags": "^1.0.4",
     "@reduxjs/toolkit": "^2.8.2",
     "@tailwindcss/vite": "^4.1.12",
+    "luxon": "^3.7.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-i18next": "^15.7.3",
@@ -29,6 +30,7 @@
     "zod": "^4.1.5"
   },
   "devDependencies": {
+    "@types/luxon": "^3.7.1",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@types/react-paginate": "^7.1.4",

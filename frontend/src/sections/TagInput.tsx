@@ -21,6 +21,7 @@ type Props = {
   direction?: React.ComponentProps<typeof Dropdown>["direction"];
   clearOnSubmit?: boolean;
   blurOnSubmit?: boolean;
+  placeholder?: string;
   onChange: (newValue: string) => void;
   onSubmit: (newValue: string) => void;
   onValidChange?: (isValid: boolean) => void;
@@ -32,6 +33,7 @@ export const TagInput = ({
   direction = "down",
   clearOnSubmit = false,
   blurOnSubmit = false,
+  placeholder,
   onChange,
   onValidChange,
   onSubmit,
@@ -87,7 +89,7 @@ export const TagInput = ({
   return (
     <>
       <div
-        className={twMerge("text-gray-800 relative", className)}
+        className={twMerge("text-gray-200 relative", className)}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
       >
@@ -111,6 +113,7 @@ export const TagInput = ({
           autoComplete="false"
           autoCapitalize="false"
           spellCheck="false"
+          placeholder={placeholder}
         />
         {focused && suggestions.length > 0 && (
           <Dropdown

@@ -13,6 +13,7 @@ export interface StoreState {
 
 export interface BackendState {
   stores: StoreState[];
+  uptime: number;
 }
 
 export class BackendStateRepository {
@@ -63,6 +64,7 @@ export class BackendStateRepository {
     const stores = await this.getStoreState();
     return {
       stores,
+      uptime: process.uptime(),
     };
   }
 }

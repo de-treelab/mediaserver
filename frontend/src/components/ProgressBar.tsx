@@ -1,16 +1,27 @@
+import { twMerge } from "tailwind-merge";
+
 type Props = {
   min?: number;
   max: number;
   value: number;
+  color?: string;
 };
 
-export const ProgressBar: React.FC<Props> = ({ min = 0, max, value }) => {
+export const ProgressBar: React.FC<Props> = ({
+  min = 0,
+  max,
+  value,
+  color = "bg-blue-400",
+}) => {
   const percentage = ((value - min) / (max - min)) * 100;
 
   return (
     <div className="w-full bg-gray-200 rounded-full h-4">
       <div
-        className="bg-blue-400 h-4 rounded-full transition-all duration-300"
+        className={twMerge(
+          color,
+          "h-4 rounded-full transition-all duration-300",
+        )}
         style={{ width: `${percentage}%` }}
       ></div>
     </div>

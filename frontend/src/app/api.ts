@@ -8,9 +8,9 @@ type DocumentUpload = {
   tags: ApiTag[];
 };
 
-type Document = {
+export type Document = {
   id: string;
-  type: string;
+  mime: string;
   previousId: string | undefined;
   nextId: string | undefined;
   queryIndex: number;
@@ -26,6 +26,7 @@ interface StoreState {
 
 interface BackendState {
   stores: StoreState[];
+  uptime: number;
 }
 
 export type ApiTag = {

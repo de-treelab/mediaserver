@@ -8,6 +8,7 @@ import { useNavigate } from "react-router";
 import { TagInput } from "./TagInput";
 import type { ApiTag } from "../app/api";
 import { tagToString } from "../util/tag";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   id: string;
@@ -17,6 +18,8 @@ type Props = {
 
 export const DocumentPreview = ({ id, diashow, nextDocument }: Props) => {
   const [tagInput, setTagInput] = useState("");
+
+  const { t } = useTranslation();
 
   const { objectUrl, blob } = useDocument(id);
   const plugin = useDocumentPlugin(blob?.type);
@@ -97,6 +100,7 @@ export const DocumentPreview = ({ id, diashow, nextDocument }: Props) => {
                 direction="up"
                 className="text-white"
                 clearOnSubmit
+                placeholder={t("document.addTagPlaceholder")}
               />
             </div>
           </div>
