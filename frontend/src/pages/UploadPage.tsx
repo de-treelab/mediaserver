@@ -16,7 +16,7 @@ export const UploadPage = () => {
 
   return (
     <div
-      className="h-full"
+      className="h-full p-4"
       onDragOver={(e) => {
         e.preventDefault();
       }}
@@ -40,7 +40,8 @@ export const UploadPage = () => {
           if (tag.trim() === "") return;
           setTags((prev) => [...prev, stringToTag(tag)]);
         }}
-        className="mb-2"
+        className="mb-2 mt-4"
+        placeholder={t("pages.upload.tagInputPlaceholder")}
       />
       <TagList
         tags={tags}

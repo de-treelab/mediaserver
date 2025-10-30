@@ -1,4 +1,6 @@
 import { Thumbnail } from "../sections/Thumbnail";
+import { type Document } from "../app/api";
+import { twMerge } from "tailwind-merge";
 
 const alignments = {
   center: "justify-center",
@@ -16,35 +18,40 @@ const flexWrap = {
 };
 
 type Props = {
-  ids: string[];
+  thumbnails: Document[];
   onClick?: (id: string) => void;
   alignment?: keyof typeof alignments;
   direction?: keyof typeof directions;
   wrap?: keyof typeof flexWrap;
+  layout?: React.ComponentProps<typeof Thumbnail>["layout"];
   selected?: string;
   className?: string;
 };
 
 export const ThumbnailContainer = ({
-  ids,
+  thumbnails,
   onClick,
   alignment = "start",
   direction = "row",
   wrap = "wrap",
+  layout = "grid",
   selected,
   className,
 }: Props) => {
   return (
     <div
-      className={`flex ${directions[direction]} ${flexWrap[wrap]} gap-2 ${alignments[alignment]} min-w-full ${className}`}
+      className={twMerge(
+        `flex ${directions[direction]} ${flexWrap[wrap]} ${alignments[alignment]}`,
+        className,
+      )}
     >
-      {ids.map((id, idx) => (
+      {thumbnails.map((thumbnail, idx) => (
         <Thumbnail
-          className="flex"
           key={idx}
-          id={id}
-          onClick={() => onClick?.(id)}
-          selected={selected === id}
+          document={thumbnail}
+          onClick={() => onClick?.(thumbnail.id)}
+          selected={selected === thumbnail.id}
+          layout={layout}
         />
       ))}
     </div>

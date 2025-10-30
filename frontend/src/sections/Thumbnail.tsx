@@ -1,15 +1,28 @@
 import { twMerge } from "tailwind-merge";
 import { useThumbnail } from "../hooks/useThumbnail";
+import type { Document } from "../app/api";
+
+const layouts = {
+  grid: "w-[120px] h-[120px] m-2 transition-all duration-200 object-contain border-transparent border-1 hover:border-blue-200",
+  list: "flex flex-row w-full basis-full p-2 border-b-gray-700 border-b-1 items-center cursor-pointer hover:bg-gray-600",
+};
 
 type Props = {
-  id: string;
+  document: Document;
   onClick?: () => void;
   className?: string;
   selected?: boolean;
+  layout?: keyof typeof layouts;
 };
 
-export const Thumbnail = ({ id, onClick, className, selected }: Props) => {
-  const { objectUrl, isLoading, error } = useThumbnail(id);
+export const Thumbnail = ({
+  document,
+  onClick,
+  className,
+  selected,
+  layout = "grid",
+}: Props) => {
+  const { objectUrl, isLoading, error } = useThumbnail(document.id);
 
   if (isLoading || error) {
     return (
@@ -17,10 +30,10 @@ export const Thumbnail = ({ id, onClick, className, selected }: Props) => {
     );
   }
 
-  return (
+  return layout === "grid" ? (
     <img
       className={twMerge(
-        "w-[120px] h-[120px] transition-all duration-200 object-contain border-transparent border-1 hover:border-blue-200",
+        layouts[layout],
         onClick && "cursor-pointer",
         className,
         selected && "border-blue-200",
@@ -29,5 +42,11 @@ export const Thumbnail = ({ id, onClick, className, selected }: Props) => {
       alt="Document Thumbnail"
       onClick={onClick}
     />
+  ) : (
+    <div className={twMerge(layouts[layout], className)} onClick={onClick}>
+      <span className="flex-grow">{document.id}</span>
+      <span className="basis-1/5">{document.mime} </span>
+      <img src={objectUrl} className="w-12 h-12 object-contain" />
+    </div>
   );
 };

@@ -18,7 +18,7 @@ export const TagsPage = () => {
   const navigate = useNavigate();
 
   return (
-    <div>
+    <div className="p-4">
       <Pagination
         total={total}
         limit={limit}

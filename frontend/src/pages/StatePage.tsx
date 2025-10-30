@@ -3,6 +3,53 @@ import { enhancedApi } from "../app/enhancedApi";
 import { bytesToHumanReadable } from "../util/bytesToHumanReadable";
 import { ProgressBar } from "../components/ProgressBar";
 import { twMerge } from "tailwind-merge";
+import { Fragment, useEffect, useMemo, useState } from "react";
+import { Duration } from "luxon";
+
+const Key = ({ translationKey }: { translationKey: string }) => {
+  const { t } = useTranslation();
+  return <div className="font-bold">{t(translationKey)}</div>;
+};
+
+const Value = ({ children }: { children: React.ReactNode }) => {
+  return <div className="col-span-3">{children}</div>;
+};
+
+const percentageToColor = (percentage: number) => {
+  if (percentage < 0.7) return "bg-green-400";
+  if (percentage < 0.9) return "bg-yellow-400";
+  return "bg-red-400";
+};
+
+const StorageProgressBar = ({
+  used,
+  total,
+  free,
+}: {
+  used: number;
+  total: number;
+  free: number;
+}) => {
+  const { t } = useTranslation();
+
+  return (
+    <>
+      <ProgressBar
+        max={total}
+        value={used}
+        color={percentageToColor(used / total)}
+      />
+      <div className="flex flex-row justify-between mt-1">
+        <div>
+          {bytesToHumanReadable(used)} / {bytesToHumanReadable(total)}
+        </div>
+        <div>
+          {t("state.free")}: {bytesToHumanReadable(free)}
+        </div>
+      </div>
+    </>
+  );
+};
 
 export const StatePage = () => {
   const { data: backendState } = enhancedApi.useGetBackendStateQuery(void 0, {
@@ -14,31 +61,85 @@ export const StatePage = () => {
 
   const { t } = useTranslation();
 
+  const [uptimeSeconds, setUptimeSeconds] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setUptimeSeconds((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    setUptimeSeconds(backendState?.uptime ?? 0);
+  }, [backendState?.uptime]);
+
+  const numberOfDocuments = useMemo(
+    () =>
+      backendState?.stores.reduce(
+        (acc, store) => acc + store.numberOfDocuments,
+        0,
+      ) ?? 0,
+    [backendState],
+  );
+  const totalStorageUsed = useMemo(
+    () => backendState?.stores.reduce((acc, store) => acc + store.used, 0) ?? 0,
+    [backendState],
+  );
+  const freeStorage = useMemo(
+    () => backendState?.stores.reduce((acc, store) => acc + store.free, 0) ?? 0,
+    [backendState],
+  );
+  const totalStorage = useMemo(
+    () =>
+      backendState?.stores.reduce((acc, store) => acc + store.total, 0) ?? 0,
+    [backendState],
+  );
+
+  const uptime = useMemo(
+    () => Duration.fromObject({ seconds: uptimeSeconds }),
+    [uptimeSeconds],
+  );
+
   return (
-    <div>
-      {t("state.serviceState")}: {t("state." + (health?.status ?? "unhealthy"))}
-      <div
-        className={twMerge(
-          "inline-block w-4 rounded-full ml-2 h-4 translate-y-0.5",
-          health?.status === "healthy" ? "bg-green-500" : "bg-red-500",
+    <div className="grid p-8 gap-4 grid-cols-4">
+      <Key translationKey="state.serviceState" />
+      <Value>
+        {t("state." + (health?.status ?? "unhealthy"))}
+        <div
+          className={twMerge(
+            "inline-block w-4 rounded-full ml-2 h-4 translate-y-0.5",
+            health?.status === "healthy" ? "bg-green-500" : "bg-red-500",
+          )}
+        />
+      </Value>
+      <Key translationKey="state.uptime" />
+      <Value>{uptime.toFormat("hhhh:mm:ss")}</Value>
+      <Key translationKey="state.totalDocuments" />
+      <Value>{numberOfDocuments}</Value>
+      <Key translationKey="state.storage" />
+      <Value>
+        {backendState ? (
+          <StorageProgressBar
+            used={totalStorageUsed}
+            total={totalStorage}
+            free={freeStorage}
+          />
+        ) : (
+          "N/A"
         )}
-      />
+      </Value>
+      <hr className="col-span-4 mt-4 mb-4" />
       {backendState?.stores.map((store, index) => (
-        <div key={index} className="flex flex-row gap-4 mt-4 mb-4">
-          <h3 className="text-xl">{store.basePath}</h3>
-          <div className="grow pt-2">
-            <ProgressBar max={store.total} value={store.used} />
-          </div>
-          <div className="flex flex-col -mt-2">
-            <div>
-              {bytesToHumanReadable(store.used)} /{" "}
-              {bytesToHumanReadable(store.total)}
-            </div>
-            <div>
-              {t("state.free")}: {bytesToHumanReadable(store.free)}
-            </div>
-          </div>
-        </div>
+        <Fragment key={index}>
+          <Key translationKey={store.basePath} />
+          <Value>
+            <StorageProgressBar
+              used={store.used}
+              total={store.total}
+              free={store.free}
+            />
+          </Value>
+        </Fragment>
       ))}
     </div>
   );
