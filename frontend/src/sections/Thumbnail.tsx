@@ -4,7 +4,7 @@ import type { Document } from "../app/api";
 
 const layouts = {
   grid: "w-[120px] h-[120px] m-2 transition-all duration-200 object-contain border-transparent border-1 hover:border-blue-200",
-  list: "flex flex-row w-full basis-full p-2 border-b-gray-700 border-b-1 items-center cursor-pointer hover:bg-gray-600",
+  list: "flex flex-row gap-4 w-full p-2 border-b-gray-700 border-b-1 items-center cursor-pointer hover:bg-gray-600",
 };
 
 type Props = {
@@ -13,6 +13,7 @@ type Props = {
   className?: string;
   selected?: boolean;
   layout?: keyof typeof layouts;
+  size?: "normal" | "small";
 };
 
 export const Thumbnail = ({
@@ -21,6 +22,7 @@ export const Thumbnail = ({
   className,
   selected,
   layout = "grid",
+  size = "normal",
 }: Props) => {
   const { objectUrl, isLoading, error } = useThumbnail(document.id);
 
@@ -34,6 +36,7 @@ export const Thumbnail = ({
     <img
       className={twMerge(
         layouts[layout],
+        size === "small" && "w-[60px] h-[60px] sm:w-[120px] sm:h-[120px]",
         onClick && "cursor-pointer",
         className,
         selected && "border-blue-200",
@@ -44,7 +47,9 @@ export const Thumbnail = ({
     />
   ) : (
     <div className={twMerge(layouts[layout], className)} onClick={onClick}>
-      <span className="flex-grow">{document.id}</span>
+      <span className="flex-grow overflow-hidden text-nowrap text-ellipsis">
+        {document.id}
+      </span>
       <span className="basis-1/5">{document.mime} </span>
       <img src={objectUrl} className="w-12 h-12 object-contain" />
     </div>
