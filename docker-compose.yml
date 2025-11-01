@@ -53,8 +53,8 @@ services:
     working_dir: /app
     command: npm run dev
     environment:
-      VITE_BACKEND_URL: "http://localhost:${BACKEND_PORT}"
-      VITE_WEBSOCKET_URL: "ws://localhost:${WEBSOCKET_PORT}"
+      VITE_BACKEND_URL: "http://192.168.0.44:${BACKEND_PORT}"
+      VITE_WEBSOCKET_URL: "ws://192.168.0.44:${WEBSOCKET_PORT}"
     volumes:
       - ./frontend:/app
     ports:

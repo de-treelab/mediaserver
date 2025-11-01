@@ -8,11 +8,15 @@ import { Duration } from "luxon";
 
 const Key = ({ translationKey }: { translationKey: string }) => {
   const { t } = useTranslation();
-  return <div className="font-bold">{t(translationKey)}</div>;
+  return (
+    <div className="col-span-2 sm:col-span-1 font-bold">
+      {t(translationKey)}
+    </div>
+  );
 };
 
 const Value = ({ children }: { children: React.ReactNode }) => {
-  return <div className="col-span-3">{children}</div>;
+  return <div className="col-span-2 sm:col-span-3">{children}</div>;
 };
 
 const percentageToColor = (percentage: number) => {
@@ -64,10 +68,10 @@ export const StatePage = () => {
   const [uptimeSeconds, setUptimeSeconds] = useState(0);
   useEffect(() => {
     const interval = setInterval(() => {
-      setUptimeSeconds((prev) => prev + 1);
+      setUptimeSeconds((prev) => prev + (backendState ? 1 : 0));
     }, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [backendState]);
 
   useEffect(() => {
     setUptimeSeconds(backendState?.uptime ?? 0);
