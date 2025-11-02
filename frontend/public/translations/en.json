@@ -12,7 +12,8 @@
     "upload": {
       "title": "Upload Files",
       "description": "Drop your files here to upload them. Use the input below to automatically assign tags to all uploaded files.",
-      "tagInputPlaceholder": "Enter tags to assign to all uploaded files"
+      "tagInputPlaceholder": "Enter tags to assign to all uploaded files",
+      "dropFilesHereOrClickToSelect": "Drop files here or click to select"
     },
     "gallery": {
       "tagInputPlaceholder": "Search by tag..."

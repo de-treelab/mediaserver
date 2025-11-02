@@ -1,5 +1,4 @@
 import { RouterProvider } from "react-router";
-import "./App.css";
 import { FileUploadView } from "./sections/FileUploadView";
 import { router } from "./app/router";
 import { useEffect } from "react";
@@ -17,7 +16,7 @@ export function App() {
   return (
     <>
       <RouterProvider router={router} />
-      <FileUploadView />
+      <FileUploadView className="hidden sm:block w-1/5 overflow-y-hidden fixed right-12 bottom-0" />
     </>
   );
 }

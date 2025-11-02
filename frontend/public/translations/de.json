@@ -12,7 +12,8 @@
     "upload": {
       "title": "Dateien hochladen",
       "description": "Legen Sie Ihre Dateien hier ab, um sie hochzuladen. Verwenden Sie das Eingabefeld unten, um allen hochgeladenen Dateien automatisch Tags zuzuweisen.",
-      "tagInputPlaceholder": "Tags eingeben, um sie allen hochgeladenen Dateien zuzuweisen"
+      "tagInputPlaceholder": "Tags eingeben, um sie allen hochgeladenen Dateien zuzuweisen",
+      "dropFilesHereOrClickToSelect": "Dateien hier ablegen oder zum Auswählen klicken"
     },
     "gallery": {
       "tagInputPlaceholder": "Nach Tag suchen..."
