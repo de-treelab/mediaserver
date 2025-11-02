@@ -8,6 +8,9 @@
   "files": [
     "types"
   ],
+  "repository": {
+    "url": "https://github.com/LarsHagemann/mediaserver"
+  },
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch",

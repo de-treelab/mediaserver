@@ -15,20 +15,13 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v4.1.0
-        with:
-          versionSpec: '6.3.x'
-
-      - name: Determine Version
+      - uses: paulhatch/semantic-version@v5.4.0
         id: version
-        uses: gittools/actions/gitversion/execute@v4.1.0
         with:
-          configFilePath: 'GitVersion.yml'
-
-      - name: Print generated version
-        run: |
-          echo "Version: ${{ steps.version.outputs.assemblySemVer }}"
+          bump_each_commit: true
+          major_pattern: "/^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\\([\\w\\s-,/\\\\]*\\))?(!:|:.*\\n\\n((.+\\n)+\\n)?BREAKING CHANGE:\\s.+)/"
+          minor_pattern: "/^(feat)(\\([\\w\\s-,/\\\\]*\\))?:/"
+          bump_each_commit_patch_pattern: "/^(fix|perf)(\\([\\w\\s-,/\\\\]*\\))?:/"
 
       - name: Install server dependencies
         working-directory: ./server
