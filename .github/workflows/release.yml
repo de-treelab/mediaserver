@@ -20,6 +20,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20'
+          registry-url: https://registry.npmjs.org/
 
       - name: Install GitVersion
         uses: gittools/actions/gitversion/setup@v4.1.0
@@ -65,3 +66,12 @@ jobs:
             treelabmediaserver/mediaserver-web:${{ steps.version.outputs.assemblySemVer }}
             treelabmediaserver/mediaserver-web:${{ github.ref_name == 'main' && 'stable' || 'unstable' }}
             ${{ github.ref_name == 'main' && 'treelabmediaserver/mediaserver-web:latest' || '' }}
+
+      - run: |
+          npm version ${{ steps.version.outputs.assemblySemVer }} --no-git-tag-version
+          npm ci
+          npm run types:plugins
+
+      - run: npm publish --provenance --ignore-scripts
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

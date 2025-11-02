@@ -1,14 +1,14 @@
 import { twMerge } from "tailwind-merge";
 import { enhancedApi } from "../app/enhancedApi";
 import { TagList } from "../components/TagList";
-import { useDocument } from "../hooks/useDocument";
-import { useDocumentPlugin } from "../hooks/useDocumentPlugin";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { TagInput } from "./TagInput";
 import type { ApiTag } from "../app/api";
 import { tagToString } from "../util/tag";
 import { useTranslation } from "react-i18next";
+import { DocumentRender } from "../components/DocumentRender";
+import { DocumentDiashow } from "../components/DocumentDiashow";
 
 type Props = {
   id: string;
@@ -20,9 +20,6 @@ export const DocumentPreview = ({ id, diashow, nextDocument }: Props) => {
   const [tagInput, setTagInput] = useState("");
 
   const { t } = useTranslation();
-
-  const { objectUrl, blob } = useDocument(id);
-  const plugin = useDocumentPlugin(blob?.type);
 
   const [tagListOpen, setTagListOpen] = useState(false);
 
@@ -60,20 +57,11 @@ export const DocumentPreview = ({ id, diashow, nextDocument }: Props) => {
     [removeTag, id],
   );
 
-  if (!blob || !objectUrl) {
-    return null;
-  }
-
   return (
     <>
       {diashow && (
         <div className="fixed z-10 bg-gray-800 w-screen h-screen left-0 top-0">
-          <plugin.Diashow
-            objectUrl={objectUrl}
-            defaultTimeout={3000}
-            nextDocument={nextDocument}
-            React={React}
-          />
+          <DocumentDiashow documentId={id} nextDocument={nextDocument} />
         </div>
       )}
       {!diashow && (
@@ -134,7 +122,7 @@ export const DocumentPreview = ({ id, diashow, nextDocument }: Props) => {
                 : "h-full sm:w-full sm:left-0",
             )}
           >
-            <plugin.Render objectUrl={objectUrl} React={React} />
+            <DocumentRender documentId={id} />
           </div>
         </>
       )}

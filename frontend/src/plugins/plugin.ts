@@ -28,9 +28,3 @@ export type FileTypePlugin = {
   Diashow: React.FC<DiashowContext>;
   description: string;
 };
-
-export const fileTypes: FileTypePlugin[] = [];
-
-export const addFileTypePlugin = (plugin: FileTypePlugin) => {
-  fileTypes.push(plugin);
-};
