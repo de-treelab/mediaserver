@@ -3,7 +3,7 @@ FROM node:20 AS builder
 WORKDIR /usr/src/app
 
 COPY package*.json ./
-RUN npm install
+RUN npm install --ignore-scripts
 
 COPY src ./src
 COPY public ./public
