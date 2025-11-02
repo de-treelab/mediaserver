@@ -8,6 +8,7 @@ import { FaCaretRight } from "react-icons/fa6";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { useTranslation } from "react-i18next";
+import { MdSettings } from "react-icons/md";
 
 export const SideBar = () => {
   const navigate = useNavigate();
@@ -56,6 +57,15 @@ export const SideBar = () => {
         }}
         collapsed={collapsed}
         text={t("sidebar.serverState")}
+      />
+      <SideBarButton
+        Icon={MdSettings}
+        pathPrefix="/settings"
+        onClick={() => {
+          navigate("/settings");
+        }}
+        collapsed={collapsed}
+        text={t("sidebar.settings")}
       />
       {collapsed && (
         <FaCaretRight
