@@ -69,7 +69,7 @@ jobs:
 
       - run: |
           npm version ${{ steps.version.outputs.assemblySemVer }} --no-git-tag-version
-          npm ci
+          npm install
           npm run types:plugins
 
       - run: npm publish --provenance --ignore-scripts
