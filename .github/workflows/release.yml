@@ -72,6 +72,6 @@ jobs:
           cd frontend
           npm version ${{ steps.version.outputs.MajorMinorPatch }} --no-git-tag-version
           npm install
-          npm publish --provenance --ignore-scripts
+          npm publish --provenance --ignore-scripts --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
