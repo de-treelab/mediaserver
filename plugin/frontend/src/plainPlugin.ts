@@ -1,4 +1,4 @@
-import type { FileTypePlugin } from "mediaserver-plugin-types";
+import type { FileTypePlugin } from "@lars_hagemann/mediaserver-frontend-plugin-types";
 
 const plainPlugin: FileTypePlugin = {
   matcher: (fileType) => fileType === "text/plain",
