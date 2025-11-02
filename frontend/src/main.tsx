@@ -11,21 +11,24 @@ import { addFileTypePlugin } from "./plugins/fileTypes.ts";
 
 import "./i18n.ts";
 import { PersistGate } from "redux-persist/integration/react";
+import { loadExternalPlugins } from "./plugins/pluginLoader.ts";
 
 standardPlugins.forEach((plugin) => {
   addFileTypePlugin(plugin);
 });
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <Provider store={store}>
-      <PersistGate persistor={persistor}>
-        <WebSocketContextProvider>
-          <UploadContextProvider>
-            <App />
-          </UploadContextProvider>
-        </WebSocketContextProvider>
-      </PersistGate>
-    </Provider>
-  </StrictMode>,
-);
+void loadExternalPlugins().then(() => {
+  createRoot(document.getElementById("root")!).render(
+    <StrictMode>
+      <Provider store={store}>
+        <PersistGate persistor={persistor}>
+          <WebSocketContextProvider>
+            <UploadContextProvider>
+              <App />
+            </UploadContextProvider>
+          </WebSocketContextProvider>
+        </PersistGate>
+      </Provider>
+    </StrictMode>,
+  );
+});

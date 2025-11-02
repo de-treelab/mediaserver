@@ -1,6 +1,8 @@
 import { twMerge } from "tailwind-merge";
 import { useThumbnail } from "../hooks/useThumbnail";
 import type { Document } from "../app/api";
+import { Icon } from "../components/Icon";
+import { fileIconFromMimeType } from "../util/fileIconFromFile";
 
 const layouts = {
   grid: "w-[120px] h-[120px] m-2 transition-all duration-200 object-contain border-transparent border-1 hover:border-blue-200",
@@ -47,6 +49,11 @@ export const Thumbnail = ({
     />
   ) : (
     <div className={twMerge(layouts[layout], className)} onClick={onClick}>
+      <Icon
+        Icon={fileIconFromMimeType(document.mime)}
+        size="medium"
+        className="text-gray-500 mr-4 basis-12"
+      />
       <span className="flex-grow overflow-hidden text-nowrap text-ellipsis">
         {document.id}
       </span>

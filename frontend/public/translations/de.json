@@ -47,6 +47,18 @@
   },
   "settings": {
     "title": "Einstellungen",
-    "selectLanguage": "Sprache auswählen"
+    "selectLanguage": "Sprache auswählen",
+    "loadedTranslations": "Geladene Übersetzungen",
+    "loadedPlugins": "Geladene Plugins",
+    "languageExtension": {
+      "trusted": "Vertrauenswürdig",
+      "yes": "Ja",
+      "no": "Nein"
+    },
+    "plugin": {
+      "trusted": "Vertrauenswürdig",
+      "yes": "Ja",
+      "no": "Nein"
+    }
   }
 }

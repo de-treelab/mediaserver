@@ -1,20 +1,32 @@
 import type { IconType } from "react-icons";
+import * as fa from "react-icons/fa";
+import * as md from "react-icons/md";
+import * as gi from "react-icons/gi";
 
-export type DiashowContext = {
-  nextDocument: () => void;
-  defaultTimeout: number;
-  objectUrl: string;
+export const reactIcons = {
+  ...fa,
+  ...md,
+  ...gi,
 };
+
+export type ReactIcons = typeof reactIcons;
 
 export type RenderContext = {
   objectUrl: string;
+  React: typeof import("react");
+};
+
+export type DiashowContext = RenderContext & {
+  nextDocument: () => void;
+  defaultTimeout: number;
 };
 
 export type FileTypePlugin = {
   matcher: (fileType: string) => boolean;
-  icon: IconType;
+  icon: (ReactIcons: ReactIcons) => IconType;
   Render: React.FC<RenderContext>;
   Diashow: React.FC<DiashowContext>;
+  description: string;
 };
 
 export const fileTypes: FileTypePlugin[] = [];

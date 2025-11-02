@@ -47,6 +47,18 @@
   },
   "settings": {
     "title": "Settings",
-    "selectLanguage": "Select Language"
+    "selectLanguage": "Select Language",
+    "loadedTranslations": "Loaded Translations",
+    "loadedPlugins": "Loaded Plugins",
+    "languageExtension": {
+      "trusted": "Trusted",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "plugin": {
+      "trusted": "Trusted",
+      "yes": "Yes",
+      "no": "No"
+    }
   }
 }
