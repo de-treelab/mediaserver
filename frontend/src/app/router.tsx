@@ -5,6 +5,7 @@ import { UploadPage } from "../pages/UploadPage";
 import { TagsPage } from "../pages/TagsPage";
 import { NavigateToGalleryPage } from "../pages/NavigateToGalleryPage";
 import { StatePage } from "../pages/StatePage";
+import { SettingsPage } from "../pages/SettingsPage";
 
 export const router = createBrowserRouter([
   {
@@ -30,6 +31,10 @@ export const router = createBrowserRouter([
       {
         path: "state",
         Component: StatePage,
+      },
+      {
+        path: "settings",
+        Component: SettingsPage,
       },
     ],
   },

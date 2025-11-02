@@ -31,10 +31,19 @@ export const Pagination = ({
       )}
       pageCount={Math.ceil(total / limit)}
       onPageChange={({ selected }) => onPageChange(selected)}
-      previousLabel={"< " + t("pagination.previous")}
-      nextLabel={t("pagination.next") + " >"}
+      previousLabel={
+        <>
+          &lt;{" "}
+          <span className="hidden sm:inline">{t("pagination.previous")}</span>
+        </>
+      }
+      nextLabel={
+        <>
+          <span className="hidden sm:inline">{t("pagination.next")}</span> &gt;
+        </>
+      }
       forcePage={currentPage}
-      pageRangeDisplayed={5}
+      pageRangeDisplayed={1}
     />
   );
 };

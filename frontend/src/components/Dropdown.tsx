@@ -58,7 +58,7 @@ export const Dropdown = <T,>({
   return (
     <div
       className={twMerge(
-        "absolute block bg-gray-800 -mt-2 border-b border-gray-300 max-h-60 overflow-y-auto w-full z-10 text-gray-300",
+        "absolute block bg-gray-800 -mt-2 border-b border-gray-300 max-h-60 overflow-y-auto w-full z-90 text-gray-300",
         direction === "up"
           ? "bottom-full rounded-t-md"
           : "top-full rounded-b-md",
