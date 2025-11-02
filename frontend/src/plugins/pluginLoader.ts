@@ -46,8 +46,7 @@ async function loadPluginManifest(
 async function loadPlugin(plugin: PluginEntry) {
   try {
     const module = await import(/* @vite-ignore */ `${plugin.url}?url`);
-    console.log(module.default);
-    addFileTypePlugin(module);
+    addFileTypePlugin(module.default);
     console.log(`Loaded plugin: ${plugin.name}`);
   } catch (error) {
     console.error(`Error loading plugin ${plugin.name}:`, error);
