@@ -1,5 +1,5 @@
 {
-  "name": "@lars_hagemann/mediaserver-plugin-types",
+  "name": "@lars_hagemann/mediaserver-frontend-plugin-types",
   "version": "0.0.0",
   "files": ["types", "README.md"],
   "type": "module",
