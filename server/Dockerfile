@@ -36,4 +36,6 @@ ENV STAGE=production
 
 RUN npm install --omit=dev
 
+COPY ./manifest.json ./manifest.json
+
 CMD ["node", "dist/index.js"]
