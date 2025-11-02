@@ -69,6 +69,7 @@ jobs:
             ${{ github.ref_name == 'main' && 'treelabmediaserver/mediaserver-web:latest' || '' }}
 
       - name: Publish frontend plugin types to NPM
+        continue-on-error: true
         run: |
           cd frontend
           npm version ${{ steps.version.outputs.MajorMinorPatch }} --no-git-tag-version
@@ -78,6 +79,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish backend plugin types to NPM
+        continue-on-error: true
         run: |
           cd server
           npm version ${{ steps.version.outputs.MajorMinorPatch }} --no-git-tag-version
