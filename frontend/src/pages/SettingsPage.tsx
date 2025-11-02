@@ -37,23 +37,27 @@ export const SettingsPage = () => {
       <h2 className="text-xl font-semibold mb-2">
         {t("settings.loadedPlugins")}
       </h2>
-      {fileTypes.map((plugin, index) => (
-        <div key={index} className="mb-4 p-4 border rounded">
-          <Icon
-            Icon={plugin.icon(reactIcons)}
-            size="medium"
-            className="inline"
-          />
-          <span className="ml-2 font-semibold">{plugin.description}</span>
-          <div>
-            {t(`settings.plugin.trusted`)}:{" "}
-            {t(
-              "settings.plugin." +
-                (standardPlugins.includes(plugin) ? "yes" : "no"),
-            )}
+      {fileTypes.map((plugin, index) => {
+        console.log(plugin);
+        console.log(reactIcons);
+        return (
+          <div key={index} className="mb-4 p-4 border rounded">
+            <Icon
+              Icon={plugin.icon(reactIcons)}
+              size="medium"
+              className="inline"
+            />
+            <span className="ml-2 font-semibold">{plugin.description}</span>
+            <div>
+              {t(`settings.plugin.trusted`)}:{" "}
+              {t(
+                "settings.plugin." +
+                  (standardPlugins.includes(plugin) ? "yes" : "no"),
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };

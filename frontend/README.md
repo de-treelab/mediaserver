@@ -137,7 +137,7 @@ services:
     volumes:
       - ./manifest.json:/var/www/html/manifest.json
       - ./fr.json:/var/www/html/translations/fr.json
-      - ./csvPlugin.mjs:/var/www/html/plugins/csvPlugin.mjs
+      - ./csvPlugin.js:/var/www/html/plugins/csvPlugin.js
 ```
 
 Your manifest could look like this:
@@ -147,11 +147,11 @@ Your manifest could look like this:
   "plugins": [
     {
       "name": "csv-plugin",
-      "url": "/plugins/csvPlugin.mjs",
+      "url": "/plugins/csvPlugin.js",
     },
     {
       "name": "plain-plugin",
-      "url": "https://some-cdn.net/mediaserver/plainPlugin.mjs",
+      "url": "https://some-cdn.net/mediaserver/plainPlugin.js",
     }
   ],
   "translations": [
@@ -168,7 +168,7 @@ Your manifest could look like this:
 
 ## Developing plugins
 
-Plugins need to export a default object that implements the `FileTypePlugin` interface. The `csvPlugin.mjs` plugin could look like this:
+Plugins need to export a default object that implements the `FileTypePlugin` interface. The `csvPlugin.js` plugin could look like this:
 
 ```js
 const csvPlugin = {
