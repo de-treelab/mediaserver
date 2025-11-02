@@ -10,6 +10,7 @@ import { useUploadContext, type FileProxy } from "../upload/UploadContext";
 import { WithNumberIndicator } from "../components/WithNumberIndicator";
 import { fileIconFromFile } from "../util/fileIconFromFile";
 import { useTranslation } from "react-i18next";
+import { twMerge } from "tailwind-merge";
 
 type AllowedTabs = "All" | "Uploading" | "Success" | "Failed";
 
@@ -78,7 +79,15 @@ const FileList = ({ files }: { files: FileProxy[] }) => {
   );
 };
 
-export const FileUploadView: React.FC = () => {
+type Props = {
+  className?: string;
+  hideWhenNoFiles?: boolean;
+};
+
+export const FileUploadView: React.FC<Props> = ({
+  className,
+  hideWhenNoFiles = true,
+}) => {
   const [currentTab, setCurrentTab] = useState<AllowedTabs | undefined>("All");
 
   const { toBeProcessed, processedFiles, failedFiles } = useUploadContext();
@@ -148,12 +157,12 @@ export const FileUploadView: React.FC = () => {
     [allFiles, failedFiles, processedFiles, toBeProcessed, t],
   );
 
-  if (allFiles.length === 0) {
+  if (allFiles.length === 0 && hideWhenNoFiles) {
     return null;
   }
 
   return (
-    <div className="w-1/5 overflow-y-hidden fixed right-12 bottom-0 text-black rounded-t-md">
+    <div className={twMerge("text-black rounded-t-md", className)}>
       <div className="max-h-[30vh] overflow-y-auto">
         {currentTab === "All" && <FileList files={allFiles} />}
         {currentTab === "Uploading" && (

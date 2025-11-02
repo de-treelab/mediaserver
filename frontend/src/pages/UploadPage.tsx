@@ -5,6 +5,7 @@ import { useState } from "react";
 import { TagList } from "../components/TagList";
 import type { ApiTag } from "../app/api";
 import { stringToTag, tagToString } from "../util/tag";
+import { FileUploadView } from "../sections/FileUploadView";
 
 export const UploadPage = () => {
   const { t } = useTranslation();
@@ -16,7 +17,7 @@ export const UploadPage = () => {
 
   return (
     <div
-      className="h-full p-4"
+      className="flex flex-col h-full p-4 gap-2"
       onDragOver={(e) => {
         e.preventDefault();
       }}
@@ -40,7 +41,7 @@ export const UploadPage = () => {
           if (tag.trim() === "") return;
           setTags((prev) => [...prev, stringToTag(tag)]);
         }}
-        className="mb-2 mt-4"
+        className=""
         placeholder={t("pages.upload.tagInputPlaceholder")}
       />
       <TagList
@@ -50,6 +51,31 @@ export const UploadPage = () => {
             prev.filter((t) => tagToString(tag) !== tagToString(t)),
           );
         }}
+      />
+      <input
+        type="file"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          const files = e.target.files;
+          if (!files) return;
+          Array.from(files).forEach((file) => {
+            markFileAsToBeUploaded(file, tags);
+          });
+        }}
+        id="fileInput"
+      />
+      <div
+        className="flex flex-col bg-gray-700 grow justify-center text-center rounded-sm cursor-pointer"
+        onClick={() => {
+          (document.querySelector("#fileInput") as HTMLInputElement).click();
+        }}
+      >
+        {t("pages.upload.dropFilesHereOrClickToSelect")}
+      </div>
+      <FileUploadView
+        className="sm:hidden block w-full left-0"
+        hideWhenNoFiles={false}
       />
     </div>
   );
