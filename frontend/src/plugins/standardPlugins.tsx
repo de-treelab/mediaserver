@@ -1,4 +1,4 @@
-import type { FileTypePlugin } from "./fileTypes";
+import type { FileTypePlugin } from "./plugin";
 
 export const pdfPlugin: FileTypePlugin = {
   matcher: (type) => type === "application/pdf",

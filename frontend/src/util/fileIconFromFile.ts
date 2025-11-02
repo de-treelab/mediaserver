@@ -1,6 +1,7 @@
 import { FaFile } from "react-icons/fa";
-import { fileTypes, reactIcons } from "../plugins/fileTypes";
+import { fileTypes } from "../plugins/addFileTypePlugin";
 import type { FileProxy } from "../upload/UploadContext";
+import { reactIcons } from "../plugins/plugin";
 
 export const fileIconFromMimeType = (mimeType: string) => {
   for (const plugin of fileTypes) {

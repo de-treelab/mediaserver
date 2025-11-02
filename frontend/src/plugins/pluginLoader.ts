@@ -1,6 +1,6 @@
 import i18n from "i18next";
 import z from "zod";
-import { addFileTypePlugin } from "./fileTypes";
+import { addFileTypePlugin } from "./addFileTypePlugin";
 
 const pluginManifestSchema = z.object({
   plugins: z.array(
@@ -45,7 +45,7 @@ async function loadPluginManifest(
 
 async function loadPlugin(plugin: PluginEntry) {
   try {
-    const module = await import(/* @vite-ignore */ `${plugin.url}?url`);
+    const module = await import(/* @vite-ignore */ plugin.url);
     addFileTypePlugin(module.default);
     console.log(`Loaded plugin: ${plugin.name}`);
   } catch (error) {

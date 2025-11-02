@@ -1,9 +1,10 @@
 import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "../sections/LanguageSelector";
-import { fileTypes, reactIcons } from "../plugins/fileTypes";
+import { fileTypes } from "../plugins/addFileTypePlugin";
 import { Icon } from "../components/Icon";
 import { standardTranslations, translations } from "../i18n";
-import { standardPlugins } from "../plugins/standardPlugins";
+import { reactIcons } from "../plugins/plugin";
+import { isPluginTrusted } from "../hooks/useIsPluginTrusted";
 
 export const SettingsPage = () => {
   const { t } = useTranslation();
@@ -37,27 +38,20 @@ export const SettingsPage = () => {
       <h2 className="text-xl font-semibold mb-2">
         {t("settings.loadedPlugins")}
       </h2>
-      {fileTypes.map((plugin, index) => {
-        console.log(plugin);
-        console.log(reactIcons);
-        return (
-          <div key={index} className="mb-4 p-4 border rounded">
-            <Icon
-              Icon={plugin.icon(reactIcons)}
-              size="medium"
-              className="inline"
-            />
-            <span className="ml-2 font-semibold">{plugin.description}</span>
-            <div>
-              {t(`settings.plugin.trusted`)}:{" "}
-              {t(
-                "settings.plugin." +
-                  (standardPlugins.includes(plugin) ? "yes" : "no"),
-              )}
-            </div>
+      {fileTypes.map((plugin, index) => (
+        <div key={index} className="mb-4 p-4 border rounded">
+          <Icon
+            Icon={plugin.icon(reactIcons)}
+            size="medium"
+            className="inline"
+          />
+          <span className="ml-2 font-semibold">{plugin.description}</span>
+          <div>
+            {t(`settings.plugin.trusted`)}:{" "}
+            {t("settings.plugin." + (isPluginTrusted(plugin) ? "yes" : "no"))}
           </div>
-        );
-      })}
+        </div>
+      ))}
     </div>
   );
 };
