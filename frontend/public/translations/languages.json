@@ -1,0 +1,14 @@
+{
+  "languages": {
+    "de": {
+      "name": "German",
+      "localName": "Deutsch",
+      "flag": "🇩🇪"
+    },
+    "en": {
+      "name": "English",
+      "localName": "English",
+      "flag": "🇬🇧"
+    }
+  }
+}

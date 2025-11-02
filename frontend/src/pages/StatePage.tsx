@@ -43,7 +43,7 @@ const StorageProgressBar = ({
         value={used}
         color={percentageToColor(used / total)}
       />
-      <div className="flex flex-row justify-between mt-1">
+      <div className="flex flex-col sm:flex-row justify-between mt-1">
         <div>
           {bytesToHumanReadable(used)} / {bytesToHumanReadable(total)}
         </div>

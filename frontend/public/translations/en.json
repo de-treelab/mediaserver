@@ -43,5 +43,9 @@
   },
   "document": {
     "addTagPlaceholder": "Add a tag..."
+  },
+  "settings": {
+    "title": "Settings",
+    "selectLanguage": "Select Language"
   }
 }
