@@ -1,6 +1,5 @@
 {
   "name": "mediaserver-plugin-types",
-  "private": true,
   "version": "0.0.0",
   "files": ["types", "README.md"],
   "type": "module",
