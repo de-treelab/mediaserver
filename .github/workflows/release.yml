@@ -69,7 +69,7 @@ jobs:
 
       - run: |
           cd frontend
-          npm version ${{ steps.version.outputs.assemblySemVer }} --no-git-tag-version
+          npm version ${{ steps.version.outputs.MajorMinorPatch }} --no-git-tag-version
           npm install
 
       - run: npm publish --provenance --ignore-scripts
