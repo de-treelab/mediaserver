@@ -1,0 +1,12 @@
+{
+  "type": "module",
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "mediaserver-plugin-types": "^0.7.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

@@ -68,8 +68,18 @@ jobs:
             treelabmediaserver/mediaserver-web:${{ github.ref_name == 'main' && 'stable' || 'unstable' }}
             ${{ github.ref_name == 'main' && 'treelabmediaserver/mediaserver-web:latest' || '' }}
 
-      - run: |
+      - name: Publish frontend plugin types to NPM
+        run: |
           cd frontend
+          npm version ${{ steps.version.outputs.MajorMinorPatch }} --no-git-tag-version
+          npm install
+          npm publish --provenance --ignore-scripts --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish backend plugin types to NPM
+        run: |
+          cd backend
           npm version ${{ steps.version.outputs.MajorMinorPatch }} --no-git-tag-version
           npm install
           npm publish --provenance --ignore-scripts --access public
