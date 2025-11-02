@@ -1,13 +1,12 @@
 import sharp from "sharp";
-import type { FileTypePlugin } from "./fileTypes.ts";
+import type { FileTypePlugin } from "./plugin.js";
 import * as pdf from "pdf-thumbnail";
 import * as fs2 from "fs";
-import { v4 as uuidv4 } from "uuid";
 import ffmpeg from "ffmpeg";
 
 export const pdfPlugin: FileTypePlugin = {
   matcher: (file) => file === "application/pdf",
-  thumbnailCreator: async (path) => {
+  thumbnailCreator: async ({ path, uuidv4 }) => {
     const tmpId = uuidv4();
     const pdfBuffer = fs2.createReadStream(path);
     const pdfThumbnailStream = await pdf.default(pdfBuffer, {
@@ -35,7 +34,7 @@ export const pdfPlugin: FileTypePlugin = {
 
 export const imagePlugin: FileTypePlugin = {
   matcher: (file) => file.startsWith("image"),
-  thumbnailCreator: async (path) => {
+  thumbnailCreator: async ({ path, uuidv4 }) => {
     // Implement image thumbnail creation logic
     const tmpId = uuidv4();
     const tmpPath = "/tmp/" + tmpId + "_thumbnail.jpg";
@@ -53,7 +52,7 @@ export const imagePlugin: FileTypePlugin = {
 
 export const videoPlugin: FileTypePlugin = {
   matcher: (file) => file.startsWith("video"),
-  thumbnailCreator: async (path) => {
+  thumbnailCreator: async ({ path, uuidv4 }) => {
     const process = await new ffmpeg(path);
     const filename = uuidv4();
     await process.fnExtractFrameToJPG("/tmp", {
@@ -69,7 +68,7 @@ export const videoPlugin: FileTypePlugin = {
 
 export const audioPlugin: FileTypePlugin = {
   matcher: (file) => file.startsWith("audio"),
-  thumbnailCreator: async (path) => {
+  thumbnailCreator: async ({ path, uuidv4 }) => {
     const process = await new ffmpeg(path);
     const filename = uuidv4();
     process.addFilterComplex(

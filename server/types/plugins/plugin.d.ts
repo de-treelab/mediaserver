@@ -1,8 +1,11 @@
-type ThumbnailResult = {
+export type ThumbnailResult = {
+    path: string;
+};
+export type ThumbnailCreationContext = {
+    uuidv4: () => string;
     path: string;
 };
 export type FileTypePlugin = {
     matcher: (fileType: string) => boolean;
-    thumbnailCreator: (path: string) => Promise<ThumbnailResult>;
+    thumbnailCreator: (context: ThumbnailCreationContext) => Promise<ThumbnailResult>;
 };
-export {};
