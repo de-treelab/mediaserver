@@ -68,9 +68,9 @@ jobs:
             ${{ github.ref_name == 'main' && 'treelabmediaserver/mediaserver-web:latest' || '' }}
 
       - run: |
+          cd frontend
           npm version ${{ steps.version.outputs.assemblySemVer }} --no-git-tag-version
           npm install
-          npm run types:plugins
 
       - run: npm publish --provenance --ignore-scripts
         env:
