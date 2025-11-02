@@ -26,5 +26,7 @@ COPY ./env.sh /docker-entrypoint.d/env.sh
 RUN dos2unix /docker-entrypoint.d/env.sh
 RUN chmod +x /docker-entrypoint.d/env.sh
 
+COPY ./public/manifest.json /var/www/html/manifest.json
+
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]

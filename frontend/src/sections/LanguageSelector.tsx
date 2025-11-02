@@ -56,18 +56,6 @@ export const LanguageSelector = ({ className }: Props) => {
           </div>
         ))}
       </div>
-      {/* <br />
-      <select
-        value={language}
-        onChange={(e) => i18n.changeLanguage(e.target.value)}
-      >
-        {languages.map((lng) => (
-          <option key={lng} value={lng}>
-            {t(`languages.${lng}.flag`)} {t(`languages.${lng}.name`)} (
-            {t(`languages.${lng}.localName`)})
-          </option>
-        ))}
-      </select> */}
     </div>
   );
 };

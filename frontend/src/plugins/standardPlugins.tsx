@@ -1,21 +1,14 @@
-import {
-  FaFile,
-  FaFileAudio,
-  FaFilePdf,
-  FaImage,
-  FaVideo,
-} from "react-icons/fa";
 import type { FileTypePlugin } from "./fileTypes";
-import { useEffect, useRef } from "react";
 
 export const pdfPlugin: FileTypePlugin = {
   matcher: (type) => type === "application/pdf",
-  icon: FaFilePdf,
+  icon: (icons) => icons.FaFilePdf,
+  description: "Plugin for rendering PDF files",
   Render: ({ objectUrl }) => (
     <embed className="w-full h-full" src={objectUrl} type="application/pdf" />
   ),
   Diashow: (context) => {
-    useEffect(() => {
+    context.React.useEffect(() => {
       const timeout = setTimeout(() => {
         context.nextDocument();
       }, context.defaultTimeout);
@@ -35,7 +28,8 @@ export const pdfPlugin: FileTypePlugin = {
 
 export const imagePlugin: FileTypePlugin = {
   matcher: (type) => type.startsWith("image"),
-  icon: FaImage,
+  icon: (icons) => icons.FaImage,
+  description: "Plugin for rendering image files",
   Render: ({ objectUrl }) => (
     <img
       className="w-full h-full object-contain"
@@ -44,7 +38,7 @@ export const imagePlugin: FileTypePlugin = {
     />
   ),
   Diashow: (context) => {
-    useEffect(() => {
+    context.React.useEffect(() => {
       const timeout = setTimeout(() => {
         context.nextDocument();
       }, context.defaultTimeout);
@@ -64,14 +58,15 @@ export const imagePlugin: FileTypePlugin = {
 
 export const videoPlugin: FileTypePlugin = {
   matcher: (type) => type.startsWith("video"),
-  icon: FaVideo,
+  icon: (icons) => icons.FaVideo,
+  description: "Plugin for rendering video files",
   Render: ({ objectUrl }) => (
     <video className="w-full h-full" src={objectUrl} controls />
   ),
   Diashow: (context) => {
-    const videoRef = useRef<HTMLVideoElement>(null);
+    const videoRef = context.React.useRef<HTMLVideoElement>(null);
 
-    useEffect(() => {
+    context.React.useEffect(() => {
       videoRef.current?.play();
 
       videoRef.current?.addEventListener("ended", () => {
@@ -93,14 +88,15 @@ export const videoPlugin: FileTypePlugin = {
 
 export const audioPlugin: FileTypePlugin = {
   matcher: (type) => type.startsWith("audio"),
-  icon: FaFileAudio,
+  icon: (icons) => icons.FaFileAudio,
+  description: "Plugin for rendering audio files",
   Render: ({ objectUrl }) => (
     <audio className="w-full h-full" src={objectUrl} controls />
   ),
   Diashow: (context) => {
-    const audioRef = useRef<HTMLAudioElement>(null);
+    const audioRef = context.React.useRef<HTMLAudioElement>(null);
 
-    useEffect(() => {
+    context.React.useEffect(() => {
       audioRef.current?.play();
 
       audioRef.current?.addEventListener("ended", () => {
@@ -129,10 +125,11 @@ export const standardPlugins = [
 
 export const unsupportedTypePlugin: FileTypePlugin = {
   matcher: () => true,
-  icon: FaFile,
+  icon: (icons) => icons.FaFile,
+  description: "Plugin for unsupported file types",
   Render: () => <div>Unsupported file type</div>,
   Diashow: (context) => {
-    useEffect(() => {
+    context.React.useEffect(() => {
       context.nextDocument();
     }, [context]);
 

@@ -3,7 +3,7 @@ import { enhancedApi } from "../app/enhancedApi";
 import { TagList } from "../components/TagList";
 import { useDocument } from "../hooks/useDocument";
 import { useDocumentPlugin } from "../hooks/useDocumentPlugin";
-import { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { TagInput } from "./TagInput";
 import type { ApiTag } from "../app/api";
@@ -72,6 +72,7 @@ export const DocumentPreview = ({ id, diashow, nextDocument }: Props) => {
             objectUrl={objectUrl}
             defaultTimeout={3000}
             nextDocument={nextDocument}
+            React={React}
           />
         </div>
       )}
@@ -133,7 +134,7 @@ export const DocumentPreview = ({ id, diashow, nextDocument }: Props) => {
                 : "h-full sm:w-full sm:left-0",
             )}
           >
-            <plugin.Render objectUrl={objectUrl} />
+            <plugin.Render objectUrl={objectUrl} React={React} />
           </div>
         </>
       )}
