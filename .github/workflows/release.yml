@@ -84,3 +84,14 @@ jobs:
           npm publish --provenance --ignore-scripts --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish plugin creation tool to NPM
+        continue-on-error: true
+        run: |
+          cd plugins/create-plugin
+          npm version ${{ steps.version.outputs.version }} --no-git-tag-version
+          npm install
+          npm run build
+          npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

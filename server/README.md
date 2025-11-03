@@ -1,4 +1,4 @@
-# Mediaserver Frontend
+# Mediaserver Backend
 
 ## Usage
 
@@ -88,56 +88,18 @@ REDIS_USERNAME=<your-user>
 REDIS_PASSWORD=<your-password>
 ```
 
-## Translations
-
-You can install additional installations by creating a custom `manifest.json` and copying your translation into the container. 
-
-```yml
-services:
-  frontend:
-    image: treelabmediaserver/mediaserver-web:stable
-    volumes:
-      - ./manifest.json:/var/www/html/manifest.json
-      - ./fr.json:/var/www/html/translations/fr.json
-```
-
-Your manifest could look like this:
-```json
-{
-  "plugins": [],
-  "translations": [
-    {
-      "lang": "fr",
-      "path": "/translations/fr.json",
-      "name": "French",
-      "localName": "Français",
-      "flag": "🇫🇷"
-    },
-    {
-      "lang": "it",
-      "path": "https://some-cdn.net/mediaserver/it.json",
-      "name": "Italian",
-      "localName": "Italiano",
-      "flag": "🇮🇹"
-    }
-  ]
-}
-```
-
-I am not going to support other languages other than english and german out of the box, since I cannot maintain other languages and I don't want some locales to be in a broken state. 
-
 ## Plugins
 
-Installing plugins works similar to installing language extensions. You need to update your manifest.json and copy the plugin JS file into your docker container:
+Installing plugins works similar to installing language extensions. You need to update your manifest.json and copy the plugin JS file into your docker container. It is important that you copy the plugin as a commonJS file into your container:
 
 ```yml
 services:
-  frontend:
-    image: treelabmediaserver/mediaserver-web:stable
+  server:
+    image: treelabmediaserver/mediaserver-backend:stable
+    # ...
     volumes:
-      - ./manifest.json:/var/www/html/manifest.json
-      - ./fr.json:/var/www/html/translations/fr.json
-      - ./csvPlugin.js:/var/www/html/plugins/csvPlugin.js
+      - ./manifest.backend.json:/usr/src/app/manifest.json
+      - ./plainPlugin.backend.js:/usr/src/app/dist/plugins/plainPlugin.cjs
 ```
 
 Your manifest could look like this:
@@ -146,21 +108,8 @@ Your manifest could look like this:
 {
   "plugins": [
     {
-      "name": "csv-plugin",
-      "url": "/plugins/csvPlugin.js",
-    },
-    {
       "name": "plain-plugin",
-      "url": "https://some-cdn.net/mediaserver/plainPlugin.js",
-    }
-  ],
-  "translations": [
-    {
-      "lang": "fr",
-      "path": "/translations/fr.json",
-      "name": "French",
-      "localName": "Français",
-      "flag": "🇫🇷"
+      "path": "./plainPlugin.cjs",
     }
   ]
 }

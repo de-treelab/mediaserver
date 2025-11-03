@@ -12,8 +12,8 @@
     "url": "https://github.com/LarsHagemann/mediaserver"
   },
   "scripts": {
-    "types:plugins": "tsc -p tsconfig.plugin.json",
-    "prepare": "npm run types:plugins"
+    "types": "tsc -p tsconfig.plugin.json",
+    "prepare": "npm run types"
   },
   "author": "",
   "license": "ISC",

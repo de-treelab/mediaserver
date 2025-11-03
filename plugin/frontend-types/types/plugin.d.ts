@@ -1,4 +1,5 @@
 import type { IconType } from "react-icons";
+import React from "react";
 export declare const reactIcons: {
     default: typeof import("react-icons/gi");
     Gi3dGlasses: IconType;
@@ -9997,7 +9998,7 @@ export declare const reactIcons: {
 export type ReactIcons = typeof reactIcons;
 export type RenderContext = {
     objectUrl: string;
-    React: typeof import("react");
+    React: typeof React;
 };
 export type DiashowContext = RenderContext & {
     nextDocument: () => void;

@@ -7,7 +7,7 @@ const manifestSchema = z.object({
   plugins: z.array(
     z.object({
       name: z.string(),
-      entry: z.string(),
+      path: z.string(),
     }),
   ),
 });
@@ -22,7 +22,7 @@ export const loadPlugins = async (
   }
 
   for (const plugin of result.data.plugins) {
-    const pluginModule = await import(plugin.entry);
+    const pluginModule = await import(plugin.path);
 
     addFileTypePlugin(pluginModule.default);
   }
