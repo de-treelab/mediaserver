@@ -1,5 +1,4 @@
 {
-  "extends": "./tsconfig.json",
   "compilerOptions": {
     "declaration": true,
     "emitDeclarationOnly": true,
@@ -12,5 +11,5 @@
     "moduleResolution": "nodenext",
     "sourceMap": false,
   },
-  "include": ["src/plugins/plugin.ts"]
+  "include": ["../../server/src/plugins/plugin.ts"]
 }

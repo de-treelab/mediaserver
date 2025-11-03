@@ -1,0 +1,26 @@
+{
+  "name": "@lars_hagemann/mediaserver-frontend-plugin-types",
+  "version": "0.0.0",
+  "files": [
+    "types",
+    "../../frontend/README.md"
+  ],
+  "type": "module",
+  "types": "types/plugin.d.ts",
+  "repository": {
+    "url": "https://github.com/LarsHagemann/mediaserver"
+  },
+  "scripts": {
+    "types:plugins": "tsc -p tsconfig.plugin.json",
+    "prepare": "npm run types:plugins"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.2",
+    "@types/react-icons": "^2.2.7",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-icons": "^5.5.0"
+  }
+}

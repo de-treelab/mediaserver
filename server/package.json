@@ -1,13 +1,9 @@
 {
-  "name": "@lars_hagemann/mediaserver-backend-plugin-types",
+  "name": "@lars_hagemann/mediaserver-backend",
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
   "type": "module",
-  "types": "types/plugins/plugin.d.ts",
-  "files": [
-    "types"
-  ],
   "repository": {
     "url": "https://github.com/LarsHagemann/mediaserver"
   },
@@ -18,9 +14,7 @@
     "lint:check": "eslint .",
     "lint:fix": "eslint . --fix",
     "style:check": "prettier --check src/**/*.ts",
-    "style:fix": "prettier --write src/**/*.ts",
-    "types:plugins": "tsc -p tsconfig.plugin.json",
-    "test": "echo \"Error: no test specified\""
+    "style:fix": "prettier --write src/**/*.ts"
   },
   "author": "",
   "license": "ISC",
