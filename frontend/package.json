@@ -1,9 +1,7 @@
 {
-  "name": "@lars_hagemann/mediaserver-frontend-plugin-types",
+  "name": "@lars_hagemann/mediaserver-frontend",
   "version": "0.0.0",
-  "files": ["types", "README.md"],
   "type": "module",
-  "types": "types/plugin.d.ts",
   "repository": {
     "url": "https://github.com/LarsHagemann/mediaserver"
   },
@@ -14,9 +12,7 @@
     "lint:check": "eslint .",
     "lint:fix": "eslint . --fix",
     "style:check": "prettier --check src/**/*.ts",
-    "style:fix": "prettier --write src/**/*.ts",
-    "types:plugins": "tsc -p tsconfig.plugin.json",
-    "prepare": "npm run types:plugins"
+    "style:fix": "prettier --write src/**/*.ts"
   },
   "dependencies": {
     "@lars_hagemann/tags": "^1.0.4",

@@ -5,6 +5,7 @@
   },
   "devDependencies": {
     "@lars_hagemann/mediaserver-frontend-plugin-types": "^0.7.0",
+    "@types/react": "^19.2.2",
     "typescript": "^5.9.3"
   }
 }

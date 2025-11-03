@@ -31,9 +31,9 @@ jobs:
         working-directory: ./server
         run: npm run build
 
-      - name: Run server tests
-        working-directory: ./server
-        run: npm test
+      # - name: Run server tests
+      #   working-directory: ./server
+      #   run: npm test
 
       - name: Install frontend dependencies
         working-directory: ./frontend

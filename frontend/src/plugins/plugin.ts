@@ -2,6 +2,7 @@ import type { IconType } from "react-icons";
 import * as fa from "react-icons/fa";
 import * as md from "react-icons/md";
 import * as gi from "react-icons/gi";
+import React from "react";
 
 export const reactIcons = {
   ...fa,
@@ -13,7 +14,7 @@ export type ReactIcons = typeof reactIcons;
 
 export type RenderContext = {
   objectUrl: string;
-  React: typeof import("react");
+  React: typeof React;
 };
 
 export type DiashowContext = RenderContext & {
