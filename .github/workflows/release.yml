@@ -1,4 +1,8 @@
 on: 
+  pull_request:
+    branches:
+      - main
+      - develop
   merge_group:
     types: [checks_requested]
 
@@ -8,6 +12,7 @@ permissions:
 
 jobs:
   release:
+    if: github.event_name != 'pull_request' || github.event.action == 'enqueued'
     name: Release
     runs-on: ubuntu-latest
     steps:
