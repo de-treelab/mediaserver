@@ -4,7 +4,6 @@ on:
       - main
       - develop
   merge_group:
-    types: [checks_requested]
 
 permissions:
   contents: write
