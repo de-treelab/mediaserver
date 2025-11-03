@@ -5,6 +5,8 @@ import { DocumentPreview } from "./DocumentPreview";
 import { useEffect, useState } from "react";
 import { DocumentPreviewControls } from "../components/DocumentPreviewControls";
 import { useDocumentUrl } from "../hooks/useDocumentUrl";
+import { twMerge } from "tailwind-merge";
+import { MdClose } from "react-icons/md";
 
 type Props = {
   previewImageId: string;
@@ -76,13 +78,16 @@ export const PreviewContainer = ({
 
   return (
     <>
-      <div
-        className="absolute top-4 right-4 z-100 text-3xl cursor-pointer"
+      <MdClose
+        className="absolute top-4 right-4 z-100 text-3xl cursor-pointer hover:rotate-180 duration-200 hover:text-red-400"
         onClick={onClose}
+      />
+      <div
+        className={twMerge(
+          "absolute top-0 w-full h-[calc(100%-60px-2rem)] sm:h-[calc(100%-120px-2rem)] bg-gray-900 bg-opacity-75 flex items-center justify-center overflow-visible",
+          diashowMode ? "z-50" : "z-30",
+        )}
       >
-        X
-      </div>
-      <div className="absolute top-0 w-full h-[calc(100%-120px-1rem)] bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 overflow-visible">
         <DocumentPreview
           id={previewImageId}
           diashow={diashowMode}
@@ -102,7 +107,7 @@ export const PreviewContainer = ({
           toggleDiashow={() => setDiashowMode(!diashowMode)}
         />
       </div>
-      <div className="absolute flex flex-row flex-wrap bottom-0 right-0 w-full h-[calc(120px+1rem)] z-30 p-2 bg-gray-800 overflow-y-hidden justify-center">
+      <div className="absolute flex flex-row flex-wrap bottom-0 right-0 w-full h-[calc(60px+2rem)] sm:h-[calc(120px+2rem)] z-30 p-2 bg-gray-800 overflow-y-hidden justify-center">
         <ThumbnailContainer
           alignment="center"
           thumbnails={data?.items || []}
@@ -111,6 +116,7 @@ export const PreviewContainer = ({
           }}
           wrap="nowrap"
           selected={previewImageId}
+          size="small"
         />
       </div>
     </>

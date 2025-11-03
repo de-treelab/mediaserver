@@ -2,6 +2,8 @@ import z from "zod";
 import type { FileService } from "../files/FileService.js";
 import type { DbService } from "../sql/DbService.js";
 import * as cds from "check-disk-space";
+import { fileTypes } from "../plugins/fileTypes.js";
+import { standardPlugins } from "../plugins/standardPlugins.js";
 
 export interface StoreState {
   free: number;
@@ -11,8 +13,15 @@ export interface StoreState {
   basePath: string;
 }
 
+export interface PluginState {
+  name: string;
+  trusted: boolean;
+  description: string;
+}
+
 export interface BackendState {
   stores: StoreState[];
+  plugins: PluginState[];
   uptime: number;
 }
 
@@ -65,6 +74,11 @@ export class BackendStateRepository {
     return {
       stores,
       uptime: process.uptime(),
+      plugins: Object.entries(fileTypes).map(([name, plugin]) => ({
+        name,
+        trusted: Object.values(standardPlugins).includes(plugin),
+        description: plugin.description,
+      })),
     };
   }
 }

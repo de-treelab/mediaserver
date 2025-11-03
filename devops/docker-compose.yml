@@ -1,0 +1,77 @@
+services:
+  server:
+    image: mediaserver-backend-dev:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      DOCUMENT_STORE_CONFIG_PATH: /config.json
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - server_data:/store-0
+      - /tmp:/tmp
+      - ../server/assets/documentStoreConfig.json:/config.json
+      - ./manifest.backend.json:/usr/src/app/manifest.json:ro
+      - ../plugin/backend/dist/plainPlugin.js:/usr/src/app/dist/plugins/plainPlugin.cjs:ro
+    ports:
+      - ${BACKEND_PORT}:${BACKEND_PORT}
+      - ${WEBSOCKET_PORT}:${WEBSOCKET_PORT}
+    healthcheck: 
+      test: ["CMD", "curl", "-f", "http://localhost:${BACKEND_PORT}/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  postgres:
+    image: postgres:16
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    env_file:
+      - .env
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    
+  redis:
+    image: redis:latest
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    env_file:
+      - .env
+    restart: always
+    volumes:
+      - redis_data:/data
+
+  frontend:
+    image: mediaserver-frontend-dev:latest
+    depends_on:
+      server:
+        condition: service_healthy
+    volumes:
+      - ./manifest.frontend.json:/var/www/html/manifest.json:ro
+      - ../plugin/frontend/dist/plainPlugin.js:/var/www/html/plugins/plainPlugin.js:ro
+    restart: always
+    environment:
+      MEDIASERVER_BACKEND_URL: "http://localhost:${BACKEND_PORT}"
+      MEDIASERVER_WEBSOCKET_URL: "ws://localhost:${WEBSOCKET_PORT}"
+    ports:
+      - 80:80
+
+volumes:
+  postgres_data:
+  redis_data:
+  server_data:

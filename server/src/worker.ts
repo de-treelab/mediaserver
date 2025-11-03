@@ -13,8 +13,8 @@ import { DocumentService } from "./documents/DocumentService.js";
 import { RedisClient } from "./redis/RedisClient.js";
 import { type Logger } from "./common/LoggingService.js";
 
-standardPlugins.forEach((plugin) => {
-  addFileTypePlugin(plugin);
+Object.entries(standardPlugins).forEach(([name, plugin]) => {
+  addFileTypePlugin(name, plugin);
 });
 
 const diContainer = await setupDiContainer();

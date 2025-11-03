@@ -1,14 +1,7 @@
-type ThumbnailResult = {
-  path: string;
-};
+import type { FileTypePlugin } from "./plugin.js";
 
-export type FileTypePlugin = {
-  matcher: (fileType: string) => boolean;
-  thumbnailCreator: (path: string) => Promise<ThumbnailResult>;
-};
+export const fileTypes: Record<string, FileTypePlugin> = {};
 
-export const fileTypes: FileTypePlugin[] = [];
-
-export const addFileTypePlugin = (plugin: FileTypePlugin) => {
-  fileTypes.push(plugin);
+export const addFileTypePlugin = (name: string, plugin: FileTypePlugin) => {
+  fileTypes[name] = plugin;
 };

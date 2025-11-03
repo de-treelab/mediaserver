@@ -1,0 +1,25 @@
+{
+  "name": "@lars_hagemann/mediaserver-create-plugin",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "bin": "dist/index.js",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/de-treelab/mediaserver.git"
+  },
+  "author": "Lars Hagemann",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/de-treelab/mediaserver/issues"
+  },
+  "homepage": "https://github.com/de-treelab/mediaserver#readme",
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "typescript": "^5.9.3"
+  }
+}

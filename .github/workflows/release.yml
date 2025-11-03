@@ -1,16 +1,21 @@
 on: 
-  push:
+  pull_request:
     branches:
       - main
       - develop
+  merge_group:
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   release:
+    if: github.event_name != 'pull_request' || github.event.action == 'enqueued'
     name: Release
+
     runs-on: ubuntu-latest
+    
     steps:
       - uses: actions/checkout@v3
         with:
@@ -20,17 +25,15 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20'
+          registry-url: https://registry.npmjs.org/
 
-      - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v4.1.0
-        with:
-          versionSpec: '6.3.x'
-
-      - name: Determine Server Version
+      - uses: paulhatch/semantic-version@v5.4.0
         id: version
-        uses: gittools/actions/gitversion/execute@v4.1.0
         with:
-          configFilePath: 'GitVersion.yml'
+          bump_each_commit: true
+          major_pattern: "/^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\\([\\w\\s-,/\\\\]*\\))?(!:|:.*\\n\\n((.+\\n)+\\n)?BREAKING CHANGE:\\s.+)/"
+          minor_pattern: "/^(feat)(\\([\\w\\s-,/\\\\]*\\))?:/"
+          bump_each_commit_patch_pattern: "/^(fix|perf|chore)(\\([\\w\\s-,/\\\\]*\\))?:/"
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -50,8 +53,9 @@ jobs:
           push: true
           context: ./server
           file: ./server/Dockerfile
+          platforms: linux/amd64,linux/arm64
           tags: |
-            treelabmediaserver/mediaserver-backend:${{ steps.version.outputs.assemblySemVer }}
+            treelabmediaserver/mediaserver-backend:${{ steps.version.outputs.version }}
             treelabmediaserver/mediaserver-backend:${{ github.ref_name == 'main' && 'stable' || 'unstable' }}
             ${{ github.ref_name == 'main' && 'treelabmediaserver/mediaserver-backend:latest' || '' }}
 
@@ -61,7 +65,40 @@ jobs:
           push: true
           context: ./frontend
           file: ./frontend/Dockerfile
+          platforms: linux/amd64,linux/arm64
           tags: |
-            treelabmediaserver/mediaserver-web:${{ steps.version.outputs.assemblySemVer }}
+            treelabmediaserver/mediaserver-web:${{ steps.version.outputs.version }}
             treelabmediaserver/mediaserver-web:${{ github.ref_name == 'main' && 'stable' || 'unstable' }}
             ${{ github.ref_name == 'main' && 'treelabmediaserver/mediaserver-web:latest' || '' }}
+
+      - name: Publish frontend plugin types to NPM
+        run: |
+          cd frontend
+          npm install
+          cd ../plugin/frontend-types
+          npm version ${{ steps.version.outputs.version }} --no-git-tag-version
+          npm install
+          npm publish --provenance --ignore-scripts --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish backend plugin types to NPM
+        run: |
+          cd server
+          npm install
+          cd ../plugin/backend-types
+          npm version ${{ steps.version.outputs.version }} --no-git-tag-version
+          npm install
+          npm publish --provenance --ignore-scripts --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish plugin creation tool to NPM
+        run: |
+          cd plugin/create-plugin
+          npm version ${{ steps.version.outputs.version }} --no-git-tag-version
+          npm install
+          npm run build
+          npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

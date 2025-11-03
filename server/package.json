@@ -1,9 +1,12 @@
 {
-  "name": "server",
+  "name": "@lars_hagemann/mediaserver-backend",
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
   "type": "module",
+  "repository": {
+    "url": "https://github.com/de-treelab/mediaserver"
+  },
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch",
@@ -11,8 +14,7 @@
     "lint:check": "eslint .",
     "lint:fix": "eslint . --fix",
     "style:check": "prettier --check src/**/*.ts",
-    "style:fix": "prettier --write src/**/*.ts",
-    "test": "echo \"Error: no test specified\""
+    "style:fix": "prettier --write src/**/*.ts"
   },
   "author": "",
   "license": "ISC",
@@ -32,7 +34,7 @@
     "prettier": "^3.6.2",
     "tsc-watch": "^7.1.1",
     "tsx": "^4.20.5",
-    "typescript": "^5.9.2",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.41.0"
   },
   "dependencies": {

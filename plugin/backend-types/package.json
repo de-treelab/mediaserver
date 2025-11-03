@@ -1,0 +1,23 @@
+{
+  "name": "@lars_hagemann/mediaserver-backend-plugin-types",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "type": "module",
+  "types": "types/plugin.d.ts",
+  "files": [
+    "types"
+  ],
+  "repository": {
+    "url": "https://github.com/de-treelab/mediaserver"
+  },
+  "scripts": {
+    "types": "tsc -p tsconfig.plugin.json",
+    "prepare": "npm run types"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
