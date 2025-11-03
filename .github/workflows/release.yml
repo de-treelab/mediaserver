@@ -1,8 +1,10 @@
 on: 
-  push:
+  pull_request:
     branches:
       - main
       - develop
+  merge_group:
+    types: [checks_requested]
 
 permissions:
   contents: write
@@ -10,6 +12,7 @@ permissions:
 
 jobs:
   release:
+    if: github.event_name != 'pull_request' || github.event.action == 'enqueued'
     name: Release
     runs-on: ubuntu-latest
     steps:
