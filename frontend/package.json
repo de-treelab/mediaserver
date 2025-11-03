@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "type": "module",
   "repository": {
-    "url": "https://github.com/LarsHagemann/mediaserver"
+    "url": "https://github.com/de-treelab/mediaserver"
   },
   "scripts": {
     "dev": "vite --host 0.0.0.0",

@@ -9,7 +9,7 @@
     "types"
   ],
   "repository": {
-    "url": "https://github.com/LarsHagemann/mediaserver"
+    "url": "https://github.com/de-treelab/mediaserver"
   },
   "scripts": {
     "types": "tsc -p tsconfig.plugin.json",
