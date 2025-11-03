@@ -19,14 +19,16 @@ services:
       - server_data:/store-0
       - /tmp:/tmp
       - ../server/assets/documentStoreConfig.json:/config.json
+      - ./manifest.backend.json:/usr/src/app/manifest.json:ro
+      - ../plugin/backend/dist/plainPlugin.js:/usr/src/app/dist/plugins/plainPlugin.cjs:ro
     ports:
       - ${BACKEND_PORT}:${BACKEND_PORT}
       - ${WEBSOCKET_PORT}:${WEBSOCKET_PORT}
     healthcheck: 
       test: ["CMD", "curl", "-f", "http://localhost:${BACKEND_PORT}/health"]
-      interval: 30s
+      interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 10
 
   postgres:
     image: postgres:16
@@ -59,6 +61,9 @@ services:
     depends_on:
       server:
         condition: service_healthy
+    volumes:
+      - ./manifest.frontend.json:/var/www/html/manifest.json:ro
+      - ../plugin/frontend/dist/plainPlugin.js:/var/www/html/plugins/plainPlugin.js:ro
     restart: always
     environment:
       MEDIASERVER_BACKEND_URL: "http://localhost:${BACKEND_PORT}"

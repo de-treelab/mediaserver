@@ -6,6 +6,7 @@ import ffmpeg from "ffmpeg";
 
 export const pdfPlugin: FileTypePlugin = {
   matcher: (file) => file === "application/pdf",
+  description: "Plugin for PDF files",
   thumbnailCreator: async ({ path, uuidv4 }) => {
     const tmpId = uuidv4();
     const pdfBuffer = fs2.createReadStream(path);
@@ -34,6 +35,7 @@ export const pdfPlugin: FileTypePlugin = {
 
 export const imagePlugin: FileTypePlugin = {
   matcher: (file) => file.startsWith("image"),
+  description: "Plugin for image files",
   thumbnailCreator: async ({ path, uuidv4 }) => {
     // Implement image thumbnail creation logic
     const tmpId = uuidv4();
@@ -52,6 +54,7 @@ export const imagePlugin: FileTypePlugin = {
 
 export const videoPlugin: FileTypePlugin = {
   matcher: (file) => file.startsWith("video"),
+  description: "Plugin for video files",
   thumbnailCreator: async ({ path, uuidv4 }) => {
     const process = await new ffmpeg(path);
     const filename = uuidv4();
@@ -68,6 +71,7 @@ export const videoPlugin: FileTypePlugin = {
 
 export const audioPlugin: FileTypePlugin = {
   matcher: (file) => file.startsWith("audio"),
+  description: "Plugin for audio files",
   thumbnailCreator: async ({ path, uuidv4 }) => {
     const process = await new ffmpeg(path);
     const filename = uuidv4();
@@ -86,9 +90,9 @@ export const audioPlugin: FileTypePlugin = {
   },
 };
 
-export const standardPlugins = [
-  imagePlugin,
-  videoPlugin,
-  pdfPlugin,
-  audioPlugin,
-];
+export const standardPlugins = {
+  pdf: pdfPlugin,
+  image: imagePlugin,
+  video: videoPlugin,
+  audio: audioPlugin,
+};
