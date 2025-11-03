@@ -68,7 +68,7 @@ jobs:
       - name: Publish frontend plugin types to NPM
         continue-on-error: true
         run: |
-          cd plugins/frontend-types
+          cd plugin/frontend-types
           npm version ${{ steps.version.outputs.version }} --no-git-tag-version
           npm install
           npm publish --provenance --ignore-scripts --access public
@@ -78,7 +78,7 @@ jobs:
       - name: Publish backend plugin types to NPM
         continue-on-error: true
         run: |
-          cd plugins/backend-types
+          cd plugin/backend-types
           npm version ${{ steps.version.outputs.version }} --no-git-tag-version
           npm install
           npm publish --provenance --ignore-scripts --access public
@@ -88,7 +88,7 @@ jobs:
       - name: Publish plugin creation tool to NPM
         continue-on-error: true
         run: |
-          cd plugins/create-plugin
+          cd plugin/create-plugin
           npm version ${{ steps.version.outputs.version }} --no-git-tag-version
           npm install
           npm run build
