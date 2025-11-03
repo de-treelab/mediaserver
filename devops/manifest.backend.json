@@ -1,0 +1,8 @@
+{
+  "plugins": [
+    {
+      "name": "Plain Text Plugin",
+      "path": "./plainPlugin.cjs"
+    }
+  ]
+}

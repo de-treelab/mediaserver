@@ -31,6 +31,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
     volumes:
+      - ./server:/app
       - server_data:/store-0
       - /tmp:/tmp
     ports:
@@ -45,6 +46,8 @@ services:
     restart: always
     working_dir: /app
     command: npm run dev
+    volumes:
+      - ./frontend:/app
     environment:
       VITE_BACKEND_URL: "http://localhost:${BACKEND_PORT}"
       VITE_WEBSOCKET_URL: "ws://localhost:${WEBSOCKET_PORT}"

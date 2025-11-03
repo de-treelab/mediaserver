@@ -145,6 +145,22 @@ export const StatePage = () => {
           </Value>
         </Fragment>
       ))}
+      <hr className="col-span-4 mt-4 mb-4" />
+      <h3 className="col-span-4 text-lg font-bold">
+        {t("state.backendPlugins")}
+      </h3>
+      {backendState?.plugins.map((plugin, index) => (
+        <Fragment key={index}>
+          <Key translationKey={plugin.name} />
+          <Value>
+            <span className="font-semibold">{plugin.description}</span>
+            <div>
+              {t(`settings.plugin.trusted`)}:{" "}
+              {t("settings.plugin." + (plugin.trusted ? "yes" : "no"))}
+            </div>
+          </Value>
+        </Fragment>
+      ))}
     </div>
   );
 };

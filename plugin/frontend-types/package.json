@@ -2,8 +2,7 @@
   "name": "@lars_hagemann/mediaserver-frontend-plugin-types",
   "version": "0.0.0",
   "files": [
-    "types",
-    "../../frontend/README.md"
+    "types"
   ],
   "type": "module",
   "types": "types/plugin.d.ts",

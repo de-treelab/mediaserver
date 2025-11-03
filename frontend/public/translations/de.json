@@ -33,7 +33,8 @@
     "uptime": "Uptime",
     "totalDocuments": "Gesamtanzahl der Dokumente",
     "totalStorageUsed": "Gesamter Speicherplatz",
-    "storage": "Speicher"
+    "storage": "Speicher",
+    "backendPlugins": "Backend Plugins"
   },
   "sidebar": {
     "gallery": "Galerie",

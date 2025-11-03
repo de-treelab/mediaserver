@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/index.js",
   "type": "module",
-  "types": "types/plugins/plugin.d.ts",
+  "types": "types/plugin.d.ts",
   "files": [
     "types"
   ],

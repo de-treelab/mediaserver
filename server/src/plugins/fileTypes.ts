@@ -1,7 +1,7 @@
 import type { FileTypePlugin } from "./plugin.js";
 
-export const fileTypes: FileTypePlugin[] = [];
+export const fileTypes: Record<string, FileTypePlugin> = {};
 
-export const addFileTypePlugin = (plugin: FileTypePlugin) => {
-  fileTypes.push(plugin);
+export const addFileTypePlugin = (name: string, plugin: FileTypePlugin) => {
+  fileTypes[name] = plugin;
 };

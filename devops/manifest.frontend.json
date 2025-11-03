@@ -1,0 +1,9 @@
+{
+  "translations": [],
+  "plugins": [
+    {
+      "name": "Plain Text Plugin",
+      "url": "/plugins/plainPlugin.js"
+    }
+  ]
+}

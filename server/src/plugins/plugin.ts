@@ -12,4 +12,5 @@ export type FileTypePlugin = {
   thumbnailCreator: (
     context: ThumbnailCreationContext,
   ) => Promise<ThumbnailResult>;
+  description: string;
 };
