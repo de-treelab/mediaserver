@@ -174,10 +174,10 @@ async function main() {
     return;
   }
 
-  const pluginFolderPath = folderPath;
+  await fs.mkdir(folderPath, { recursive: true });
+  await fs.mkdir(folderPath + "/src", { recursive: true });
+  const pluginFolderPath = await fs.realpath(folderPath);
   const pluginSrcPath = `${pluginFolderPath}/src`;
-  await fs.mkdir(pluginFolderPath, { recursive: true });
-  await fs.mkdir(pluginSrcPath, { recursive: true });
   process.chdir(pluginFolderPath);
 
   const packageJsonContent = {
