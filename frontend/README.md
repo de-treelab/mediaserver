@@ -1,69 +1,177 @@
-# React + TypeScript + Vite
+# Mediaserver Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Usage
 
-Currently, two official plugins are available:
+The recommended way to use this software is using Docker:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```yml
+services:
+  server:
+    image: treelabmediaserver/mediaserver-backend:stable
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: always
+    environment:
+      POSTGRES_HOST: postgres
+      REDIS_HOST: redis
+      DOCUMENT_STORE_CONFIG_PATH: /config.json
+    volumes:
+      - /my-partition:/store-0
+      - /tmp:/tmp
+      - ./documentStoreConfig.json:/config.json
+    ports:
+      - ${BACKEND_PORT}:${BACKEND_PORT}
+      - ${WEBSOCKET_PORT}:${WEBSOCKET_PORT}
+    healthcheck: 
+      test: ["CMD", "curl", "-f", "http://localhost:${BACKEND_PORT}/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
-## Expanding the ESLint configuration
+  postgres:
+    image: postgres:16
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    
+  redis:
+    image: redis:latest
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+    volumes:
+      - redis_data:/data
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+  frontend:
+    image: treelabmediaserver/mediaserver-web:stable
+    depends_on:
+      server:
+        condition: service_healthy
+    restart: always
+    environment:
+      MEDIASERVER_BACKEND_URL: "http://${BACKEND_URL}:${BACKEND_PORT}"
+      MEDIASERVER_WEBSOCKET_URL: "ws://${BACKEND_URL}:${WEBSOCKET_PORT}"
+    ports:
+      - 80:80
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+volumes:
+  postgres_data:
+  redis_data:
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+with a corresponding `.env` file
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```sh
+BACKEND_URL=<your-url>
+BACKEND_PORT=8080
+WEBSOCKET_PORT=8081
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+POSTGRES_PORT=5432
+POSTGRES_DB=mediaserver
+POSTGRES_USER=<your-user>
+POSTGRES_PASSWORD=<your-password>
+
+REDIS_ENDPOINT=redis
+REDIS_PORT=6379
+REDIS_USERNAME=<your-user>
+REDIS_PASSWORD=<your-password>
 ```
+
+## Translations
+
+You can install additional installations by creating a custom `manifest.json` and copying your translation into the container. 
+
+```yml
+services:
+  frontend:
+    image: treelabmediaserver/mediaserver-web:stable
+    volumes:
+      - ./manifest.json:/var/www/html/manifest.json
+      - ./fr.json:/var/www/html/translations/fr.json
+```
+
+Your manifest could look like this:
+```json
+{
+  "plugins": [],
+  "translations": [
+    {
+      "lang": "fr",
+      "path": "/translations/fr.json",
+      "name": "French",
+      "localName": "Français",
+      "flag": "🇫🇷"
+    },
+    {
+      "lang": "it",
+      "path": "https://some-cdn.net/mediaserver/it.json",
+      "name": "Italian",
+      "localName": "Italiano",
+      "flag": "🇮🇹"
+    }
+  ]
+}
+```
+
+I am not going to support other languages other than english and german out of the box, since I cannot maintain other languages and I don't want some locales to be in a broken state. 
+
+## Plugins
+
+Installing plugins works similar to installing language extensions. You need to update your manifest.json and copy the plugin JS file into your docker container:
+
+```yml
+services:
+  frontend:
+    image: treelabmediaserver/mediaserver-web:stable
+    volumes:
+      - ./manifest.json:/var/www/html/manifest.json
+      - ./fr.json:/var/www/html/translations/fr.json
+      - ./csvPlugin.js:/var/www/html/plugins/csvPlugin.js
+```
+
+Your manifest could look like this:
+
+```json
+{
+  "plugins": [
+    {
+      "name": "csv-plugin",
+      "url": "/plugins/csvPlugin.js",
+    },
+    {
+      "name": "plain-plugin",
+      "url": "https://some-cdn.net/mediaserver/plainPlugin.js",
+    }
+  ],
+  "translations": [
+    {
+      "lang": "fr",
+      "path": "/translations/fr.json",
+      "name": "French",
+      "localName": "Français",
+      "flag": "🇫🇷"
+    }
+  ]
+}
+```
+
+## Developing plugins
+
+Use the plugin creation helper script to build a plugin skeleton that you can expand on:
+
+```
+npx @lars_hagemann/mediaserver-create-plugin
+```
+
+See the [sample plugin](../plugin/frontend/) for more details.

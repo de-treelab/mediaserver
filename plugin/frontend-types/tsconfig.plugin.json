@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "types",
+    "declarationMap": false,
+    "stripInternal": true,
+    "skipLibCheck": true,
+    "module": "nodenext",
+    "target": "ES2020",
+    "moduleResolution": "nodenext",
+    "sourceMap": false,
+  },
+  "include": ["../../frontend/src/plugins/plugin.ts"]
+}

@@ -1,0 +1,65 @@
+{
+  "fileUpload": {
+    "failedFiles": "Diese Dateien konnten nicht hochgeladen werden",
+    "successfulFiles": "Diese Dateien wurden erfolgreich hochgeladen",
+    "uploadingFiles": "Diese Dateien werden gerade hochgeladen",
+    "allFiles": "Alle Dateien",
+    "errorReasons": {
+
+    }
+  },
+  "pages": {
+    "upload": {
+      "title": "Dateien hochladen",
+      "description": "Legen Sie Ihre Dateien hier ab, um sie hochzuladen. Verwenden Sie das Eingabefeld unten, um allen hochgeladenen Dateien automatisch Tags zuzuweisen.",
+      "tagInputPlaceholder": "Tags eingeben, um sie allen hochgeladenen Dateien zuzuweisen",
+      "dropFilesHereOrClickToSelect": "Dateien hier ablegen oder zum Auswählen klicken"
+    },
+    "gallery": {
+      "tagInputPlaceholder": "Nach Tag suchen..."
+    }
+  },
+  "pagination": {
+    "range": "Dokumente {{start}} - {{end}} von {{total}}",
+    "previous": "Vorherige",
+    "next": "Nächste"
+  },
+  "state": {
+    "free": "Frei",
+    "serviceState": "Service Status",
+    "healthy": "Healthy",
+    "degraded": "Degraded",
+    "unhealthy": "Unhealthy",
+    "uptime": "Uptime",
+    "totalDocuments": "Gesamtanzahl der Dokumente",
+    "totalStorageUsed": "Gesamter Speicherplatz",
+    "storage": "Speicher",
+    "backendPlugins": "Backend Plugins"
+  },
+  "sidebar": {
+    "gallery": "Galerie",
+    "upload": "Hochladen",
+    "settings": "Einstellungen",
+    "tags": "Tags",
+    "serverState": "Server Status"
+  },
+  "document": {
+    "addTagPlaceholder": "Tag hinzufügen..."
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "selectLanguage": "Sprache auswählen",
+    "loadedTranslations": "Geladene Übersetzungen",
+    "loadedPlugins": "Geladene Plugins",
+    "languageExtension": {
+      "trusted": "Vertrauenswürdig",
+      "yes": "Ja",
+      "no": "Nein"
+    },
+    "plugin": {
+      "trusted": "Vertrauenswürdig",
+      "yes": "Ja",
+      "no": "Nein"
+    }
+  }
+}

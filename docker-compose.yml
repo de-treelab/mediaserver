@@ -18,15 +18,11 @@ services:
     restart: always
     working_dir: /app
     command: npm run dev
+    env_file:
+      - .env
     environment:
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      BACKEND_PORT: ${BACKEND_PORT}
-      WEBSOCKET_PORT: ${WEBSOCKET_PORT}
-      STAGE: ${STAGE}
       MIGRATIONS_DIR: assets/db/migrations
       DEFAULT_THUMBNAIL_PATH: assets/icons/unknown_file.jpg
       DOCUMENT_STORE_CONFIG_PATH: assets/documentStoreConfig.json
@@ -35,11 +31,9 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
     volumes:
-      - ./server:/app:ro
-      - ./data:/data
-      - /home/lars/mediaserver/store:/store-0
+      - ./server:/app
+      - server_data:/store-0
       - /tmp:/tmp
-      - server_dist:/app/dist
     ports:
       - ${BACKEND_PORT}:${BACKEND_PORT}
       - ${WEBSOCKET_PORT}:${WEBSOCKET_PORT}
@@ -52,11 +46,11 @@ services:
     restart: always
     working_dir: /app
     command: npm run dev
+    volumes:
+      - ./frontend:/app
     environment:
       VITE_BACKEND_URL: "http://localhost:${BACKEND_PORT}"
       VITE_WEBSOCKET_URL: "ws://localhost:${WEBSOCKET_PORT}"
-    volumes:
-      - ./frontend:/app
     ports:
       - 5173:5173
 
@@ -68,10 +62,8 @@ services:
       timeout: 5s
       retries: 5
     restart: always
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+    env_file:
+      - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -85,6 +77,8 @@ services:
       timeout: 5s
       retries: 5
     restart: always
+    env_file:
+      - .env
     ports:
       - 6379:6379
     volumes:
@@ -94,3 +88,4 @@ volumes:
   postgres_data:
   server_dist:
   redis_data:
+  server_data:

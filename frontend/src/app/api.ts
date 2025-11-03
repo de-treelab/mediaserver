@@ -24,9 +24,16 @@ interface StoreState {
   basePath: string;
 }
 
+interface BackendPlugin {
+  name: string;
+  trusted: boolean;
+  description: string;
+}
+
 interface BackendState {
   stores: StoreState[];
   uptime: number;
+  plugins: BackendPlugin[];
 }
 
 export type ApiTag = {

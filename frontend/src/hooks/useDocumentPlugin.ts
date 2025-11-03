@@ -1,4 +1,5 @@
-import { fileTypes, type FileTypePlugin } from "../plugins/fileTypes";
+import { fileTypes } from "../plugins/addFileTypePlugin";
+import type { FileTypePlugin } from "../plugins/plugin";
 import { unsupportedTypePlugin } from "../plugins/standardPlugins";
 
 export const useDocumentPlugin = (type?: string): FileTypePlugin => {

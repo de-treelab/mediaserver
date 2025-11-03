@@ -26,6 +26,7 @@ type Props = {
   layout?: React.ComponentProps<typeof Thumbnail>["layout"];
   selected?: string;
   className?: string;
+  size?: "normal" | "small";
 };
 
 export const ThumbnailContainer = ({
@@ -35,6 +36,7 @@ export const ThumbnailContainer = ({
   direction = "row",
   wrap = "wrap",
   layout = "grid",
+  size = "normal",
   selected,
   className,
 }: Props) => {
@@ -52,6 +54,7 @@ export const ThumbnailContainer = ({
           onClick={() => onClick?.(thumbnail.id)}
           selected={selected === thumbnail.id}
           layout={layout}
+          size={size}
         />
       ))}
     </div>

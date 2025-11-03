@@ -12,7 +12,8 @@
     "upload": {
       "title": "Upload Files",
       "description": "Drop your files here to upload them. Use the input below to automatically assign tags to all uploaded files.",
-      "tagInputPlaceholder": "Enter tags to assign to all uploaded files"
+      "tagInputPlaceholder": "Enter tags to assign to all uploaded files",
+      "dropFilesHereOrClickToSelect": "Drop files here or click to select"
     },
     "gallery": {
       "tagInputPlaceholder": "Search by tag..."
@@ -32,7 +33,8 @@
     "uptime": "Uptime",
     "totalDocuments": "Total Documents",
     "totalStorageUsed": "Total Storage Used",
-    "storage": "Storage"
+    "storage": "Storage",
+    "backendPlugins": "Backend Plugins"
   },
   "sidebar": {
     "gallery": "Gallery",
@@ -43,5 +45,21 @@
   },
   "document": {
     "addTagPlaceholder": "Add a tag..."
+  },
+  "settings": {
+    "title": "Settings",
+    "selectLanguage": "Select Language",
+    "loadedTranslations": "Loaded Translations",
+    "loadedPlugins": "Loaded Plugins",
+    "languageExtension": {
+      "trusted": "Trusted",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "plugin": {
+      "trusted": "Trusted",
+      "yes": "Yes",
+      "no": "No"
+    }
   }
 }

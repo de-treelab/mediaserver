@@ -8,6 +8,7 @@ import { FaCaretRight } from "react-icons/fa6";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { useTranslation } from "react-i18next";
+import { MdSettings } from "react-icons/md";
 
 export const SideBar = () => {
   const navigate = useNavigate();
@@ -17,8 +18,8 @@ export const SideBar = () => {
   return (
     <div
       className={twMerge(
-        "relative z-40 flex flex-col h-[100vh] inline-block p-2 bg-gray-700 transition-all",
-        collapsed ? "w-16" : "w-1/7",
+        "fixed z-40 flex flex-row w-full bottom-0 p-2 bg-gray-700 transition-all justify-between sm:flex-col sm:relative sm:h-[100vh] sm:inline-block sm:justify-start",
+        collapsed ? "sm:w-16" : "sm:w-1/7",
       )}
     >
       <SideBarButton
@@ -57,17 +58,26 @@ export const SideBar = () => {
         collapsed={collapsed}
         text={t("sidebar.serverState")}
       />
+      <SideBarButton
+        Icon={MdSettings}
+        pathPrefix="/settings"
+        onClick={() => {
+          navigate("/settings");
+        }}
+        collapsed={collapsed}
+        text={t("sidebar.settings")}
+      />
       {collapsed && (
         <FaCaretRight
           size="48"
-          className="absolute bottom-4 -right-6 bg-gray-700 rounded-full p-2 cursor-pointer hover:bg-gray-600 transition-colors border-2 border-gray-500"
+          className="hidden sm:block sm:absolute bottom-4 -right-6 bg-gray-700 rounded-full p-2 cursor-pointer hover:bg-gray-600 transition-colors border-2 border-gray-500"
           onClick={() => setCollapsed(false)}
         />
       )}
       {!collapsed && (
         <FaCaretLeft
           size="48"
-          className="absolute bottom-4 -right-6 bg-gray-700 rounded-full p-2 cursor-pointer hover:bg-gray-600 transition-colors border-2 border-gray-500"
+          className="hidden sm:block sm:absolute bottom-4 -right-6 bg-gray-700 rounded-full p-2 cursor-pointer hover:bg-gray-600 transition-colors border-2 border-gray-500"
           onClick={() => setCollapsed(true)}
         />
       )}

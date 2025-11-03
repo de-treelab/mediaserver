@@ -79,9 +79,12 @@ export class FileService {
     source: string,
     type: string,
   ): Promise<ThumbnailResult> {
-    for (const plugin of fileTypes) {
+    for (const plugin of Object.values(fileTypes)) {
       if (plugin.matcher(type)) {
-        const { path } = await plugin.thumbnailCreator(source);
+        const { path } = await plugin.thumbnailCreator({
+          path: source,
+          uuidv4,
+        });
         return { path, removeAfterCopy: true };
       }
     }

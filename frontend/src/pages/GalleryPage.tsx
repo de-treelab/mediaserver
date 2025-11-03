@@ -9,6 +9,7 @@ import { usePageOffsetAndLimitParams } from "../hooks/usePageOffsetAndLimitParam
 import { TagInput } from "../sections/TagInput";
 import { FiGrid, FiList } from "react-icons/fi";
 import { twMerge } from "tailwind-merge";
+import { useIsMobileScreen } from "../hooks/useIsMobileScreen";
 
 const remToPixel = (rem: number) => {
   return rem * parseFloat(getComputedStyle(document.documentElement).fontSize);
@@ -42,6 +43,8 @@ export const GalleryPage = () => {
   const [thumbnailContainerWidth, setThumbnailContainerWidth] =
     useState<number>(0);
 
+  const isMobile = useIsMobileScreen();
+
   useEffect(() => {
     const observer = new ResizeObserver((entries) => {
       const containerEntry = entries[0];
@@ -55,7 +58,8 @@ export const GalleryPage = () => {
         );
         setDocumentsPerRow(thumbnailsPerRow);
 
-        const containerHeight = containerEntry.contentBoxSize[0].blockSize;
+        const containerHeight =
+          containerEntry.contentBoxSize[0].blockSize * (isMobile ? 3 : 1);
         const thumbnailsPerColumn = Math.floor(
           (containerHeight - 250) / (120 + thumbnailMargin * 2),
         );
@@ -73,7 +77,7 @@ export const GalleryPage = () => {
     return () => {
       observer.disconnect();
     };
-  }, []);
+  }, [isMobile]);
 
   useEffect(() => {
     setLimit(documentsPerRow * documentsPerColumn - 1);
@@ -138,7 +142,7 @@ export const GalleryPage = () => {
   return (
     <div
       ref={containerRef}
-      className="relative h-full flex flex-col items-center"
+      className="relative h-full flex flex-col items-center overflow-hidden"
     >
       <TagInput
         value={tagInput}
@@ -156,7 +160,7 @@ export const GalleryPage = () => {
           currentPage={page}
           onPageChange={setPage}
         />
-        <div className="absolute right-8 top-2">
+        <div className="relative text-right mr-2 sm:absolute sm:right-8 sm:top-2">
           <FiGrid
             className={twMerge(
               "inline text-xl mb-1 mr-1",
@@ -180,10 +184,12 @@ export const GalleryPage = () => {
         </div>
       </div>
       <div
-        className="p-2 w-full max-h-[calc(100%-210px)] flex-grow overflow-auto"
+        className="p-2 max-w-full max-h-[calc(100%-210px)] flex-grow overflow-auto"
         style={{
           width:
-            layoutType === "grid" ? `${thumbnailContainerWidth}px` : "auto",
+            layoutType === "grid" && !isMobile
+              ? `${thumbnailContainerWidth}px`
+              : "auto",
         }}
       >
         <ThumbnailContainer
@@ -193,6 +199,7 @@ export const GalleryPage = () => {
             setPreviewDocument(id);
           }}
           layout={layoutType}
+          size="small"
         />
       </div>
       <span className="p-2 w-full text-left">

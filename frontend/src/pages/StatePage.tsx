@@ -8,11 +8,15 @@ import { Duration } from "luxon";
 
 const Key = ({ translationKey }: { translationKey: string }) => {
   const { t } = useTranslation();
-  return <div className="font-bold">{t(translationKey)}</div>;
+  return (
+    <div className="col-span-2 sm:col-span-1 font-bold">
+      {t(translationKey)}
+    </div>
+  );
 };
 
 const Value = ({ children }: { children: React.ReactNode }) => {
-  return <div className="col-span-3">{children}</div>;
+  return <div className="col-span-2 sm:col-span-3">{children}</div>;
 };
 
 const percentageToColor = (percentage: number) => {
@@ -39,7 +43,7 @@ const StorageProgressBar = ({
         value={used}
         color={percentageToColor(used / total)}
       />
-      <div className="flex flex-row justify-between mt-1">
+      <div className="flex flex-col sm:flex-row justify-between mt-1">
         <div>
           {bytesToHumanReadable(used)} / {bytesToHumanReadable(total)}
         </div>
@@ -64,10 +68,10 @@ export const StatePage = () => {
   const [uptimeSeconds, setUptimeSeconds] = useState(0);
   useEffect(() => {
     const interval = setInterval(() => {
-      setUptimeSeconds((prev) => prev + 1);
+      setUptimeSeconds((prev) => prev + (backendState ? 1 : 0));
     }, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [backendState]);
 
   useEffect(() => {
     setUptimeSeconds(backendState?.uptime ?? 0);
@@ -138,6 +142,22 @@ export const StatePage = () => {
               total={store.total}
               free={store.free}
             />
+          </Value>
+        </Fragment>
+      ))}
+      <hr className="col-span-4 mt-4 mb-4" />
+      <h3 className="col-span-4 text-lg font-bold">
+        {t("state.backendPlugins")}
+      </h3>
+      {backendState?.plugins.map((plugin, index) => (
+        <Fragment key={index}>
+          <Key translationKey={plugin.name} />
+          <Value>
+            <span className="font-semibold">{plugin.description}</span>
+            <div>
+              {t(`settings.plugin.trusted`)}:{" "}
+              {t("settings.plugin." + (plugin.trusted ? "yes" : "no"))}
+            </div>
           </Value>
         </Fragment>
       ))}
