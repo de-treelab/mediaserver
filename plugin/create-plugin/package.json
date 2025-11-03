@@ -10,14 +10,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/LarsHagemann/mediaserver.git"
+    "url": "git+https://github.com/de-treelab/mediaserver.git"
   },
   "author": "Lars Hagemann",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/LarsHagemann/mediaserver/issues"
+    "url": "https://github.com/de-treelab/mediaserver/issues"
   },
-  "homepage": "https://github.com/LarsHagemann/mediaserver#readme",
+  "homepage": "https://github.com/de-treelab/mediaserver#readme",
   "devDependencies": {
     "@types/node": "^24.10.0",
     "typescript": "^5.9.3"
