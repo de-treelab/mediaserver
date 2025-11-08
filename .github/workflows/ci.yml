@@ -17,11 +17,6 @@ jobs:
 
       - uses: paulhatch/semantic-version@v5.4.0
         id: version
-        with:
-          bump_each_commit: true
-          major_pattern: "/^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\\([\\w\\s-,/\\\\]*\\))?(!:|:.*\\n\\n((.+\\n)+\\n)?BREAKING CHANGE:\\s.+)/"
-          minor_pattern: "/^(feat)(\\([\\w\\s-,/\\\\]*\\))?:/"
-          bump_each_commit_patch_pattern: "/^(fix|perf)(\\([\\w\\s-,/\\\\]*\\))?:/"
 
       - name: Install server dependencies
         working-directory: ./server

@@ -12,10 +12,13 @@ import type { DbService } from "./sql/DbService.js";
 import { DocumentService } from "./documents/DocumentService.js";
 import { RedisClient } from "./redis/RedisClient.js";
 import { type Logger } from "./common/LoggingService.js";
+import { loadPlugins } from "./plugins/pluginLoader.js";
 
 Object.entries(standardPlugins).forEach(([name, plugin]) => {
   addFileTypePlugin(name, plugin);
 });
+
+await loadPlugins();
 
 const diContainer = await setupDiContainer();
 

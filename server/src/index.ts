@@ -20,7 +20,6 @@ import { TagService } from "./tags/TagService.js";
 import { RedisClient } from "./redis/RedisClient.js";
 import { stateRouter } from "./routers/StateRouter.js";
 import type { LoggingService } from "./common/LoggingService.js";
-import { loadPlugins } from "./plugins/pluginLoader.js";
 
 async function run(envService: EnvironmentService) {
   const app = express.default();
@@ -72,8 +71,6 @@ async function main() {
   const migrationService = diContainer.get<MigrationService>(
     services.migration,
   );
-
-  await loadPlugins();
 
   await dbService.connect();
   await migrationService.migrate();
