@@ -19,7 +19,7 @@ import type { TagCache } from "./TagCache.js";
 export interface ListTagsRequest {
   limit: number;
   offset: number;
-  tag: Tag | MetaTag;
+  tag: ApiTag;
 }
 
 export type ListDocumentsRequest = {
@@ -40,6 +40,7 @@ const tagRowSchema = z.object({
   id: z.number(),
   key: z.string(),
   value: z.string().nullable(),
+  type: z.string(),
 });
 
 const tagWithCountRowSchema = tagRowSchema.extend({
@@ -49,6 +50,7 @@ const tagWithCountRowSchema = tagRowSchema.extend({
 export type ApiTag = {
   key: string;
   value: string | undefined;
+  type: string;
 };
 
 export type ApiTagWithCount = ApiTag & {
@@ -129,6 +131,7 @@ export class TagRepository {
           key: row.key,
           value: row.value ?? undefined,
           usageCount: row.usage_count,
+          type: row.type,
           __total: row.__total,
         })),
       );
@@ -137,20 +140,22 @@ export class TagRepository {
     }
   }
 
-  public async addTags(tags: (Tag | MetaTag)[]): Promise<void> {
+  public async addTags(tags: ApiTag[]): Promise<void> {
     let i = 1;
     const valuesStmt = tags
       .map(() => {
-        return `($${i++}, $${i++})`;
+        return `($${i++}, $${i++}, $${i++})`;
       })
       .join(", ");
 
     const result = await this.dbService.any(
       z.object({ id: z.number() }),
-      `INSERT INTO tags (key, value) VALUES ${valuesStmt} ON CONFLICT DO NOTHING RETURNING id`,
+      `INSERT INTO tags (key, value, type) VALUES ${valuesStmt} ON CONFLICT DO NOTHING RETURNING id`,
       tags
         .map((tag) =>
-          tag instanceof MetaTag ? [tag.key, tag.value] : [tag.key, null],
+          tag instanceof MetaTag
+            ? [tag.key, tag.value, tag.type]
+            : [tag.key, null, tag.type],
         )
         .flat(1),
     );
@@ -163,7 +168,7 @@ export class TagRepository {
 
   public async addTagToDocument(
     documentId: string,
-    tag: Tag | MetaTag,
+    tag: ApiTag,
   ): Promise<void> {
     const a = await this.sqlBuilder.buildAddTagToEntityQuery(tag);
     if (a.success) {
@@ -200,6 +205,7 @@ export class TagRepository {
       return rows.map((row) => ({
         key: row.key,
         value: row.value ?? undefined,
+        type: row.type,
       }));
     } else {
       throw new TagParseError(sql.message);

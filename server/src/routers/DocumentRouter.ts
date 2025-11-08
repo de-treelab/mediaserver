@@ -59,7 +59,11 @@ documentRouter.post(
         extension,
         tags: z
           .array(
-            z.object({ key: z.string(), value: z.string().or(z.undefined()) }),
+            z.object({
+              key: z.string(),
+              value: z.string().or(z.undefined()),
+              type: z.string(),
+            }),
           )
           .parse(JSON.parse(tags)),
       });
