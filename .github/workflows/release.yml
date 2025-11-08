@@ -21,6 +21,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Determine release type
+        run: |
+          if [[ "${{ github.event.merge_group.base_ref }}" == "main" ]]; then
+            echo "RELEASE_TYPE=stable" >> $GITHUB_ENV
+          else
+            echo "RELEASE_TYPE=unstable" >> $GITHUB_ENV
+          fi
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -51,8 +59,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: |
             treelabmediaserver/mediaserver-backend:${{ steps.version.outputs.version }}
-            treelabmediaserver/mediaserver-backend:${{ github.ref_name == 'main' && 'stable' || 'unstable' }}
-            ${{ github.ref_name == 'main' && 'treelabmediaserver/mediaserver-backend:latest' || '' }}
+            treelabmediaserver/mediaserver-backend:${{ env.RELEASE_TYPE }}
+            ${{ env.RELEASE_TYPE == 'stable' && 'treelabmediaserver/mediaserver-backend:latest' || '' }}
 
       - name: Build and push Frontend Docker image
         uses: docker/build-push-action@v6
@@ -63,8 +71,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: |
             treelabmediaserver/mediaserver-web:${{ steps.version.outputs.version }}
-            treelabmediaserver/mediaserver-web:${{ github.ref_name == 'main' && 'stable' || 'unstable' }}
-            ${{ github.ref_name == 'main' && 'treelabmediaserver/mediaserver-web:latest' || '' }}
+            treelabmediaserver/mediaserver-web:${{ env.RELEASE_TYPE }}
+            ${{ env.RELEASE_TYPE == 'stable' && 'treelabmediaserver/mediaserver-web:latest' || '' }}
 
       - name: Publish frontend plugin types to NPM
         run: |

@@ -23,5 +23,5 @@ jobs:
 
       - uses: rickstaa/action-create-tag@v1
         with:
-          tag: ${{ steps.version.outputs.version }}
+          tag: v${{ steps.version.outputs.version }}
           message: "chore: release v${{ steps.version.outputs.version }}"
