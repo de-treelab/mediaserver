@@ -27,6 +27,7 @@ export const TagsPage = () => {
       />
       <TagList
         tags={data?.items ?? []}
+        groupHeadingBackgroundColor="bg-gray-900"
         onClick={(tag) =>
           navigate(`../gallery?q=${tag.key}${tag.value ? `:${tag.value}` : ""}`)
         }

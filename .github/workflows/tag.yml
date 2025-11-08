@@ -25,3 +25,4 @@ jobs:
         with:
           tag: ${{ steps.version.outputs.version }}
           message: "chore: release v${{ steps.version.outputs.version }}"
+          tag_exists_error: false

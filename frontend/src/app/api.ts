@@ -39,6 +39,7 @@ interface BackendState {
 export type ApiTag = {
   key: string;
   value?: string;
+  type: string;
 };
 
 type ApiTagWithCount = ApiTag & {

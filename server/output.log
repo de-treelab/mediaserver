@@ -1,0 +1,541 @@
+[2025-11-03T18:29:45.335Z] [32minfo[39m: Loading plugins from manifest: /app/manifest.json
+[2025-11-03T18:29:45.342Z] [32minfo[39m: Loading plugins: 
+[2025-11-03T18:29:45.378Z] [32minfo[39m: Starting migration process
+[2025-11-03T18:29:45.425Z] [32minfo[39m: - Applying migration 2025-11-03-1-add-tag-types.sql
+[2025-11-03T18:29:45.433Z] [32minfo[39m:   - Migration 2025-11-03-1-add-tag-types.sql applied successfully
+[2025-11-03T18:29:45.434Z] [32minfo[39m: Migration process completed
+[2025-11-03T18:29:46.860Z] [32minfo[39m: Worker started
+[2025-11-03T18:29:47.046Z] [32minfo[39m: WebSocket server started on port 8081
+[2025-11-03T18:29:47.063Z] [32minfo[39m: Server is running on http://localhost:8080
+[2025-11-03T18:29:54.409Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.414Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.428Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.433Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.440Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.444Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.447Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.450Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.456Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.460Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.464Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.468Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.471Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.476Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.479Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.483Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.486Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.489Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.494Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.496Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.501Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.508Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.512Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.515Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.519Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.523Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.526Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.529Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.532Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.535Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.540Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.545Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.549Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.553Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.556Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.560Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.566Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.574Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.579Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.583Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.591Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.594Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.598Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.601Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.607Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.637Z] [32minfo[39m: WebSocket client connected: ws://4252627e-959a-4ba9-b2aa-4560383af7aa
+[2025-11-03T18:29:54.645Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.646Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.648Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.649Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.651Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.653Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.655Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.662Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.665Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.673Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.680Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.685Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.690Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.697Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.700Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.703Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.705Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.709Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.711Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.714Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.717Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.719Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.721Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.724Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.726Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.729Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.732Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.734Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.738Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.741Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.743Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.752Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.756Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.759Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.761Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.764Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.767Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.769Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.772Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.774Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.776Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.777Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.786Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.788Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.790Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.792Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.794Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.796Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.798Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.811Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.813Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.816Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.820Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.822Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.829Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.843Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.845Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.847Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.849Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.850Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.895Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.896Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.897Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.899Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:29:54.900Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:11.897Z] [32minfo[39m: WebSocket client disconnected: ws://4252627e-959a-4ba9-b2aa-4560383af7aa
+[2025-11-03T18:30:12.621Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.623Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.625Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.627Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.628Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.630Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.646Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.648Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.651Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.653Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.660Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.663Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.666Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.668Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.671Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.674Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.677Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.680Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.683Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.686Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.688Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.690Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.692Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.710Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.712Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.715Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.721Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.727Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.733Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.736Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.738Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.742Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.746Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.749Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.754Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.760Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.762Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.765Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.769Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.771Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.774Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.777Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.781Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.783Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.785Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.788Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.805Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.831Z] [32minfo[39m: WebSocket client connected: ws://208825dc-0836-47bd-8d90-adbea99ee119
+[2025-11-03T18:30:12.845Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.850Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.853Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.858Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.862Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.864Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.881Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.885Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.886Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.890Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.894Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.897Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.901Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.904Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.907Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.910Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.913Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.915Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.922Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.926Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.929Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.931Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.934Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.936Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.940Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.943Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.945Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.948Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.951Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.955Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.957Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.960Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.963Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.966Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.972Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.975Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.978Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.985Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.988Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.990Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.993Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.996Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:12.998Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:13.001Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:13.003Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:13.006Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:13.008Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:13.011Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:13.019Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:13.025Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:13.028Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:13.031Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:13.035Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:13.038Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:13.040Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:13.043Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:13.045Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:13.049Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:13.052Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:13.054Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:13.055Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:13.057Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:13.059Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-03T18:30:21.244Z] [32minfo[39m: WebSocket client disconnected: ws://208825dc-0836-47bd-8d90-adbea99ee119
+[2025-11-03T18:30:22.987Z] [32minfo[39m: WebSocket client connected: ws://c5afa7fd-2e8a-4143-912a-f32736439342
+[2025-11-03T20:02:10.629Z] [32minfo[39m: WebSocket client disconnected: ws://c5afa7fd-2e8a-4143-912a-f32736439342
+[2025-11-03T20:02:11.829Z] [32minfo[39m: WebSocket client connected: ws://c80c98a8-46a5-4337-a908-18e2bcf3dd9a
+[2025-11-03T21:09:24.432Z] [32minfo[39m: WebSocket client disconnected: ws://c80c98a8-46a5-4337-a908-18e2bcf3dd9a
+[2025-11-03T21:09:26.497Z] [32minfo[39m: WebSocket client connected: ws://a517e119-4d15-48b4-8e84-e12a6c7b5a4a
+[2025-11-04T06:29:12.415Z] [32minfo[39m: WebSocket client disconnected: ws://a517e119-4d15-48b4-8e84-e12a6c7b5a4a
+[2025-11-04T06:29:14.361Z] [32minfo[39m: WebSocket client connected: ws://af15313a-3e05-4db4-8691-cafe1359c1aa
+[2025-11-04T06:30:26.916Z] [32minfo[39m: WebSocket client disconnected: ws://af15313a-3e05-4db4-8691-cafe1359c1aa
+[2025-11-04T06:33:21.080Z] [32minfo[39m: Loading plugins from manifest: /app/manifest.json
+[2025-11-04T06:33:21.087Z] [32minfo[39m: Loading plugins: 
+[2025-11-04T06:33:21.119Z] [32minfo[39m: Starting migration process
+[2025-11-04T06:33:21.226Z] [32minfo[39m: Migration process completed
+[2025-11-04T06:33:22.265Z] [32minfo[39m: Worker started
+[2025-11-04T06:33:22.508Z] [32minfo[39m: WebSocket server started on port 8081
+[2025-11-04T06:33:22.516Z] [32minfo[39m: Server is running on http://localhost:8080
+[2025-11-04T10:41:17.311Z] [32minfo[39m: WebSocket client connected: ws://84693946-8ec5-45e6-8388-b76fb45b27ea
+[2025-11-04T19:18:01.756Z] [32minfo[39m: Loading plugins from manifest: /app/manifest.json
+[2025-11-04T19:18:02.202Z] [32minfo[39m: Loading plugins: 
+[2025-11-04T19:18:02.378Z] [32minfo[39m: Starting migration process
+[2025-11-04T19:18:02.689Z] [33mwarn[39m: | Ignoring checksum mismatch for migration 2025-11-03-1-add-tag-types.sql
+[2025-11-04T19:18:02.692Z] [32minfo[39m: - Applying migration 2025-11-03-1-add-tag-types.sql
+[2025-11-04T19:18:02.740Z] [32minfo[39m:   - Migration 2025-11-03-1-add-tag-types.sql applied successfully
+[2025-11-04T19:18:02.740Z] [32minfo[39m: Migration process completed
+[2025-11-04T19:18:04.991Z] [32minfo[39m: Worker started
+[2025-11-04T19:18:05.173Z] [32minfo[39m: WebSocket server started on port 8081
+[2025-11-04T19:18:05.205Z] [32minfo[39m: Server is running on http://localhost:8080
+[2025-11-04T19:18:07.936Z] [32minfo[39m: WebSocket client connected: ws://bb228a58-fccf-4e46-9764-9556418b93db
+[2025-11-04T19:19:26.136Z] [32minfo[39m: Loading plugins from manifest: /app/manifest.json
+[2025-11-04T19:19:26.148Z] [32minfo[39m: Loading plugins: 
+[2025-11-04T19:19:26.221Z] [32minfo[39m: Starting migration process
+[2025-11-04T19:19:26.328Z] [32minfo[39m: Migration process completed
+[2025-11-04T19:19:29.787Z] [32minfo[39m: Worker started
+[2025-11-04T19:19:29.974Z] [32minfo[39m: WebSocket server started on port 8081
+[2025-11-04T19:19:29.998Z] [32minfo[39m: Server is running on http://localhost:8080
+[2025-11-04T19:19:32.988Z] [32minfo[39m: WebSocket client connected: ws://e8d6c21d-1856-45f5-a0c3-9e80188e1943
+[2025-11-04T19:21:35.458Z] [32minfo[39m: Loading plugins from manifest: /app/manifest.json
+[2025-11-04T19:21:35.490Z] [32minfo[39m: Loading plugins: 
+[2025-11-04T19:21:35.565Z] [32minfo[39m: Starting migration process
+[2025-11-04T19:21:35.601Z] [32minfo[39m: Migration process completed
+[2025-11-04T19:21:36.877Z] [32minfo[39m: Worker started
+[2025-11-04T19:21:37.014Z] [32minfo[39m: WebSocket server started on port 8081
+[2025-11-04T19:21:37.023Z] [32minfo[39m: Server is running on http://localhost:8080
+[2025-11-04T19:21:49.367Z] [32minfo[39m: WebSocket client connected: ws://c4255754-c59d-414a-88e4-410bd5dd3997
+[2025-11-04T19:22:18.731Z] [32minfo[39m: WebSocket client disconnected: ws://c4255754-c59d-414a-88e4-410bd5dd3997
+[2025-11-04T19:22:21.782Z] [32minfo[39m: WebSocket client connected: ws://d35d280a-3f14-4521-96ea-e242f6d2aa94
+[2025-11-04T19:22:53.393Z] [32minfo[39m: WebSocket client disconnected: ws://d35d280a-3f14-4521-96ea-e242f6d2aa94
+[2025-11-04T19:22:55.732Z] [32minfo[39m: WebSocket client connected: ws://f26cc7dd-fa8a-43a0-ab04-8c8280f42928
+[2025-11-04T19:23:41.913Z] [32minfo[39m: Loading plugins from manifest: /app/manifest.json
+[2025-11-04T19:23:41.942Z] [32minfo[39m: Loading plugins: 
+[2025-11-04T19:23:41.984Z] [32minfo[39m: Starting migration process
+[2025-11-04T19:23:42.016Z] [32minfo[39m: Migration process completed
+[2025-11-04T19:23:43.713Z] [32minfo[39m: Worker started
+[2025-11-04T19:23:43.845Z] [32minfo[39m: WebSocket server started on port 8081
+[2025-11-04T19:23:43.895Z] [32minfo[39m: Server is running on http://localhost:8080
+[2025-11-04T19:23:45.631Z] [32minfo[39m: WebSocket client connected: ws://4c0dd61c-6869-49f0-9142-89de653cb557
+[2025-11-04T19:24:52.462Z] [32minfo[39m: Loading plugins from manifest: /app/manifest.json
+[2025-11-04T19:24:52.471Z] [32minfo[39m: Loading plugins: 
+[2025-11-04T19:24:52.499Z] [32minfo[39m: Starting migration process
+[2025-11-04T19:24:52.526Z] [32minfo[39m: Migration process completed
+[2025-11-04T19:24:53.969Z] [32minfo[39m: Worker started
+[2025-11-04T19:24:54.137Z] [32minfo[39m: WebSocket server started on port 8081
+[2025-11-04T19:24:54.156Z] [32minfo[39m: Server is running on http://localhost:8080
+[2025-11-04T19:24:58.098Z] [32minfo[39m: WebSocket client connected: ws://33092b3c-9c6d-4135-84e9-2aa299bd907f
+[2025-11-04T19:25:15.460Z] [32minfo[39m: Loading plugins from manifest: /app/manifest.json
+[2025-11-04T19:25:15.492Z] [32minfo[39m: Loading plugins: 
+[2025-11-04T19:25:15.526Z] [32minfo[39m: Starting migration process
+[2025-11-04T19:25:15.554Z] [32minfo[39m: Migration process completed
+[2025-11-04T19:25:17.110Z] [32minfo[39m: Worker started
+[2025-11-04T19:25:17.266Z] [32minfo[39m: WebSocket server started on port 8081
+[2025-11-04T19:25:17.278Z] [32minfo[39m: Server is running on http://localhost:8080
+[2025-11-04T19:25:19.152Z] [32minfo[39m: WebSocket client connected: ws://4ceea9f5-d643-4a58-a906-ef746c885c3b
+[2025-11-04T19:25:46.342Z] [32minfo[39m: WebSocket client disconnected: ws://4ceea9f5-d643-4a58-a906-ef746c885c3b
+[2025-11-04T19:25:48.162Z] [32minfo[39m: WebSocket client connected: ws://d215a21d-961f-4819-8223-346de2924f01
+[2025-11-04T19:39:47.627Z] [32minfo[39m: Loading plugins from manifest: /app/manifest.json
+[2025-11-04T19:39:47.649Z] [32minfo[39m: Loading plugins: 
+[2025-11-04T19:39:47.691Z] [32minfo[39m: Starting migration process
+[2025-11-04T19:39:47.741Z] [32minfo[39m: Migration process completed
+[2025-11-04T19:39:48.872Z] [32minfo[39m: Worker started
+[2025-11-04T19:39:49.108Z] [32minfo[39m: WebSocket server started on port 8081
+[2025-11-04T19:39:49.126Z] [32minfo[39m: Server is running on http://localhost:8080
+[2025-11-04T19:39:50.170Z] [32minfo[39m: WebSocket client connected: ws://90f3305f-6e77-4f65-875e-b3c684d37455
+[2025-11-04T19:40:03.703Z] [32minfo[39m: Loading plugins from manifest: /app/manifest.json
+[2025-11-04T19:40:03.713Z] [32minfo[39m: Loading plugins: 
+[2025-11-04T19:40:03.747Z] [32minfo[39m: Starting migration process
+[2025-11-04T19:40:03.789Z] [32minfo[39m: Migration process completed
+[2025-11-04T19:40:05.553Z] [32minfo[39m: Worker started
+[2025-11-04T19:40:05.709Z] [32minfo[39m: WebSocket server started on port 8081
+[2025-11-04T19:40:05.737Z] [32minfo[39m: Server is running on http://localhost:8080
+[2025-11-04T19:40:09.437Z] [32minfo[39m: WebSocket client connected: ws://38ea5268-ff34-4faa-86cd-2561950d6a8b
+[2025-11-04T19:40:44.564Z] [32minfo[39m: Loading plugins from manifest: /app/manifest.json
+[2025-11-04T19:40:44.575Z] [32minfo[39m: Loading plugins: 
+[2025-11-04T19:40:44.610Z] [32minfo[39m: Starting migration process
+[2025-11-04T19:40:44.640Z] [32minfo[39m: Migration process completed
+[2025-11-04T19:40:46.020Z] [32minfo[39m: Worker started
+[2025-11-04T19:40:46.152Z] [32minfo[39m: WebSocket server started on port 8081
+[2025-11-04T19:40:46.166Z] [32minfo[39m: Server is running on http://localhost:8080
+[2025-11-04T19:40:49.773Z] [32minfo[39m: WebSocket client connected: ws://217f15df-be81-4182-ac9c-753f74b3e9c6
+[2025-11-04T19:42:07.236Z] [32minfo[39m: Loading plugins from manifest: /app/manifest.json
+[2025-11-04T19:42:07.295Z] [32minfo[39m: Loading plugins: 
+[2025-11-04T19:42:07.366Z] [32minfo[39m: Starting migration process
+[2025-11-04T19:42:07.446Z] [32minfo[39m: - Applying migration document-table.sql
+[2025-11-04T19:42:07.466Z] [32minfo[39m:   - Migration document-table.sql applied successfully
+[2025-11-04T19:42:07.466Z] [32minfo[39m: - Applying migration tag-table.sql
+[2025-11-04T19:42:07.487Z] [32minfo[39m:   - Migration tag-table.sql applied successfully
+[2025-11-04T19:42:07.488Z] [32minfo[39m: - Applying migration 2025-11-03-1-add-tag-types.sql
+[2025-11-04T19:42:07.497Z] [32minfo[39m:   - Migration 2025-11-03-1-add-tag-types.sql applied successfully
+[2025-11-04T19:42:07.498Z] [32minfo[39m: Migration process completed
+[2025-11-04T19:42:10.083Z] [32minfo[39m: Worker started
+[2025-11-04T19:42:10.224Z] [32minfo[39m: WebSocket server started on port 8081
+[2025-11-04T19:42:10.247Z] [32minfo[39m: Server is running on http://localhost:8080
+[2025-11-04T19:42:11.964Z] [32minfo[39m: WebSocket client connected: ws://20d3cbb9-493c-4a67-a33e-dd460d0e7ce8
+[2025-11-04T19:42:21.189Z] [32minfo[39m: WebSocket client disconnected: ws://20d3cbb9-493c-4a67-a33e-dd460d0e7ce8
+[2025-11-04T19:42:23.868Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:23.872Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:23.876Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:23.879Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:23.883Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:23.886Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:23.890Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:23.894Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:23.897Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:23.899Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:23.903Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:23.909Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:23.938Z] [32minfo[39m: WebSocket client connected: ws://20b5940a-890c-46d6-890d-588d7753fc08
+[2025-11-04T19:42:23.943Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:23.945Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:23.967Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:23.972Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:23.978Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:23.982Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:23.984Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:23.987Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.028Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.033Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.038Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.045Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.050Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.056Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.058Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.085Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.090Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.099Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.104Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.109Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.117Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.168Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.177Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.182Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.186Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.194Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.198Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.229Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.233Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.236Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.239Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.242Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.244Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.273Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.275Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.301Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.305Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.309Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.314Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.317Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.320Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.343Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.346Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.349Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.352Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.356Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.358Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.363Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.374Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.378Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.384Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:24.386Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:28.246Z] [32minfo[39m: WebSocket client disconnected: ws://20b5940a-890c-46d6-890d-588d7753fc08
+[2025-11-04T19:42:28.670Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:28.674Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:28.676Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:28.677Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:28.679Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:28.681Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:28.712Z] [32minfo[39m: WebSocket client connected: ws://0ca370ac-93ce-4fc8-91b0-18f741d6e694
+[2025-11-04T19:42:28.937Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:28.947Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:28.955Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:28.958Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:28.962Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:28.967Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:28.974Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:28.982Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:28.987Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:28.990Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:28.993Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:28.998Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.003Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.012Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.022Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.029Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.047Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.052Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.054Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.056Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.058Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.060Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.078Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.082Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.089Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.092Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.097Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.102Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.104Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.111Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.114Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.120Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.128Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.137Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.141Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.144Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.147Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.150Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.152Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.157Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.166Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.168Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.173Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.180Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.183Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:29.185Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:42:40.355Z] [32minfo[39m: WebSocket client disconnected: ws://0ca370ac-93ce-4fc8-91b0-18f741d6e694
+[2025-11-04T19:42:41.896Z] [32minfo[39m: WebSocket client connected: ws://10c0b155-6c1d-4caf-b00b-75825eee9959
+[2025-11-04T19:43:55.888Z] [32minfo[39m: Loading plugins from manifest: /app/manifest.json
+[2025-11-04T19:43:55.898Z] [32minfo[39m: Loading plugins: 
+[2025-11-04T19:43:55.929Z] [32minfo[39m: Starting migration process
+[2025-11-04T19:43:55.956Z] [32minfo[39m: Migration process completed
+[2025-11-04T19:43:57.231Z] [32minfo[39m: Worker started
+[2025-11-04T19:43:57.368Z] [32minfo[39m: WebSocket server started on port 8081
+[2025-11-04T19:43:57.384Z] [32minfo[39m: Server is running on http://localhost:8080
+[2025-11-04T19:44:01.925Z] [32minfo[39m: WebSocket client connected: ws://fd2630e2-d332-47b9-94fc-a1fc2cb4c426
+[2025-11-04T19:44:27.590Z] [32minfo[39m: Loading plugins from manifest: /app/manifest.json
+[2025-11-04T19:44:27.609Z] [32minfo[39m: Loading plugins: 
+[2025-11-04T19:44:27.635Z] [32minfo[39m: Starting migration process
+[2025-11-04T19:44:27.658Z] [32minfo[39m: Migration process completed
+[2025-11-04T19:44:28.616Z] [32minfo[39m: Worker started
+[2025-11-04T19:44:28.770Z] [32minfo[39m: WebSocket server started on port 8081
+[2025-11-04T19:44:28.797Z] [32minfo[39m: Server is running on http://localhost:8080
+[2025-11-04T19:44:29.914Z] [32minfo[39m: WebSocket client connected: ws://5b55a40e-c7e5-4585-94b0-ff68f7d0d76f
+[2025-11-04T19:46:35.448Z] [32minfo[39m: Loading plugins from manifest: /app/manifest.json
+[2025-11-04T19:46:35.464Z] [32minfo[39m: Loading plugins: 
+[2025-11-04T19:46:35.526Z] [32minfo[39m: Starting migration process
+[2025-11-04T19:46:35.663Z] [32minfo[39m: - Applying migration document-table.sql
+[2025-11-04T19:46:35.703Z] [32minfo[39m:   - Migration document-table.sql applied successfully
+[2025-11-04T19:46:35.703Z] [32minfo[39m: - Applying migration tag-table.sql
+[2025-11-04T19:46:35.765Z] [32minfo[39m:   - Migration tag-table.sql applied successfully
+[2025-11-04T19:46:35.768Z] [32minfo[39m: - Applying migration 2025-11-03-1-add-tag-types.sql
+[2025-11-04T19:46:35.786Z] [32minfo[39m:   - Migration 2025-11-03-1-add-tag-types.sql applied successfully
+[2025-11-04T19:46:35.787Z] [32minfo[39m: Migration process completed
+[2025-11-04T19:46:38.180Z] [32minfo[39m: Worker started
+[2025-11-04T19:46:38.320Z] [32minfo[39m: WebSocket server started on port 8081
+[2025-11-04T19:46:38.337Z] [32minfo[39m: Server is running on http://localhost:8080
+[2025-11-04T19:46:41.949Z] [32minfo[39m: WebSocket client connected: ws://24d78eee-01c3-46cb-8029-f4cde78d7065
+[2025-11-04T19:47:48.175Z] [32minfo[39m: WebSocket client disconnected: ws://24d78eee-01c3-46cb-8029-f4cde78d7065
+[2025-11-04T19:47:50.936Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:47:50.938Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:47:50.944Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:47:50.977Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:47:50.980Z] [32minfo[39m: WebSocket client connected: ws://c880f163-4357-4ba1-ae72-237aa6061a10
+[2025-11-04T19:47:51.110Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:47:51.113Z] [31merror[39m: Error occurred while processing API request Invalid row number: 0. Expected between 1 and 1.
+[2025-11-04T19:48:48.819Z] [32minfo[39m: WebSocket client disconnected: ws://c880f163-4357-4ba1-ae72-237aa6061a10
+[2025-11-04T19:48:51.134Z] [32minfo[39m: WebSocket client connected: ws://9a7b4d23-ca07-474f-876a-5706abc2da7f
+[2025-11-04T20:59:39.685Z] [32minfo[39m: WebSocket client disconnected: ws://9a7b4d23-ca07-474f-876a-5706abc2da7f
+[2025-11-04T20:59:42.089Z] [32minfo[39m: WebSocket client connected: ws://9cac069a-2f9b-4d86-b2ff-ad4cf9bc3150
+[2025-11-05T11:05:54.491Z] [32minfo[39m: Loading plugins from manifest: /app/manifest.json
+[2025-11-05T11:05:54.508Z] [32minfo[39m: Loading plugins: 
+[2025-11-05T11:05:54.540Z] [32minfo[39m: Starting migration process
+[2025-11-05T11:05:54.578Z] [32minfo[39m: Migration process completed
+[2025-11-05T11:05:55.699Z] [32minfo[39m: Worker started
+[2025-11-05T11:05:55.889Z] [32minfo[39m: WebSocket server started on port 8081
+[2025-11-05T11:05:55.900Z] [32minfo[39m: Server is running on http://localhost:8080
+[2025-11-05T11:18:43.950Z] [32minfo[39m: WebSocket client connected: ws://bc9ae560-c57c-4e3a-a04c-a5d46c6f867a
+[2025-11-05T11:20:49.976Z] [32minfo[39m: WebSocket client disconnected: ws://bc9ae560-c57c-4e3a-a04c-a5d46c6f867a
+[2025-11-05T11:20:51.991Z] [32minfo[39m: WebSocket client connected: ws://afdf0344-bc88-421c-8030-e2d0955db681
+[2025-11-05T22:08:37.862Z] [32minfo[39m: WebSocket client disconnected: ws://afdf0344-bc88-421c-8030-e2d0955db681
+[2025-11-05T22:08:39.627Z] [32minfo[39m: WebSocket client connected: ws://101772eb-18fd-4114-8c25-5589364a95f2
+[2025-11-06T07:27:30.058Z] [32minfo[39m: Loading plugins from manifest: /app/manifest.json
+[2025-11-06T07:27:30.065Z] [32minfo[39m: Loading plugins: 
+[2025-11-06T07:27:30.097Z] [32minfo[39m: Starting migration process
+[2025-11-06T07:27:30.153Z] [32minfo[39m: Migration process completed
+[2025-11-06T07:27:31.338Z] [32minfo[39m: Worker started
+[2025-11-06T07:27:31.461Z] [32minfo[39m: WebSocket server started on port 8081
+[2025-11-06T07:27:31.473Z] [32minfo[39m: Server is running on http://localhost:8080
+[2025-11-07T05:41:05.831Z] [32minfo[39m: Loading plugins from manifest: /app/manifest.json
+[2025-11-07T05:41:05.847Z] [32minfo[39m: Loading plugins: 
+[2025-11-07T05:41:05.879Z] [32minfo[39m: Starting migration process
+[2025-11-07T05:41:05.917Z] [32minfo[39m: Migration process completed
+[2025-11-07T05:41:06.920Z] [32minfo[39m: Worker started
+[2025-11-07T05:41:07.189Z] [32minfo[39m: WebSocket server started on port 8081
+[2025-11-07T05:41:07.200Z] [32minfo[39m: Server is running on http://localhost:8080
+[2025-11-08T07:21:36.836Z] [32minfo[39m: Loading plugins from manifest: /app/manifest.json
+[2025-11-08T07:21:36.853Z] [32minfo[39m: Loading plugins: 
+[2025-11-08T07:21:36.926Z] [32minfo[39m: Starting migration process
+[2025-11-08T07:21:37.008Z] [32minfo[39m: Migration process completed
+[2025-11-08T07:21:39.713Z] [32minfo[39m: Worker started
+[2025-11-08T07:21:39.853Z] [32minfo[39m: WebSocket server started on port 8081
+[2025-11-08T07:21:39.870Z] [32minfo[39m: Server is running on http://localhost:8080
