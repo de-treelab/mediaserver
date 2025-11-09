@@ -12,6 +12,7 @@ import { MigrationChecksumError } from "./errors/MigrationChecksumError.js";
 export type MigrationServiceConfig = {
   migrationsDir: string;
   ignoreChecksumMismatches: boolean;
+  ignoreMissingMigrations: boolean;
 };
 
 type Migration = {
@@ -102,12 +103,21 @@ export class MigrationService {
 
     for (const migration of existingMigrations) {
       this.logger.debug(`Validating migration ${migration.name}`);
+      const { ignoreChecksumMismatches, ignoreMissingMigrations } =
+        this.envService.migrationServiceConfig;
+
       const migrationFileIndex = migrationFiles.findIndex(
         (m) => m.name === `${migration.name}.sql`,
       );
       const migrationFile = migrationFiles[migrationFileIndex];
 
       if (!migrationFile) {
+        if (ignoreMissingMigrations) {
+          this.logger.warn(
+            `| Ignoring missing migration file for ${migration.name}`,
+          );
+          continue;
+        }
         throw new MissingMigrationError(migration.name);
       }
       if (migrationFileIndex !== 0) {
@@ -117,8 +127,6 @@ export class MigrationService {
         );
       }
 
-      const { ignoreChecksumMismatches } =
-        this.envService.migrationServiceConfig;
       if (migrationFile.checksum !== migration.checksum) {
         if (ignoreChecksumMismatches) {
           this.logger.warn(
