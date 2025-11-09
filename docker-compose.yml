@@ -27,6 +27,7 @@ services:
       DEFAULT_THUMBNAIL_PATH: assets/icons/unknown_file.jpg
       DOCUMENT_STORE_CONFIG_PATH: assets/documentStoreConfig.json
       IGNORE_MIGRATION_CHECKSUM_MISMATCHES: true
+      IGNORE_MISSING_MIGRATIONS: true
       MAX_FILE_UPLOAD_SIZE: 2147483648 # 2GB
       REDIS_HOST: redis
       REDIS_PORT: 6379

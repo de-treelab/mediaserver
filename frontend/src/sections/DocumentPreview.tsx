@@ -9,6 +9,7 @@ import { tagToString } from "../util/tag";
 import { useTranslation } from "react-i18next";
 import { DocumentRender } from "../components/DocumentRender";
 import { DocumentDiashow } from "../components/DocumentDiashow";
+import { isTypingInInput } from "../util/isTypingInInput";
 
 type Props = {
   id: string;
@@ -25,6 +26,10 @@ export const DocumentPreview = ({ id, diashow, nextDocument }: Props) => {
 
   useEffect(() => {
     const keyDownHandler = (event: KeyboardEvent) => {
+      if (isTypingInInput()) {
+        return;
+      }
+
       if (event.key === "t") {
         setTagListOpen((open) => !open);
       }

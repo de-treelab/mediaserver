@@ -18,9 +18,9 @@ Object.entries(standardPlugins).forEach(([name, plugin]) => {
   addFileTypePlugin(name, plugin);
 });
 
-await loadPlugins();
-
 const diContainer = await setupDiContainer();
+
+await loadPlugins();
 
 const logger = diContainer.get<Logger>(services.logger);
 

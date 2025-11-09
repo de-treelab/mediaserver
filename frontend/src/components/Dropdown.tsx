@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
+import { isTypingInInput } from "../util/isTypingInInput";
 
 type DropdownItem<T> = {
   value: T;
@@ -24,6 +25,10 @@ export const Dropdown = <T,>({
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
+      if (isTypingInInput()) {
+        return;
+      }
+
       if (event.key === "ArrowDown") {
         event.preventDefault();
         event.stopPropagation();

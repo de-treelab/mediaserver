@@ -72,6 +72,9 @@ export class EnvironmentService {
       ignoreChecksumMismatches:
         this.getStringEnvVar("IGNORE_MIGRATION_CHECKSUM_MISMATCHES") ===
           "true" && this.stage !== "production",
+      ignoreMissingMigrations:
+        this.getStringEnvVar("IGNORE_MISSING_MIGRATIONS") === "true" &&
+        this.stage !== "production",
     };
   }
 
