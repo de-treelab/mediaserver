@@ -7,6 +7,7 @@ import { DocumentPreviewControls } from "../components/DocumentPreviewControls";
 import { useDocumentUrl } from "../hooks/useDocumentUrl";
 import { twMerge } from "tailwind-merge";
 import { MdClose } from "react-icons/md";
+import { isTypingInInput } from "../util/isTypingInInput";
 
 type Props = {
   previewImageId: string;
@@ -46,6 +47,10 @@ export const PreviewContainer = ({
 
   useEffect(() => {
     const keyDownHandler = (event: KeyboardEvent) => {
+      if (isTypingInInput()) {
+        return;
+      }
+
       if (event.key === "ArrowRight") {
         nextPreviewImage();
       } else if (event.key === "ArrowLeft") {
