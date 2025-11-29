@@ -17,6 +17,8 @@ jobs:
 
       - uses: paulhatch/semantic-version@v5.4.0
         id: version
+        with:
+          version_format: "v${major}.${minor}.${patch}${{ github.ref_name == 'main' && '' || '-beta' }}"
 
       - name: Install server dependencies
         working-directory: ./server
