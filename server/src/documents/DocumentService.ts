@@ -21,11 +21,13 @@ export class DocumentService {
     await this.tagService.addTagToDocument(
       request.id,
       `uploaded:${new Date().toLocaleDateString("de")}`,
+      "meta",
     );
-    await this.tagService.addTagToDocument(request.id, request.type);
+    await this.tagService.addTagToDocument(request.id, request.type, "meta");
     await this.tagService.addTagToDocument(
       request.id,
       request.type.replaceAll("/", ":"),
+      "meta",
     );
   }
 
