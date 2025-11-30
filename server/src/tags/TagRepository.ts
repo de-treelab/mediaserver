@@ -123,7 +123,7 @@ export class TagRepository {
           limit: request.limit,
           offset: request.offset,
           tagKey: request.tag.key,
-          tagValue: request.tag instanceof MetaTag ? request.tag.value : null,
+          tagValue: request.tag.value ? request.tag.value : null,
         },
       );
       return toPaginatedResponse(
@@ -148,12 +148,14 @@ export class TagRepository {
       })
       .join(", ");
 
+      console.log(tags);
+
     const result = await this.dbService.any(
       z.object({ id: z.number() }),
       `INSERT INTO tags (key, value, type) VALUES ${valuesStmt} ON CONFLICT DO NOTHING RETURNING id`,
       tags
         .map((tag) =>
-          tag instanceof MetaTag
+          tag.value
             ? [tag.key, tag.value, tag.type]
             : [tag.key, null, tag.type],
         )
