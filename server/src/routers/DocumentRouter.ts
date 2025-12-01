@@ -2,13 +2,13 @@ import { Router } from "express";
 import { apiHandler, FileDownload } from "../ApiHandler.js";
 import { ApiError } from "../common/ApiError.js";
 import { services } from "../DefaultDiContainer.js";
-import type { MessageServiceClient } from "../common/MessageService.js";
 import type { EmptyObject } from "../common/EmptyObject.js";
 import type { DocumentService } from "../documents/DocumentService.js";
 import type { PaginatedResponse } from "../util/PaginatedResponse.js";
 import type { Document } from "../documents/DocumentRepository.js";
 import type { TagService } from "../tags/TagService.js";
 import z from "zod";
+import type { UploadService } from "../files/UploadService.js";
 
 export const documentRouter = Router();
 
@@ -46,11 +46,11 @@ documentRouter.post(
         throw new ApiError("BadRequest", 400, "Missing extension");
       }
 
-      const messageService = diContainer.get<MessageServiceClient>(
-        services.messageClient,
+      const uploadService = diContainer.get<UploadService>(
+        services.upload,
       );
-      messageService.sendMessage({
-        type: "process-upload",
+      // Process the upload asynchronously
+      void uploadService.processUploadDocument({
         name: file.name,
         file: file.tempFilePath,
         size: file.size,
@@ -59,13 +59,17 @@ documentRouter.post(
         extension,
         tags: z
           .array(
-            z.object({ key: z.string(), value: z.string().or(z.undefined()) }),
+            z.object({
+              key: z.string(),
+              value: z.string().or(z.undefined()),
+              type: z.string(),
+            }),
           )
           .parse(JSON.parse(tags)),
       });
 
       return {
-        status: 200,
+        status: 204,
         body: {},
       };
     },
