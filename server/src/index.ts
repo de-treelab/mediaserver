@@ -5,11 +5,6 @@ import { DI_CONTAINER, setupDiContainer } from "./DiContainer.js";
 import { MigrationService } from "./sql/MigrationService.js";
 import { DbService } from "./sql/DbService.js";
 import fileUpload from "express-fileupload";
-import { SHARE_ENV, Worker } from "worker_threads";
-import {
-  MainMessageService,
-  type MessageServiceClient,
-} from "./common/MessageService.js";
 import { ApiError } from "./common/ApiError.js";
 import { documentRouter } from "./routers/DocumentRouter.js";
 import * as cors from "cors";
@@ -21,6 +16,8 @@ import { RedisClient } from "./redis/RedisClient.js";
 import { stateRouter } from "./routers/StateRouter.js";
 import type { LoggingService } from "./common/LoggingService.js";
 import { loadPlugins } from "./plugins/pluginLoader.js";
+import { addFileTypePlugin } from "./plugins/fileTypes.js";
+import { standardPlugins } from "./plugins/standardPlugins.js";
 
 async function run(envService: EnvironmentService) {
   const app = express.default();
@@ -73,66 +70,16 @@ async function main() {
     services.migration,
   );
 
+  Object.entries(standardPlugins).forEach(([name, plugin]) => {
+    addFileTypePlugin(name, plugin);
+  });
+
   await loadPlugins();
 
   await dbService.connect();
   await migrationService.migrate();
 
-  const messageService = diContainer.get<MainMessageService>(
-    services.messageServer,
-  );
-  const messageServiceClient = diContainer.get<MessageServiceClient>(
-    services.messageClient,
-  );
-  messageService.client = messageServiceClient;
-
-  const worker = new Worker(import.meta.dirname + "/worker.js", {
-    stdout: true,
-    stderr: true,
-    env: SHARE_ENV,
-  });
-
-  worker.once("message", (message) => {
-    const { port } = message;
-    port.on("message", (msg: unknown) => {
-      // @ts-expect-error we ignore this
-      messageService.sendMessage(msg);
-    });
-    port.start();
-    messageServiceClient.port = port;
-    port.postMessage({ type: "ack" });
-  });
-  worker.stdout?.on("data", (data) => {
-    process.stdout.write(`[WORKER] -> ${data}`);
-  });
-  worker.stderr?.on("data", (data) => {
-    process.stderr.write(`[WORKER] -> ${data}`);
-  });
-  worker.on("error", (err) => {
-    console.error("[WORKER] ", err);
-    process.exit(1);
-  });
-  worker.on("exit", (code) => {
-    console.log("[WORKER] Worker exited with code:", code);
-    process.exit(code === 0 ? 0 : 1);
-  });
-
   const webSocketServer = diContainer.get<WebSocketService>(services.websocket);
-
-  process.on("exit", () => {
-    worker.terminate();
-    webSocketServer.stop();
-  });
-
-  let i = 50;
-  while (!messageService.acked && i > 0) {
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    i--;
-  }
-
-  if (!messageService.acked) {
-    throw new ApiError("MessageServiceError", 500, "Message service not acked");
-  }
 
   const envService = diContainer.get<EnvironmentService>(services.environment);
   const tagService = diContainer.get<TagService>(services.tag);
