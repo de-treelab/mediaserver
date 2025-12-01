@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import * as readline from "readline";
 import * as fs from "fs/promises";
+import * as path from "path";
 import { exec } from "child_process";
 
 const frontendTsConfig = {
@@ -26,6 +27,7 @@ const frontendTsConfig = {
     noFallthroughCasesInSwitch: true,
     noUncheckedSideEffectImports: true,
   },
+  include: ["src/**/*.ts"],
 };
 
 const backendTsConfig = {
@@ -46,6 +48,7 @@ const backendTsConfig = {
     noFallthroughCasesInSwitch: true,
     noUncheckedSideEffectImports: true,
   },
+  include: ["src/**/*.ts"],
 };
 
 const backendDependencies = [
@@ -69,6 +72,7 @@ export const plugin: FileTypePlugin = {
   thumbnailCreator: async (context) => {
     throw new Error("Not implemented");
   },
+  description: "Your plugin description here",
 };
 
 export default plugin;
@@ -97,6 +101,11 @@ const plugin: FileTypePlugin = {
 export default plugin;
 `;
 
+const gitIgnoreContent = `
+**/dist/
+**/node_modules/
+`;
+
 const config = {
   frontend: {
     tsConfig: frontendTsConfig,
@@ -121,35 +130,44 @@ const question = (query: string): Promise<string> => {
 
 const questionOrDefault = async (
   query: string,
-  defaultValue: string
-): Promise<string> => {
-  const answer = await question(`${query} (default: ${defaultValue}): `);
+  defaultValue?: string
+): Promise<string | undefined> => {
+  const answer = await question(`${query} ${defaultValue ? `(${defaultValue})` : ""}: `);
   return answer.trim() === "" ? defaultValue : answer.trim();
 };
 
-const validatePluginType = (type: string): boolean => {
-  const validTypes = ["frontend", "backend"];
-  return validTypes.includes(type.toLowerCase());
+const validateYesNo = (input: string | undefined, defaultValue?: boolean): boolean => {
+  if (!input) return defaultValue || false;
+  const trimmed = input.trim().toLowerCase();
+
+  if (defaultValue) {
+    return trimmed.length <= 3 && "yes".startsWith(trimmed);
+  }
+
+  return !("no".startsWith(trimmed) && trimmed.length <= 2);
 };
+
+const doExec = (command: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      if (stderr) {
+        resolve(stderr)
+        return;
+      }
+      resolve(stdout);
+    });
+  });
+}
 
 async function main() {
   const folderPath = await questionOrDefault(
     "Enter the plugin folder path",
-    "."
+    path.resolve(".")
   );
-  let pluginType = "";
-  while (true) {
-    const inputType = await questionOrDefault(
-      "Enter the plugin type (frontend/backend)",
-      "frontend"
-    );
-    if (validatePluginType(inputType)) {
-      pluginType = inputType.toLowerCase();
-      break;
-    } else {
-      console.log("Invalid plugin type. Please enter 'frontend' or 'backend'.");
-    }
-  }
   const pluginName = await questionOrDefault(
     "Enter the plugin name",
     "my-plugin"
@@ -158,77 +176,85 @@ async function main() {
     "Enter the author name",
     "Your Name"
   );
+  const initGitString = await questionOrDefault("Initialize git? (Yes/no)");
+  const initGit = validateYesNo(initGitString, true);
 
   console.log("\nPlugin Configuration:");
-  console.log(`Folder Path: ${folderPath}`);
-  console.log(`Plugin Type: ${pluginType}`);
+  console.log(`Folder Path: ${path.resolve(folderPath)}`);
   console.log(`Plugin Name: ${pluginName}`);
   console.log(`Author Name: ${authorName}`);
+  console.log(`Initialize Git: ${initGit ? "Yes" : "No"}`);
 
-  const validate = await questionOrDefault("Create plugin? (yes/no)", "yes");
+  const validateString = await questionOrDefault("Create plugin? (Yes/no)");
+  const validate = validateYesNo(validateString, true);
 
   rl.close();
 
-  if (validate.toLowerCase() !== "yes") {
+  if (!validate) {
     console.log("Plugin creation cancelled.");
     return;
   }
 
-  await fs.mkdir(folderPath, { recursive: true });
-  await fs.mkdir(folderPath + "/src", { recursive: true });
-  const pluginFolderPath = await fs.realpath(folderPath);
-  const pluginSrcPath = `${pluginFolderPath}/src`;
-  process.chdir(pluginFolderPath);
+  await fs.mkdir(folderPath + `/${pluginName}`, { recursive: true });
+  const basePath = await fs.realpath(folderPath + `/${pluginName}`);
 
-  const packageJsonContent = {
-    name: `${pluginName}`,
-    scripts: {
-      build: "tsc",
-    },
-  };
+  for (const pluginType of ["frontend", "backend"] as const) {
+    process.chdir(basePath);
+    const path = basePath + `/${pluginType}`;
 
-  console.log("Writing package.json");
-  await fs.writeFile(
-    `${pluginFolderPath}/package.json`,
-    JSON.stringify(packageJsonContent, null, 2)
-  );
+    await fs.mkdir(path, { recursive: true });
+    await fs.mkdir(path + "/src", { recursive: true });
 
-  const pluginConfig = config[pluginType];
+    const pluginFolderPath = await fs.realpath(path);
+    const pluginSrcPath = `${pluginFolderPath}/src`;
+    process.chdir(pluginFolderPath);
 
-  const tsConfigContent = pluginConfig.tsConfig;
+    const packageJsonContent = {
+      name: `${pluginName}`,
+      scripts: {
+        build: "tsc",
+      },
+    };
 
-  console.log("Writing tsconfig.json");
-  await fs.writeFile(
-    `${pluginFolderPath}/tsconfig.json`,
-    JSON.stringify(tsConfigContent, null, 2)
-  );
-
-  console.log("Installing dependencies...");
-  await new Promise((resolve, reject) => {
-    exec(
-      `npm i -D ${pluginConfig.dependencies.join(" ")}`,
-      (error, stdout, stderr) => {
-        if (error) {
-          console.error(`Error installing dependencies: ${error.message}`);
-          reject(error);
-          return;
-        }
-        if (stderr) {
-          console.error(`stderr: ${stderr}`);
-          return;
-        }
-        console.log(`stdout: ${stdout}`);
-        resolve(null);
-      }
+    console.log("Writing package.json");
+    await fs.writeFile(
+      `${pluginFolderPath}/package.json`,
+      JSON.stringify(packageJsonContent, null, 2)
     );
-  });
+    
+    const pluginConfig = config[pluginType];
+    const tsConfigContent = pluginConfig.tsConfig;
 
-  console.log("Writing skeleton plugin file...");
-  const pluginFileName = "index.ts";
-  await fs.writeFile(
-    `${pluginSrcPath}/${pluginFileName}`,
-    pluginConfig.skeleton
-  );
+    console.log("Writing tsconfig.json");
+    await fs.writeFile(
+      `${pluginFolderPath}/tsconfig.json`,
+      JSON.stringify(tsConfigContent, null, 2)
+    );
+
+    console.log("Installing dependencies...");
+    await doExec(`npm i -D ${pluginConfig.dependencies.join(" ")}`);
+
+    console.log("Writing skeleton plugin file...");
+    const pluginFileName = "index.ts";
+    await fs.writeFile(
+      `${pluginSrcPath}/${pluginFileName}`,
+      pluginConfig.skeleton
+    );
+  }
+
+  if (initGit) {
+    console.log("Initializing git repository...");
+    process.chdir(basePath);
+
+    await fs.writeFile(
+      `${basePath}/.gitignore`,
+      gitIgnoreContent
+    );
+
+    await doExec("git init -b main");
+    await doExec("git add .");
+    await doExec('git commit -m "Initial commit"');
+  }
 
   console.log("Plugin created successfully.");
 }
