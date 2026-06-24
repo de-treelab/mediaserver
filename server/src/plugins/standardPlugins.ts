@@ -3,6 +3,10 @@ import type { FileTypePlugin } from "./plugin.js";
 import * as pdf from "pdf-thumbnail";
 import * as fs2 from "fs";
 import ffmpeg from "ffmpeg";
+import { execFile } from "child_process";
+import { promisify } from "util";
+
+const execFileAsync = promisify(execFile);
 
 export const pdfPlugin: FileTypePlugin = {
   matcher: (file) => file === "application/pdf",
@@ -65,20 +69,35 @@ export const videoPlugin: FileTypePlugin = {
   matcher: (file) => file.startsWith("video"),
   description: "Plugin for video files",
   thumbnailCreator: async ({ path, uuidv4 }) => {
-    const process = await new ffmpeg(path);
-    const filename = uuidv4();
-    // Grab a single frame, scale into a 400x400 box with black padding, and
-    // convert to full-range YUV (yuvj420p). The mjpeg encoder in ffmpeg 8.0
-    // refuses limited-range ("tv") YUV input, which is what most videos use.
-    process.addFilterComplex(
+    const video = await new ffmpeg(path);
+    const outPath = "/tmp/" + uuidv4() + ".jpg";
+    // Seek to the middle of the video so the thumbnail is representative of the
+    // content rather than the (often black/blank) first frame. Falls back to
+    // the start when the duration could not be parsed from the metadata.
+    const durationSeconds = video.metadata.duration?.seconds ?? 0;
+    const seekSeconds = Math.floor(durationSeconds / 2);
+    // The `ffmpeg` library always emits `ffmpeg -i <input> …`, so a seek added
+    // through it lands *after* `-i` (slow, decode-from-start output seeking).
+    // Invoke ffmpeg directly to place `-ss` *before* `-i` for fast input-side
+    // seeking, then grab a single frame, scale into a 400x400 box with black
+    // padding, and convert to full-range YUV (yuvj420p). The mjpeg encoder in
+    // ffmpeg 8.0 refuses limited-range ("tv") YUV input, which most videos use.
+    await execFileAsync("ffmpeg", [
+      "-ss",
+      String(seekSeconds),
+      "-i",
+      path,
+      "-frames:v",
+      "1",
+      "-filter_complex",
       "scale=400:400:force_original_aspect_ratio=decrease," +
         "pad=400:400:(ow-iw)/2:(oh-ih)/2:black," +
         "format=yuvj420p",
-    );
-    process.addCommand("-frames:v", "1");
-    await process.save("/tmp/" + filename + ".jpg");
+      "-y",
+      outPath,
+    ]);
 
-    return { path: "/tmp/" + filename + ".jpg" };
+    return { path: outPath };
   },
   initialTags: async () => {
     return [];
