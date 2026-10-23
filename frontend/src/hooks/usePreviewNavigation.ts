@@ -31,6 +31,8 @@ export type Filmstrip = {
   // Index shown in the middle of the strip
   centerIndex: number;
   currentIndex: number;
+  // Not part of the strip anymore if it stopped matching the filter
+  currentId: string | undefined;
   // Distance of the strip center from the current document
   offset: number;
   setOffset: (update: (offset: number) => number) => void;
@@ -93,9 +95,30 @@ export const usePreviewNavigation = ({
     windowSize: windowSizeFor(stripRadius),
   });
 
-  const previewDocument = previewDocumentSearchParam
+  const indexedDocument = previewDocumentSearchParam
     ? knownDocuments.get(previewDocumentSearchParam)
     : undefined;
+
+  // The previewed document drops out of the listing once it stops matching
+  // the filter (e.g. by editing its tags). It stays previewed regardless, so
+  // that it can still be edited, until navigating away.
+  const [retainedDocument, setRetainedDocument] = useState(indexedDocument);
+  if (indexedDocument && indexedDocument !== retainedDocument) {
+    setRetainedDocument(indexedDocument);
+  }
+
+  const previewDocument = useMemo((): Document | undefined => {
+    if (indexedDocument) return indexedDocument;
+    if (!retainedDocument || retainedDocument.id !== previewDocumentSearchParam)
+      return undefined;
+    // The documents after it moved up by one, so the one now at its former
+    // position is the next one
+    return {
+      ...retainedDocument,
+      previousId: byIndex.get(retainedDocument.queryIndex - 1)?.id,
+      nextId: byIndex.get(retainedDocument.queryIndex)?.id,
+    };
+  }, [indexedDocument, retainedDocument, previewDocumentSearchParam, byIndex]);
 
   if (previewDocument && previewDocument.queryIndex !== currentIndex) {
     setCurrentIndex(previewDocument.queryIndex);
@@ -126,6 +149,7 @@ export const usePreviewNavigation = ({
       slots,
       centerIndex,
       currentIndex,
+      currentId: previewDocument?.id,
       offset: stripOffset,
       setOffset,
       setRadius: setStripRadius,
@@ -134,6 +158,7 @@ export const usePreviewNavigation = ({
     byIndex,
     centerIndex,
     currentIndex,
+    previewDocument,
     stripOffset,
     stripRadius,
     totalDocuments,
