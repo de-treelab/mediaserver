@@ -8,8 +8,12 @@ import { FaCaretRight, FaEllipsis } from "react-icons/fa6";
 import { useState, useRef, useEffect } from "react";
 import { twMerge } from "tailwind-merge";
 import { useTranslation } from "react-i18next";
+<<<<<<< HEAD
 import { MdCollections, MdLogout } from "react-icons/md";
 import { HiOutlineDocumentDuplicate } from "react-icons/hi2";
+=======
+import { MdCollections, MdLogout, MdSettings } from "react-icons/md";
+>>>>>>> d9e20d9 (fix: settings not available and preview right click)
 import { useIdentity, usePermission } from "../hooks/usePermission";
 import { UserAvatar } from "../components/UserAvatar";
 import { AppIcon } from "../components/AppIcon";
@@ -122,6 +126,9 @@ export const SideBar = () => {
 
   const username = getUsername(identity?.email, identity?.name);
   const showAuth = identity?.userId !== "system";
+  // Settings are normally reached via the account avatar; without a signed-in
+  // account (e.g. IdP disabled) show a settings button instead.
+  const showAccount = showAuth && !!identity?.isAuthenticated;
 
   const pluginNavItems = pluginRegistry.getNavItems().filter((item) => {
     if (!item.permission) return true;
@@ -254,8 +261,21 @@ export const SideBar = () => {
         />
       )}
 
+      {/* Settings - shown when there is no account to open them from */}
+      {!showAccount && (
+        <div className="sm:mt-auto sm:border-t sm:border-border sm:pt-3">
+          <SideBarButton
+            Icon={MdSettings}
+            pathPrefix="/settings"
+            onClick={() => navigate("/settings")}
+            collapsed={collapsed}
+            text={t("sidebar.settings")}
+          />
+        </div>
+      )}
+
       {/* User section */}
-      {showAuth && identity?.isAuthenticated && (
+      {showAccount && identity && (
         <div className="hidden sm:block sm:mt-auto sm:border-t sm:border-border sm:pt-3">
           {collapsed ? (
             <div

@@ -7,6 +7,7 @@ import type { EmptyObject } from "./common/EmptyObject.js";
 import { LoggingService } from "./common/LoggingService.js";
 import { services } from "./DefaultDiContainer.js";
 import * as fs from "fs";
+import { pipeline } from "node:stream";
 import type { IncomingHttpHeaders } from "http";
 import type { Identity } from "./auth/Identity.js";
 
@@ -94,7 +95,8 @@ export const apiHandler = <
 > => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return async (req, res, _next) => {
-    DI_CONTAINER.get<LoggingService>(services.logger).debug(
+    const logger = DI_CONTAINER.get<LoggingService>(services.logger);
+    logger.debug(
       `${req.method} ${decodeURIComponent(req.url)}`,
     );
 
@@ -116,7 +118,12 @@ export const apiHandler = <
           // served from different origins). Without this, media elements making
           // no-cors requests are blocked with ERR_BLOCKED_BY_RESPONSE.NotSameSite.
           .header("Cross-Origin-Resource-Policy", "cross-origin")
-          .download(result.body.filepath);
+          .download(result.body.filepath, (err) => {
+            if (err && !res.headersSent) {
+              logger.error('Download error: %O', err);
+              res.status(500).end();
+            }
+          });
       } else if (result.body instanceof FileStream) {
         const disposition = isInlineSafeMime(result.body.mimeType)
           ? "inline"
@@ -142,14 +149,31 @@ export const apiHandler = <
           .header("Cross-Origin-Resource-Policy", "cross-origin")
           .header("Accept-Ranges", "bytes");
 
-        const videoStream = fs.createReadStream(result.body.filepath, {
+        const stream = fs.createReadStream(result.body.filepath, {
           start: result.body.startByte,
           end: result.body.endByte,
         });
 
         res.status(206);
 
-        videoStream.pipe(res);
+        // `pipeline` (unlike `.pipe()`) destroys the read stream when the
+        // response finishes, errors, or the client aborts mid-stream. Without
+        // it, an aborted range/video request leaks the file descriptor, and
+        // accumulated leaks eventually starve every file-serving endpoint of
+        // FDs / libuv threadpool capacity.
+        pipeline(stream, res, (err) => {
+          if (!err) return;
+          // Client went away before the body finished (video seeking, cancelled
+          // download). Expected, not a server error.
+          if (
+            (err as NodeJS.ErrnoException).code === "ERR_STREAM_PREMATURE_CLOSE"
+          ) {
+            return;
+          }
+          logger.error("Stream error: %O", err);
+          if (!res.headersSent) res.status(500).end();
+          else res.destroy();
+        });
       } else {
         res.status(result.status).json(result.body);
       }

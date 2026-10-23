@@ -14,29 +14,37 @@ export const pdfPlugin: FileTypePlugin = {
   thumbnailCreator: async ({ path, uuidv4 }) => {
     const tmpId = uuidv4();
     const pdfBuffer = fs2.createReadStream(path);
-    const pdfThumbnailStream = await pdf.default(pdfBuffer, {
-      resize: { width: 400, height: 400 },
-      crop: {
-        width: 400,
-        height: 400,
-        x: 0,
-        y: 0,
-        ratio: true,
-      },
-      compress: { type: "JPEG" },
-    });
-    const pdfJpegBuffer = await new Promise<Buffer>((resolve, reject) => {
-      const chunks: Buffer[] = [];
-      pdfThumbnailStream.on("data", (chunk) => chunks.push(chunk));
-      pdfThumbnailStream.on("end", () => resolve(Buffer.concat(chunks)));
-      pdfThumbnailStream.on("error", reject);
-    });
-    const thumbnailBuffer = await sharp(pdfJpegBuffer)
-      .webp({ quality: 80 })
-      .toBuffer();
-    const tmpPath = "/tmp/" + tmpId + "_thumbnail.webp";
-    fs2.writeFileSync(tmpPath, thumbnailBuffer);
-    return { path: tmpPath };
+    try {
+      const pdfThumbnailStream = await pdf.default(pdfBuffer, {
+        resize: { width: 400, height: 400 },
+        crop: {
+          width: 400,
+          height: 400,
+          x: 0,
+          y: 0,
+          ratio: true,
+        },
+        compress: { type: "JPEG" },
+      });
+      const pdfJpegBuffer = await new Promise<Buffer>((resolve, reject) => {
+        const chunks: Buffer[] = [];
+        pdfThumbnailStream.on("data", (chunk) => chunks.push(chunk));
+        pdfThumbnailStream.on("end", () => resolve(Buffer.concat(chunks)));
+        pdfThumbnailStream.on("error", reject);
+      });
+      const thumbnailBuffer = await sharp(pdfJpegBuffer)
+        .webp({ quality: 80 })
+        .toBuffer();
+      const tmpPath = "/tmp/" + tmpId + "_thumbnail.webp";
+      // Async write so a burst of PDF uploads doesn't block the event loop
+      // (which would stall concurrent document/thumbnail downloads).
+      await fs2.promises.writeFile(tmpPath, thumbnailBuffer);
+      return { path: tmpPath };
+    } finally {
+      // Release the input descriptor even if PDF parsing or sharp throws —
+      // otherwise a failed PDF thumbnail leaks an FD on every upload.
+      pdfBuffer.destroy();
+    }
   },
   initialTags: async () => {
     return [];

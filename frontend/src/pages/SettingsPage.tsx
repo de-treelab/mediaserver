@@ -50,7 +50,13 @@ export const SettingsPage = () => {
   const canManageUsers = usePermission("admin:users");
   const isAdmin = canManageRoles || canManageUsers;
 
-  const [section, setSection] = useState<Section>("profile");
+  // Profile/sessions only exist for a signed-in account (not with IdP disabled).
+  const hasAccount =
+    !!identity?.isAuthenticated && identity.userId !== "system";
+
+  const [section, setSection] = useState<Section>(
+    hasAccount ? "profile" : "appearance",
+  );
   const { data: sessionsData, isLoading: sessionsLoading } =
     api.useListSessionsQuery(undefined, { skip: section !== "sessions" });
   const [deleteSession] = api.useDeleteSessionMutation();
@@ -73,13 +79,23 @@ export const SettingsPage = () => {
   const username = getUsername(identity?.email, identity?.name);
 
   const navGroups: NavGroup[] = [
-    {
-      label: t("settings.nav.account", "Account"),
-      items: [
-        { id: "profile", label: t("settings.nav.profile", "Profile") },
-        { id: "sessions", label: t("settings.nav.sessions", "Sessions") },
-      ],
-    },
+    ...(hasAccount
+      ? [
+          {
+            label: t("settings.nav.account", "Account"),
+            items: [
+              {
+                id: "profile" as const,
+                label: t("settings.nav.profile", "Profile"),
+              },
+              {
+                id: "sessions" as const,
+                label: t("settings.nav.sessions", "Sessions"),
+              },
+            ],
+          },
+        ]
+      : []),
     {
       label: t("settings.nav.workspace", "Workspace"),
       items: [

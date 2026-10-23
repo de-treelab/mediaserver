@@ -11,3 +11,7 @@ export const getFileTypePluginByType = (
 ): FileTypePlugin | undefined => {
   return Object.values(fileTypes).find((plugin) => plugin.matcher(type));
 };
+
+export const getFileTypePluginsByType = (type: string): FileTypePlugin[] => {
+  return Object.values(fileTypes).filter((plugin) => plugin.matcher(type));
+};

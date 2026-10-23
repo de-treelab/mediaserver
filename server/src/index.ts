@@ -24,6 +24,7 @@ import type { LoggingService } from "./common/LoggingService.js";
 import { loadPlugins } from "./plugins/pluginLoader.js";
 import { addFileTypePlugin } from "./plugins/fileTypes.js";
 import { standardPlugins } from "./plugins/standardPlugins.js";
+import { getDiagnostics } from "./common/diagnostics.js";
 
 async function run(envService: EnvironmentService) {
   const app = express.default();
@@ -79,6 +80,9 @@ async function run(envService: EnvironmentService) {
         status: 200,
         body: {
           status: "healthy",
+          // FD count / threadpool size / event-loop delay — watch these to
+          // diagnose document/thumbnail download stalls. See common/diagnostics.
+          diagnostics: await getDiagnostics(),
         },
       };
     }),
