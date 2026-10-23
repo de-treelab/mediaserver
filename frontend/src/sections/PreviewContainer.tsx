@@ -1,5 +1,4 @@
 import { api, type Document } from "../app/api";
-import { ThumbnailContainer } from "../components/ThumbnailContainer";
 import { DocumentPreview } from "./DocumentPreview";
 import { useCallback, useEffect, useState } from "react";
 import { DocumentPreviewControls } from "../components/DocumentPreviewControls";
@@ -7,13 +6,18 @@ import { useDocumentUrl } from "../hooks/useDocumentUrl";
 import { DocumentDiashow } from "../components/DocumentDiashow";
 import { preventInputHandling } from "../util/preventInputHandling";
 import { DocumentInfoPanel } from "./DocumentInfoPanel";
+import { PreviewFilmstrip } from "./PreviewFilmstrip";
+import type { Filmstrip } from "../hooks/usePreviewNavigation";
+import { useAppDispatch, useAppSelector } from "../app/store";
+import { selectShowFilmstrip, setShowFilmstrip } from "../app/persistent.slice";
+import { useIsMobileScreen } from "../hooks/useIsMobileScreen";
 
 type Props = {
   previewImageId: string;
   previewImageIndex: number;
   previewDocument: Document | undefined;
-  // Neighbourhood of the previewed document shown in the thumbnail strip
-  stripDocuments: Document[];
+  // Neighbourhood of the previewed document shown below the preview
+  filmstrip: Filmstrip;
   totalDocuments: number;
   onThumbnailClicked: (document: Document) => void;
   nextPreviewImage: () => void;
@@ -25,7 +29,7 @@ export const PreviewContainer = ({
   previewImageId,
   previewImageIndex,
   previewDocument: currentDocument,
-  stripDocuments,
+  filmstrip,
   totalDocuments,
   onThumbnailClicked,
   nextPreviewImage,
@@ -35,6 +39,15 @@ export const PreviewContainer = ({
   const [diashowMode, setDiashowMode] = useState(false);
   const [showInfoPanel, setShowInfoPanel] = useState(false);
   const [wasFullscreen, setWasFullscreen] = useState(false);
+
+  const dispatch = useAppDispatch();
+  const isMobile = useIsMobileScreen();
+  // Hidden on small screens unless asked for, swiping is the main navigation
+  const showFilmstrip = useAppSelector(selectShowFilmstrip) ?? !isMobile;
+  const toggleFilmstrip = useCallback(
+    () => dispatch(setShowFilmstrip(!showFilmstrip)),
+    [dispatch, showFilmstrip],
+  );
 
   const { data: identity } = api.useGetMeQuery();
   const { data: config } = api.useGetAppConfigQuery();
@@ -55,14 +68,6 @@ export const PreviewContainer = ({
     else onClose?.();
   }, [onClose, diashowMode]);
 
-  const onThumbnailClick = useCallback(
-    (id: string) => {
-      const clicked = stripDocuments.find((d) => d.id === id);
-      if (clicked) onThumbnailClicked(clicked);
-    },
-    [stripDocuments, onThumbnailClicked],
-  );
-
   useEffect(() => {
     const keyDownHandler = (event: KeyboardEvent) => {
       if (preventInputHandling()) return;
@@ -71,10 +76,11 @@ export const PreviewContainer = ({
       else if (event.key === "Escape") onCloseImpl();
       else if (event.key === "p") setDiashowMode((m) => !m);
       else if (event.key === "i") setShowInfoPanel((m) => !m);
+      else if (event.key === "t") toggleFilmstrip();
     };
     window.addEventListener("keydown", keyDownHandler);
     return () => window.removeEventListener("keydown", keyDownHandler);
-  }, [nextPreviewImage, previousPreviewImage, onCloseImpl]);
+  }, [nextPreviewImage, previousPreviewImage, onCloseImpl, toggleFilmstrip]);
 
   useEffect(() => {
     if (diashowMode) {
@@ -107,8 +113,6 @@ export const PreviewContainer = ({
             previewImageIndex={previewImageIndex}
             totalDocuments={totalDocuments}
             mimeType={mimeType}
-            nextDocument={nextPreviewImage}
-            previousDocument={previousPreviewImage}
             downloadDocument={() => {
               const link = document.createElement("a");
               link.href = documentDownloadUrl;
@@ -120,6 +124,8 @@ export const PreviewContainer = ({
             toggleDiashow={() => setDiashowMode((m) => !m)}
             toggleInfoPanel={() => setShowInfoPanel((m) => !m)}
             showInfoPanel={showInfoPanel}
+            toggleFilmstrip={toggleFilmstrip}
+            showFilmstrip={showFilmstrip}
             onClose={onCloseImpl}
           />
         </div>
@@ -145,6 +151,8 @@ export const PreviewContainer = ({
               mimeType={mimeType}
               nextPreviewImage={nextPreviewImage}
               previousPreviewImage={previousPreviewImage}
+              hasNext={!!currentDocument?.nextId}
+              hasPrevious={!!currentDocument?.previousId}
             />
           )}
         </div>
@@ -174,19 +182,21 @@ export const PreviewContainer = ({
         </div>
       </div>
 
-      {/* Thumbnail strip */}
-      {!diashowMode && (
-        <div className="flex-shrink-0 h-36 border-t border-border bg-surface-1 p-2 overflow-hidden flex items-center justify-center">
-          <ThumbnailContainer
-            alignment="center"
-            thumbnails={stripDocuments}
-            onClick={onThumbnailClick}
-            wrap="nowrap"
-            highlighted={new Set([previewImageId])}
-            variant="thumbnail"
+      {/* Filmstrip — stays mounted so it can slide in / out with a height animation */}
+      <div
+        inert={diashowMode || !showFilmstrip}
+        className={
+          "flex-shrink-0 overflow-hidden transition-[height] duration-300 ease-in-out " +
+          (!diashowMode && showFilmstrip ? "h-22" : "h-0")
+        }
+      >
+        <div className="h-22 border-t border-border bg-surface-1">
+          <PreviewFilmstrip
+            filmstrip={filmstrip}
+            onSelect={onThumbnailClicked}
           />
         </div>
-      )}
+      </div>
     </div>
   );
 };

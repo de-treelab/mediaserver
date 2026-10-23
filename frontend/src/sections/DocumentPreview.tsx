@@ -2,12 +2,17 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { DocumentRender } from "../components/DocumentRender";
 import { IndeterminateProgressBar } from "../components/IndeterminateProgressBar";
 import { useSwipeable } from "react-swipeable";
+import { useTranslation } from "react-i18next";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
+import { twMerge } from "tailwind-merge";
 
 type Props = {
   id: string;
   mimeType?: string;
   nextPreviewImage: () => void;
   previousPreviewImage: () => void;
+  hasNext: boolean;
+  hasPrevious: boolean;
 };
 
 export const DocumentPreview = ({
@@ -15,6 +20,8 @@ export const DocumentPreview = ({
   mimeType,
   nextPreviewImage,
   previousPreviewImage,
+  hasNext,
+  hasPrevious,
 }: Props) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isZoomed, setIsZoomed] = useState(false);
@@ -67,6 +74,47 @@ export const DocumentPreview = ({
           onZoomedChange={setIsZoomed}
         />
       </div>
+      {/* Panning a zoomed image takes precedence over navigating */}
+      {!isZoomed && hasPrevious && (
+        <EdgeNavigation side="left" onClick={previousPreviewImage} />
+      )}
+      {!isZoomed && hasNext && (
+        <EdgeNavigation side="right" onClick={nextPreviewImage} />
+      )}
     </div>
+  );
+};
+
+type EdgeNavigationProps = {
+  side: "left" | "right";
+  onClick: () => void;
+};
+
+// Click target along the left / right edge, revealed on hover. Covers only
+// the middle half of the height to leave toolbars of embedded players
+// (e.g. video controls) usable. Touch devices navigate by swiping instead.
+const EdgeNavigation = ({ side, onClick }: EdgeNavigationProps) => {
+  const { t } = useTranslation();
+  const Icon = side === "left" ? FaChevronLeft : FaChevronRight;
+  const label = t(
+    side === "left" ? "document.preview.previous" : "document.preview.next",
+  );
+
+  return (
+    <button
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      className={twMerge(
+        "group absolute top-1/4 bottom-1/4 z-10 w-[12%] max-w-32 hidden md:flex items-center cursor-pointer",
+        side === "left"
+          ? "left-0 justify-start pl-4"
+          : "right-0 justify-end pr-4",
+      )}
+    >
+      <span className="p-3 rounded-full bg-black/50 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
+        <Icon size="1.25rem" />
+      </span>
+    </button>
   );
 };

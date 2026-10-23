@@ -1,8 +1,8 @@
 import type React from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FaCaretLeft, FaCaretRight, FaDownload, FaFile } from "react-icons/fa";
-import { LuPresentation } from "react-icons/lu";
+import { FaDownload, FaFile } from "react-icons/fa";
+import { LuGalleryHorizontal, LuPresentation } from "react-icons/lu";
 import { MdClose, MdEdit, MdInfoOutline } from "react-icons/md";
 import { updateDocumentFriendlyName } from "../app/api";
 import { enhancedApi } from "../app/enhancedApi";
@@ -15,12 +15,12 @@ type Props = {
   previewImageIndex: number;
   totalDocuments: number;
   mimeType?: string;
-  nextDocument: () => void;
-  previousDocument: () => void;
   downloadDocument: () => void;
   toggleDiashow: () => void;
   toggleInfoPanel: () => void;
   showInfoPanel: boolean;
+  toggleFilmstrip: () => void;
+  showFilmstrip: boolean;
   onClose: () => void;
 };
 
@@ -30,12 +30,12 @@ export const DocumentPreviewControls: React.FC<Props> = ({
   previewImageIndex,
   totalDocuments,
   mimeType,
-  nextDocument,
-  previousDocument,
   downloadDocument,
   toggleDiashow,
   toggleInfoPanel,
   showInfoPanel,
+  toggleFilmstrip,
+  showFilmstrip,
   onClose,
 }) => {
   const ext = mimeType?.split("/")[1];
@@ -94,6 +94,7 @@ export const DocumentPreviewControls: React.FC<Props> = ({
                   }}
                   className="p-1 rounded hover:bg-surface-2 text-text-faint hover:text-text-muted transition-colors shrink-0"
                   title={t("document.preview.rename")}
+                  aria-label={t("document.preview.rename")}
                 >
                   <MdEdit size="0.75rem" />
                 </button>
@@ -112,24 +113,9 @@ export const DocumentPreviewControls: React.FC<Props> = ({
 
       <div className="flex items-center gap-1 flex-shrink-0">
         <button
-          onClick={previousDocument}
-          className="p-2 rounded-md hover:bg-surface-2 text-text-muted hover:text-text-primary transition-colors"
-        >
-          <FaCaretLeft size="1.25rem" />
-        </button>
-        <span className="text-sm text-text-muted px-1 tabular-nums">
-          {current} / {totalDocuments}
-        </span>
-        <button
-          onClick={nextDocument}
-          className="p-2 rounded-md hover:bg-surface-2 text-text-muted hover:text-text-primary transition-colors"
-        >
-          <FaCaretRight size="1.25rem" />
-        </button>
-        <div className="w-px h-5 bg-border mx-1" />
-        <button
           onClick={downloadDocument}
           title={t("document.preview.download")}
+          aria-label={t("document.preview.download")}
           className="p-2 rounded-md hover:bg-surface-2 text-text-muted hover:text-text-primary transition-colors"
         >
           <FaDownload size="0.875rem" />
@@ -137,13 +123,25 @@ export const DocumentPreviewControls: React.FC<Props> = ({
         <button
           onClick={toggleDiashow}
           title={t("document.preview.slideshow")}
+          aria-label={t("document.preview.slideshow")}
           className="p-2 rounded-md hover:bg-surface-2 text-text-muted hover:text-text-primary transition-colors"
         >
           <LuPresentation size="1rem" />
         </button>
         <button
+          onClick={toggleFilmstrip}
+          title={t("document.preview.toggleFilmstrip")}
+          aria-label={t("document.preview.toggleFilmstrip")}
+          aria-pressed={showFilmstrip}
+          className={`p-2 rounded-md hover:bg-surface-2 transition-colors ${showFilmstrip ? "text-accent-subtle" : "text-text-muted hover:text-text-primary"}`}
+        >
+          <LuGalleryHorizontal size="1rem" />
+        </button>
+        <button
           onClick={toggleInfoPanel}
           title={t("document.preview.info")}
+          aria-label={t("document.preview.info")}
+          aria-pressed={showInfoPanel}
           className={`p-2 rounded-md hover:bg-surface-2 transition-colors ${showInfoPanel ? "text-accent-subtle" : "text-text-muted hover:text-text-primary"}`}
         >
           <MdInfoOutline size="1.25rem" />
@@ -151,6 +149,7 @@ export const DocumentPreviewControls: React.FC<Props> = ({
         <button
           onClick={onClose}
           title={t("document.preview.close")}
+          aria-label={t("document.preview.close")}
           className="p-2 rounded-md hover:bg-surface-2 text-text-muted hover:text-danger-subtle transition-colors"
         >
           <MdClose size="1.25rem" />

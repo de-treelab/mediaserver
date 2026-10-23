@@ -7,6 +7,8 @@ type PersistentState = {
   activeThemeName: string | null;
   maxConcurrentUploads: number;
   tagInputEasyMode: boolean;
+  // null: decided by screen size
+  showFilmstrip: boolean | null;
 };
 
 const initialState: PersistentState = {
@@ -14,6 +16,7 @@ const initialState: PersistentState = {
   activeThemeName: null,
   maxConcurrentUploads: 3,
   tagInputEasyMode: true,
+  showFilmstrip: null,
 };
 
 export const persistentSlice = createSlice({
@@ -32,6 +35,9 @@ export const persistentSlice = createSlice({
     setTagInputEasyMode: (state, action: { payload: boolean }) => {
       state.tagInputEasyMode = action.payload;
     },
+    setShowFilmstrip: (state, action: { payload: boolean }) => {
+      state.showFilmstrip = action.payload;
+    },
   },
 });
 
@@ -40,6 +46,7 @@ export const {
   setActiveTheme,
   setMaxConcurrentUploads,
   setTagInputEasyMode,
+  setShowFilmstrip,
 } = persistentSlice.actions;
 export const persistentSliceReducer = persistentSlice.reducer;
 
@@ -50,3 +57,5 @@ export const selectMaxConcurrentUploads = (state: RootState) =>
   state.local.maxConcurrentUploads ?? 3;
 export const selectTagInputEasyMode = (state: RootState) =>
   state.local.tagInputEasyMode ?? true;
+export const selectShowFilmstrip = (state: RootState) =>
+  state.local.showFilmstrip ?? null;

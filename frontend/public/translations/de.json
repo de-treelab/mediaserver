@@ -322,7 +322,11 @@
       "intervalUnit": "ms",
       "imageAlt": "Bildvorschau",
       "thumbnailAlt": "Dokumentvorschau",
-      "unsupportedFileType": "Nicht unterstützter Dateityp"
+      "unsupportedFileType": "Nicht unterstützter Dateityp",
+      "previous": "Zurück",
+      "next": "Weiter",
+      "filmstrip": "Filmstreifen",
+      "toggleFilmstrip": "Filmstreifen ein-/ausblenden (T)"
     },
     "info": {
       "properties": "Eigenschaften",

@@ -120,13 +120,13 @@ export const GalleryPage = () => {
 
   const {
     previewDocument,
-    stripDocuments,
+    filmstrip,
     totalDocuments,
     setPreviewDocument,
     goToPreviewDocument,
     nextPreviewImage,
     prevPreviewImage,
-    lastKnownPreviewIndexRef,
+    previewIndex,
   } = usePreviewNavigation({
     previewDocumentSearchParam,
     queryArgs,
@@ -334,13 +334,11 @@ export const GalleryPage = () => {
             totalDocuments={totalDocuments}
             previewImageId={previewDocumentSearchParam}
             previewDocument={previewDocument}
-            stripDocuments={stripDocuments}
+            filmstrip={filmstrip}
             onThumbnailClicked={goToPreviewDocument}
             nextPreviewImage={nextPreviewImage}
             previousPreviewImage={prevPreviewImage}
-            previewImageIndex={
-              previewDocument?.queryIndex ?? lastKnownPreviewIndexRef.current
-            }
+            previewImageIndex={previewIndex}
             onClose={() => setPreviewDocument(undefined)}
           />
         </div>

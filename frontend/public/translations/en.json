@@ -322,7 +322,11 @@
       "intervalUnit": "ms",
       "imageAlt": "Image preview",
       "thumbnailAlt": "Document thumbnail",
-      "unsupportedFileType": "Unsupported file type"
+      "unsupportedFileType": "Unsupported file type",
+      "previous": "Previous",
+      "next": "Next",
+      "filmstrip": "Filmstrip",
+      "toggleFilmstrip": "Toggle filmstrip (T)"
     },
     "info": {
       "properties": "Properties",

@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
-import { skipToken } from "@reduxjs/toolkit/query";
+import { useCallback, useMemo, useState } from "react";
 import { type Document, type ListDocumentsArgs } from "../app/api";
-import { enhancedApi } from "../app/enhancedApi";
 import type { CursorPaginatedResponse } from "../util/PaginatedResponse";
 import { setPagePosition, type PagePosition } from "./useCursorPageParams";
+import { useDocumentIndex } from "./useDocumentIndex";
 
-// Documents shown in the preview strip: the previewed one plus two on either side
-const STRIP_SIZE = 5;
+// Documents kept loaded on either side of the previewed one, so arrow
+// navigation and the diashow don't wait for the next window
+const READ_AHEAD = 5;
+const DEFAULT_STRIP_RADIUS = 4;
 
 type Params = {
   previewDocumentSearchParam: string | undefined;
@@ -21,14 +22,27 @@ type Params = {
   ) => void;
 };
 
-const stripArgs = (
-  queryArgs: Params["queryArgs"],
-  documentId: string,
-): ListDocumentsArgs => ({
-  ...queryArgs,
-  around: documentId,
-  limit: STRIP_SIZE,
-});
+export type FilmstripSlot = {
+  index: number;
+  // Not loaded yet
+  document: Document | undefined;
+};
+
+export type Filmstrip = {
+  slots: FilmstripSlot[];
+  // Index shown in the middle of the strip
+  centerIndex: number;
+  currentIndex: number;
+  // Distance of the strip center from the current document
+  offset: number;
+  setOffset: (update: (offset: number) => number) => void;
+  // Slots visible on either side of the center
+  setRadius: (radius: number) => void;
+};
+
+// Window sizes are rounded so resizing doesn't refetch on every pixel
+const windowSizeFor = (radius: number) =>
+  Math.min(100, Math.ceil((2 * (radius + READ_AHEAD) + 1) / 10) * 10);
 
 export const usePreviewNavigation = ({
   previewDocumentSearchParam,
@@ -38,57 +52,86 @@ export const usePreviewNavigation = ({
   removeSearchParam,
   setSearchParams,
 }: Params) => {
-  // The preview fetches its own window around the previewed document, so it
-  // works independently of which gallery page is loaded.
-  const { data: strip } = enhancedApi.useListDocumentsQuery(
-    previewDocumentSearchParam
-      ? stripArgs(queryArgs, previewDocumentSearchParam)
-      : skipToken,
-    { refetchOnFocus: true, refetchOnReconnect: true },
-  );
+  const [stripRadius, setStripRadius] = useState(DEFAULT_STRIP_RADIUS);
+  const [stripOffset, setStripOffset] = useState(0);
 
-  const knownDocuments = useMemo(
-    () =>
-      new Map(
-        [...(galleryPage?.items ?? []), ...(strip?.items ?? [])].map((d) => [
-          d.id,
-          d,
-        ]),
-      ),
-    [galleryPage, strip],
+  // Navigating re-centers the strip on the new document
+  const [offsetDocumentId, setOffsetDocumentId] = useState(
+    previewDocumentSearchParam,
   );
+  if (offsetDocumentId !== previewDocumentSearchParam) {
+    setOffsetDocumentId(previewDocumentSearchParam);
+    setStripOffset(0);
+  }
+
+  // Position of the previewed document, kept while the next one loads
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const centerIndex = currentIndex + stripOffset;
+
+  // The preview loads the neighbourhood of the previewed document itself, so
+  // it works independently of which gallery page is loaded.
+  const {
+    byIndex,
+    byId: knownDocuments,
+    total,
+  } = useDocumentIndex({
+    queryArgs,
+    extraPage: galleryPage,
+    anchorId: previewDocumentSearchParam,
+    range: previewDocumentSearchParam
+      ? [
+          Math.min(currentIndex - READ_AHEAD, centerIndex - stripRadius - 1),
+          Math.max(currentIndex + READ_AHEAD, centerIndex + stripRadius + 1),
+        ]
+      : undefined,
+    windowSize: windowSizeFor(stripRadius),
+  });
 
   const previewDocument = previewDocumentSearchParam
     ? knownDocuments.get(previewDocumentSearchParam)
     : undefined;
 
-  // `strip` keeps the previous window while the next one loads; only show it
-  // once it contains the previewed document.
-  const stripDocuments = useMemo(
-    () =>
-      strip?.items.some((d) => d.id === previewDocumentSearchParam)
-        ? strip.items
-        : [],
-    [strip, previewDocumentSearchParam],
-  );
-
-  const lastKnownPreviewIndexRef = useRef<number>(0);
-  if (previewDocument) {
-    lastKnownPreviewIndexRef.current = previewDocument.queryIndex;
+  if (previewDocument && previewDocument.queryIndex !== currentIndex) {
+    setCurrentIndex(previewDocument.queryIndex);
   }
 
-  // Read ahead in both directions so arrow navigation and the diashow don't
-  // wait for the next strip.
-  const prefetch = enhancedApi.usePrefetch("listDocuments");
-  useEffect(() => {
-    for (const id of [previewDocument?.nextId, previewDocument?.previousId]) {
-      if (id) prefetch(stripArgs(queryArgs, id));
+  const totalDocuments = total ?? 0;
+
+  const setOffset = useCallback(
+    (update: (offset: number) => number) =>
+      setStripOffset((prev) =>
+        Math.max(
+          -currentIndex,
+          Math.min(totalDocuments - 1 - currentIndex, update(prev)),
+        ),
+      ),
+    [currentIndex, totalDocuments],
+  );
+
+  const filmstrip = useMemo((): Filmstrip => {
+    const slots: FilmstripSlot[] = [];
+    // One extra slot on each side, so documents slide in from the edges
+    const from = Math.max(0, centerIndex - stripRadius - 1);
+    const to = Math.min(totalDocuments - 1, centerIndex + stripRadius + 1);
+    for (let index = from; index <= to; index++) {
+      slots.push({ index, document: byIndex.get(index) });
     }
+    return {
+      slots,
+      centerIndex,
+      currentIndex,
+      offset: stripOffset,
+      setOffset,
+      setRadius: setStripRadius,
+    };
   }, [
-    prefetch,
-    queryArgs,
-    previewDocument?.nextId,
-    previewDocument?.previousId,
+    byIndex,
+    centerIndex,
+    currentIndex,
+    stripOffset,
+    stripRadius,
+    totalDocuments,
+    setOffset,
   ]);
 
   // Gallery page that contains `target`, or undefined if the current one does.
@@ -167,12 +210,12 @@ export const usePreviewNavigation = ({
 
   return {
     previewDocument,
-    stripDocuments,
-    totalDocuments: strip?.total ?? galleryPage?.total ?? 0,
+    filmstrip,
+    totalDocuments,
     setPreviewDocument,
     goToPreviewDocument,
     nextPreviewImage,
     prevPreviewImage,
-    lastKnownPreviewIndexRef,
+    previewIndex: currentIndex,
   };
 };
