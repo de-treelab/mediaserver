@@ -4,7 +4,7 @@ import type {
   ListDocumentsRequest,
   TagRepository,
 } from "./TagRepository.js";
-import type { PaginatedResponse } from "../util/PaginatedResponse.js";
+import type { CursorPaginatedResponse } from "../util/PaginatedResponse.js";
 import type {
   Document,
   DocumentWithTags,
@@ -69,7 +69,7 @@ export class TagService {
   public async listDocuments(
     request: ListDocumentsRequest,
     scope: DocumentAccessScope = { type: "all" },
-  ): Promise<PaginatedResponse<Document>> {
+  ): Promise<CursorPaginatedResponse<Document>> {
     return this.tagRepository.listDocuments({ ...request, scope });
   }
 

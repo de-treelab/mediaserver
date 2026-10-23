@@ -5,7 +5,8 @@ import { services } from "../DefaultDiContainer.js";
 import type { EmptyObject } from "../common/EmptyObject.js";
 import type { DocumentService } from "../documents/DocumentService.js";
 import type { DocumentAccess } from "../documents/DocumentRepository.js";
-import type { PaginatedResponse } from "../util/PaginatedResponse.js";
+import type { CursorPaginatedResponse } from "../util/PaginatedResponse.js";
+import { decodeDocumentCursor } from "../documents/DocumentCursor.js";
 import type {
   Document,
   DocumentWithTags,
@@ -15,7 +16,7 @@ import type { AccessScopeResolver } from "../auth/AccessScopeResolver.js";
 import z from "zod";
 import type { UploadService } from "../files/UploadService.js";
 import { isValidExtension } from "../files/FileService.js";
-import type { ApiTag } from "../tags/TagRepository.js";
+import type { ApiTag, DocumentListPosition } from "../tags/TagRepository.js";
 import { requirePermission } from "../auth/requirePermission.js";
 import { SYSTEM_USER_ID } from "../auth/Identity.js";
 import type { DuplicateGroup } from "../duplicates/DuplicateRepository.js";
@@ -121,16 +122,61 @@ documentRouter.post(
   ),
 );
 
+// `before=end` requests the last page of the listing.
+const END_CURSOR = "end";
+
+const parseListPosition = ({
+  after,
+  before,
+  around,
+}: {
+  after: string | undefined;
+  before: string | undefined;
+  around: string | undefined;
+}): DocumentListPosition => {
+  if ([after, before, around].filter((p) => p !== undefined).length > 1) {
+    throw new ApiError(
+      "InvalidCursor",
+      400,
+      "Only one of after, before and around may be given",
+    );
+  }
+  if (after !== undefined) {
+    return { type: "after", cursor: decodeDocumentCursor(after) };
+  }
+  if (before === END_CURSOR) {
+    return { type: "last" };
+  }
+  if (before !== undefined) {
+    return { type: "before", cursor: decodeDocumentCursor(before) };
+  }
+  if (around !== undefined) {
+    const documentId = z.guid().safeParse(around);
+    if (!documentId.success) {
+      throw new ApiError("InvalidCursor", 400, "Invalid document id");
+    }
+    return { type: "around", documentId: documentId.data.toLowerCase() };
+  }
+  return { type: "first" };
+};
+
 documentRouter.get(
   "/",
   requirePermission("document:read"),
   apiHandler<
-    PaginatedResponse<Document>,
-    { limit?: number; offset?: number; query?: string; seed?: string }
+    CursorPaginatedResponse<Document>,
+    {
+      limit?: number;
+      query?: string;
+      seed?: string;
+      after?: string;
+      before?: string;
+      around?: string;
+    }
   >(
     async ({
       diContainer,
-      query: { limit = 100, offset = 0, query = "", seed },
+      query: { limit = 100, query = "", seed, after, before, around },
       identity,
     }) => {
       const scopeResolver = diContainer.get<AccessScopeResolver>(
@@ -141,7 +187,7 @@ documentRouter.get(
       const response = await tagService.listDocuments(
         {
           limit,
-          offset,
+          position: parseListPosition({ after, before, around }),
           query: decodeURIComponent(query),
           seed: seed ?? "",
         },

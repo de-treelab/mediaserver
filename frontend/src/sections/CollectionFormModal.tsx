@@ -64,7 +64,7 @@ export const CollectionFormModal = ({
   }, [isOpen, initialCollection, initialFilterExpression]);
 
   const { data: previewData } = enhancedApi.useListDocumentsQuery(
-    { limit: 1, offset: 0, query: filterExpression },
+    { limit: 1, query: filterExpression },
     {
       skip:
         effectiveType === "static" || !isFilterValid || filterExpression === "",

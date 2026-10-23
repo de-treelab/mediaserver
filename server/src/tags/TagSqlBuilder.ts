@@ -8,10 +8,13 @@ import {
   type Filter,
 } from "@lars_hagemann/tags";
 import type { TagCache } from "./TagCache.js";
+import { CURSOR_TIMESTAMP_FORMAT } from "../documents/DocumentCursor.js";
 
 export type TagSqlBuilderConfig = {
   userdataTableName: string;
   userdataTableIdColumn: string;
+  // SQL type of the id column, used to cast cursor/anchor bind parameters
+  userdataTableIdType: string;
   userdataTableColumns: string[];
 };
 
@@ -98,6 +101,107 @@ export const buildQueryFromSelectStatement = (stmt: SelectStatement) => {
   const offsetClause = stmt.offset ? `OFFSET ${stmt.offset}` : "";
 
   return `${query} ${joinClauses} ${whereClause} ${groupByClause} ${havingClause} ${orderByClause} ${limitClause} ${offsetClause}`.trim();
+};
+
+export type FilteredEntitiesQuery = {
+  // Grouped select producing the (unordered) filtered entity set.
+  filtered: SelectStatement;
+  sortBy: "created_at" | "random";
+  sortDirection: "asc" | "desc";
+  idColumn: string;
+  idType: string;
+};
+
+/**
+ * Which slice of the ordered entity set a page query returns:
+ * - first/last: the first/last `$limit` entities
+ * - after/before: the `$limit` entities directly after/before the cursor
+ *   ($cursorId, plus $cursorTs unless sorting randomly). The cursor entity
+ *   itself is excluded and does not need to exist anymore.
+ * - around: up to `$limit` entities on either side of the anchor ($anchorId),
+ *   the anchor itself included in the "after" half. Rows carry a
+ *   `before_anchor` flag telling which half they belong to.
+ *
+ * Rows of "before"/"last" come back in reverse order. All placeholders besides
+ * the ones listed above are $limit and (when sorting randomly) $seed.
+ */
+export type FilteredEntitiesPosition =
+  | "first"
+  | "last"
+  | "after"
+  | "before"
+  | "around";
+
+const filteredEntitiesCte = (q: FilteredEntitiesQuery) =>
+  `filtered AS (${buildQueryFromSelectStatement(q.filtered)})`;
+
+export const buildFilteredEntitiesCountQuery = (q: FilteredEntitiesQuery) =>
+  `WITH ${filteredEntitiesCte(q)} SELECT COUNT(*)::int AS total FROM filtered`;
+
+export const buildFilteredEntitiesPageQuery = (
+  q: FilteredEntitiesQuery,
+  position: FilteredEntitiesPosition,
+) => {
+  const id = q.idColumn;
+  const keyCol = q.sortBy === "random" ? "_rand" : "created_at";
+  const dir = q.sortDirection.toUpperCase();
+  // The entity id breaks ties between equal sort keys (created_at of rows
+  // inserted in one transaction, colliding hashes), keeping the order total.
+  const windowOrder = `${keyCol} ${dir}, ${id} ${dir}`;
+  const forward = q.sortDirection === "asc" ? ">" : "<";
+  const backward = q.sortDirection === "asc" ? "<" : ">";
+
+  const keyOf = (idParam: string) => {
+    const typedId = `${idParam}::${q.idType}`;
+    if (q.sortBy === "random") {
+      return `(HASHTEXT(${typedId}::text || $seed::text), ${typedId})`;
+    }
+    if (idParam === "$anchorId") {
+      return `((SELECT created_at FROM ${q.filtered.from} WHERE u.${id} = ${typedId}), ${typedId})`;
+    }
+    return `($cursorTs::timestamp, ${typedId})`;
+  };
+  const rowKey = `(${keyCol}, ${id})`;
+
+  const ordered =
+    `ordered AS (SELECT *, ` +
+    `COUNT(*) OVER()::int AS __total, ` +
+    `row_number() OVER w - 1 AS query_index, ` +
+    `LAG(${id}) OVER w AS previous_id, ` +
+    `LEAD(${id}) OVER w AS next_id, ` +
+    `to_char(created_at, '${CURSOR_TIMESTAMP_FORMAT}') AS cursor_ts ` +
+    `FROM filtered WINDOW w AS (ORDER BY ${windowOrder}))`;
+
+  const slice = (
+    where: string | undefined,
+    order: "ASC" | "DESC",
+    select = "*",
+  ) =>
+    `SELECT ${select} FROM ordered ${where ? `WHERE ${where} ` : ""}ORDER BY query_index ${order} LIMIT $limit`;
+
+  let body: string;
+  switch (position) {
+    case "first":
+      body = slice(undefined, "ASC");
+      break;
+    case "last":
+      body = slice(undefined, "DESC");
+      break;
+    case "after":
+      body = slice(`${rowKey} ${forward} ${keyOf("$cursorId")}`, "ASC");
+      break;
+    case "before":
+      body = slice(`${rowKey} ${backward} ${keyOf("$cursorId")}`, "DESC");
+      break;
+    case "around":
+      body =
+        `(${slice(`${rowKey} ${backward} ${keyOf("$anchorId")}`, "DESC", "*, true AS before_anchor")}) ` +
+        `UNION ALL ` +
+        `(${slice(`${rowKey} ${forward}= ${keyOf("$anchorId")}`, "ASC", "*, false AS before_anchor")})`;
+      break;
+  }
+
+  return `WITH ${filteredEntitiesCte(q)}, ${ordered} ${body}`;
 };
 
 const buildOnConflictAction = (action: OnConflict) => {
@@ -190,7 +294,8 @@ export class TagSqlBuilder {
   /**
    * Registers a dynamic value as a bind parameter and returns its `$name`
    * placeholder. The `p`-prefix avoids collisions with the caller-supplied
-   * placeholders ($limit, $offset, $seed, $userId, $entityId).
+   * placeholders ($limit, $offset, $seed, $userId, $entityId, $cursorId,
+   * $cursorTs, $anchorId).
    */
   private addParam(ctx: BuildContext, value: string | number): string {
     const name = `p${ctx.next++}`;
@@ -258,9 +363,15 @@ export class TagSqlBuilder {
     return "1=1";
   }
 
+  /**
+   * Builds the grouped select producing the filtered entity set together with
+   * the ordering it must be paginated by. Use `buildFilteredEntitiesPageQuery`
+   * / `buildFilteredEntitiesCountQuery` to turn it into SQL. Callers may extend
+   * `filtered.having` (e.g. with access scope conditions) beforehand.
+   */
   public async buildListFilteredEntitiesQuery(
     filter: Filter,
-  ): Promise<TagSqlBuilderResult<SelectStatement, ["$limit", "$offset"]>> {
+  ): Promise<TagSqlBuilderResult<FilteredEntitiesQuery>> {
     const ctx = this.newContext();
 
     const idCol = this.builderConfig.userdataTableIdColumn;
@@ -270,51 +381,19 @@ export class TagSqlBuilder {
     try {
       const havingCondition = await this.sqlFilterConditions(filter, ctx);
 
+      const select = [...staticCols.map((col) => `u.${col}`), "u.created_at"];
       if (ctx.sortBy === "random") {
-        // Use a CTE with a deterministic hash per (row, seed) so that the ORDER BY
-        // and all window functions (LAG, LEAD, ROW_NUMBER) share the same ordering
-        // across all queries with the same seed (pagination, thumbnail strip, etc.).
-        const innerSelectCols = staticCols.map((col) => `u.${col}`).join(", ");
-        const innerBody =
-          `SELECT ${innerSelectCols}, HASHTEXT(u.${idCol} || $seed) AS _rand ` +
-          `FROM ${tableName} u ` +
-          `LEFT JOIN userdata_tags ut ON u.${idCol} = ut.userdata_id ` +
-          `GROUP BY u.${idCol} ` +
-          `HAVING ${havingCondition}`;
+        // Deterministic hash per (row, seed) so that every query with the same
+        // seed (gallery pages, preview strip, ...) sees the same ordering.
+        select.push(`HASHTEXT(u.${idCol}::text || $seed::text) AS _rand`);
+      }
 
-        return {
-          success: true,
-          params: ctx.params,
-          stmt: {
-            with: [{ name: "filtered_rand", body: innerBody }],
-            select: [
-              "COUNT(*) OVER()::int AS __total",
-              ...staticCols,
-              `row_number() OVER (ORDER BY _rand) - 1 AS query_index`,
-              `LAG(${idCol}) OVER (ORDER BY _rand) AS previous_id`,
-              `LEAD(${idCol}) OVER (ORDER BY _rand) AS next_id`,
-            ],
-            from: "filtered_rand",
-            sort: [{ field: "_rand" }],
-            limit: "$limit",
-            offset: "$offset",
-          },
-        };
-      } else {
-        const sortDir = ctx.sortDirection.toUpperCase();
-        const windowOrderBy = `${ctx.sortBy} ${sortDir}`;
-
-        return {
-          success: true,
-          params: ctx.params,
-          stmt: {
-            select: [
-              "COUNT(*) OVER()::int AS __total",
-              ...staticCols,
-              `row_number() OVER (ORDER BY ${windowOrderBy}) - 1 AS query_index`,
-              `LAG(${idCol}) OVER (ORDER BY ${windowOrderBy}) AS previous_id`,
-              `LEAD(${idCol}) OVER (ORDER BY ${windowOrderBy}) AS next_id`,
-            ],
+      return {
+        success: true,
+        params: ctx.params,
+        stmt: {
+          filtered: {
+            select,
             from: `${tableName} u`,
             joins: [
               {
@@ -325,17 +404,13 @@ export class TagSqlBuilder {
             ],
             groupBy: `u.${idCol}`,
             having: havingCondition,
-            sort: [
-              {
-                field: ctx.sortBy,
-                direction: ctx.sortDirection,
-              },
-            ],
-            limit: "$limit",
-            offset: "$offset",
           },
-        };
-      }
+          sortBy: ctx.sortBy,
+          sortDirection: ctx.sortBy === "random" ? "asc" : ctx.sortDirection,
+          idColumn: idCol,
+          idType: this.builderConfig.userdataTableIdType,
+        },
+      };
     } catch (error) {
       return {
         success: false,

@@ -77,7 +77,9 @@
   "pagination": {
     "range": "Dokumente {{start}} - {{end}} von {{total}}",
     "previous": "Vorherige",
-    "next": "Nächste"
+    "next": "Nächste",
+    "first": "Erste",
+    "last": "Letzte"
   },
   "state": {
     "free": "Frei",

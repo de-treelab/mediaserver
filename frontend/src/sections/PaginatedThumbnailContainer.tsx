@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
-import { type Document, type ApiTag } from "../app/api";
-import { Pagination } from "../components/Pagination";
+import { type Document, type ApiTag, END_CURSOR } from "../app/api";
+import { CursorPagination } from "../components/CursorPagination";
+import type { PagePosition } from "../hooks/useCursorPageParams";
 import { ThumbnailContainer } from "../components/ThumbnailContainer";
 import { enhancedApi } from "../app/enhancedApi";
 import { useMemo } from "react";
@@ -9,10 +10,10 @@ import { skipToken } from "@reduxjs/toolkit/query";
 type Props = {
   items: Document[];
   total: number;
-  limit: number;
-  offset: number;
-  page: number;
-  onPageChange: (page: number) => void;
+  startIndex: number;
+  prevCursor: string | undefined;
+  nextCursor: string | undefined;
+  onPositionChange: (position: PagePosition) => void;
   layoutType: "grid" | "list";
   selectedDocuments?: Set<string>;
   onThumbnailClick: (id: string) => void;
@@ -23,10 +24,10 @@ type Props = {
 export const PaginatedThumbnailContainer = ({
   items,
   total,
-  limit,
-  offset,
-  page,
-  onPageChange,
+  startIndex,
+  prevCursor,
+  nextCursor,
+  onPositionChange,
   layoutType,
   selectedDocuments,
   onThumbnailClick,
@@ -70,16 +71,18 @@ export const PaginatedThumbnailContainer = ({
       <div className="flex items-center justify-between px-3 py-2 shrink-0">
         <span className="text-sm text-text-muted">
           {t("pagination.range", {
-            start: offset + 1,
-            end: Math.min(offset + limit, total),
+            start: items.length > 0 ? startIndex + 1 : 0,
+            end: startIndex + items.length,
             total,
           })}
         </span>
-        <Pagination
-          total={total}
-          limit={limit}
-          currentPage={page}
-          onPageChange={onPageChange}
+        <CursorPagination
+          hasPrevious={!!prevCursor}
+          hasNext={!!nextCursor}
+          onFirst={() => onPositionChange({})}
+          onPrevious={() => onPositionChange({ before: prevCursor })}
+          onNext={() => onPositionChange({ after: nextCursor })}
+          onLast={() => onPositionChange({ before: END_CURSOR })}
         />
       </div>
     </>

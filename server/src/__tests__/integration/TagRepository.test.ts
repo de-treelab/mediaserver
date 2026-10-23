@@ -238,7 +238,6 @@ describe("TagRepository (integration)", () => {
     it("returns documents matching a tag query", async () => {
       const result = await tagRepository.listDocuments({
         limit: 100,
-        offset: 0,
         query: "landscape",
       });
 
@@ -248,7 +247,6 @@ describe("TagRepository (integration)", () => {
     it("returns empty result for unmatched query", async () => {
       const result = await tagRepository.listDocuments({
         limit: 100,
-        offset: 0,
         query: "nonexistent-tag-xyz",
       });
 
@@ -259,7 +257,6 @@ describe("TagRepository (integration)", () => {
     it("returns all documents when query is empty", async () => {
       const result = await tagRepository.listDocuments({
         limit: 100,
-        offset: 0,
         query: "",
       });
 
@@ -273,7 +270,6 @@ describe("TagRepository (integration)", () => {
       // literal key that matches nothing.
       const result = await tagRepository.listDocuments({
         limit: 100,
-        offset: 0,
         query: "x'/**/OR/**/'1'='1",
       });
 
@@ -353,7 +349,6 @@ describe("TagRepository (integration)", () => {
     it("viewer can see public documents", async () => {
       const result = await tagRepository.listDocuments({
         limit: 100,
-        offset: 0,
         query: "",
         scope: scope(VIEWER_USER_ID),
       });
@@ -364,7 +359,6 @@ describe("TagRepository (integration)", () => {
     it("viewer can see their own private documents", async () => {
       const result = await tagRepository.listDocuments({
         limit: 100,
-        offset: 0,
         query: "",
         scope: scope(VIEWER_USER_ID),
       });
@@ -375,7 +369,6 @@ describe("TagRepository (integration)", () => {
     it("viewer cannot see foreign private documents", async () => {
       const result = await tagRepository.listDocuments({
         limit: 100,
-        offset: 0,
         query: "",
         scope: scope(VIEWER_USER_ID),
       });
@@ -386,7 +379,6 @@ describe("TagRepository (integration)", () => {
     it("viewer can see documents shared with them", async () => {
       const result = await tagRepository.listDocuments({
         limit: 100,
-        offset: 0,
         query: "",
         scope: scope(VIEWER_USER_ID),
       });

@@ -1,4 +1,7 @@
-import type { PaginatedResponse } from "../util/PaginatedResponse";
+import type {
+  CursorPaginatedResponse,
+  PaginatedResponse,
+} from "../util/PaginatedResponse";
 import { tagToString } from "../util/tag";
 import { baseApi } from "./baseApi";
 
@@ -17,8 +20,24 @@ export type Document = {
   previousId: string | undefined;
   nextId: string | undefined;
   queryIndex: number;
+  // Opaque position of the document within the listing it was returned by
+  cursor?: string;
   ownerId: string;
   isPublic: boolean;
+};
+
+/** `before: END_CURSOR` requests the last page. */
+export const END_CURSOR = "end";
+
+export type ListDocumentsArgs = {
+  limit?: number;
+  query?: string;
+  seed?: string;
+  // At most one of the following; none requests the first page.
+  after?: string;
+  before?: string;
+  // Document id to center a window of `limit` documents on
+  around?: string;
 };
 
 export type DocumentShareEntry = {
@@ -182,13 +201,17 @@ export const api = baseApi.injectEndpoints({
     }),
 
     listDocuments: build.query<
-      PaginatedResponse<Document>,
-      { limit?: number; offset?: number; query?: string; seed?: string }
+      CursorPaginatedResponse<Document>,
+      ListDocumentsArgs
     >({
-      query: ({ limit = 100, offset = 0, query = "", seed }) => ({
-        url: `/documents?limit=${limit}&offset=${offset}&query=${encodeURIComponent(query)}${seed ? `&seed=${encodeURIComponent(seed)}` : ""}`,
-        method: "GET",
-      }),
+      query: ({ limit = 100, query = "", seed, after, before, around }) => {
+        const params = new URLSearchParams({ limit: String(limit), query });
+        if (seed) params.set("seed", seed);
+        if (after) params.set("after", after);
+        if (before) params.set("before", before);
+        if (around) params.set("around", around);
+        return { url: `/documents?${params}`, method: "GET" };
+      },
       providesTags: (response) => [
         "document",
         "tag",

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { Tag, TagParser } from "@lars_hagemann/tags";
 import {
   TagSqlBuilder,
-  buildQueryFromSelectStatement,
+  buildFilteredEntitiesPageQuery,
   buildQueryFromInsertStatement,
   buildQueryFromDeleteStatement,
 } from "../../tags/TagSqlBuilder.js";
@@ -11,6 +11,7 @@ import type { TagCache } from "../../tags/TagCache.js";
 const config = {
   userdataTableName: "documents",
   userdataTableIdColumn: "id",
+  userdataTableIdType: "uuid",
   userdataTableColumns: ["id", "mime"],
 };
 
@@ -42,7 +43,7 @@ describe("TagSqlBuilder (SQL injection hardening)", () => {
     expect(result.success).toBe(true);
     if (!result.success) return;
 
-    const sql = buildQueryFromSelectStatement(result.stmt);
+    const sql = buildFilteredEntitiesPageQuery(result.stmt, "first");
     // The raw payload must NOT appear in the SQL text...
     expect(sql).not.toContain(payload);
     // ...it must be a bound parameter instead.
@@ -57,7 +58,7 @@ describe("TagSqlBuilder (SQL injection hardening)", () => {
     expect(result.success).toBe(true);
     if (!result.success) return;
 
-    const sql = buildQueryFromSelectStatement(result.stmt);
+    const sql = buildFilteredEntitiesPageQuery(result.stmt, "first");
     expect(sql).toMatch(/ut\.tag_id = \$p\d+/);
     expect(sql).not.toMatch(/ut\.tag_id = '?42'?/);
     expect(Object.values(result.params ?? {})).toContain("42");
@@ -101,5 +102,46 @@ describe("TagSqlBuilder (SQL injection hardening)", () => {
     expect(sql).toContain("tag_id = $tagId");
     expect(sql).not.toContain("'42'");
     expect(result.params).toEqual({ tagId: "42" });
+  });
+});
+
+describe("buildFilteredEntitiesPageQuery", () => {
+  const build = async (query: string) => {
+    const builder = new TagSqlBuilder(config, makeCache());
+    const result = await builder.buildListFilteredEntitiesQuery(
+      new TagParser(query).parse(),
+    );
+    if (!result.success) throw new Error(result.message);
+    return result.stmt;
+  };
+
+  it("breaks ties between equal timestamps by id", async () => {
+    const sql = buildFilteredEntitiesPageQuery(await build(""), "first");
+    expect(sql).toContain("ORDER BY created_at DESC, id DESC");
+  });
+
+  it("compares the full sort key against the cursor", async () => {
+    const desc = buildFilteredEntitiesPageQuery(await build(""), "after");
+    expect(desc).toContain(
+      "(created_at, id) < ($cursorTs::timestamp, $cursorId::uuid)",
+    );
+    const asc = buildFilteredEntitiesPageQuery(
+      await build("sort:oldest"),
+      "after",
+    );
+    expect(asc).toContain(
+      "(created_at, id) > ($cursorTs::timestamp, $cursorId::uuid)",
+    );
+  });
+
+  it("derives the random sort key of a cursor from its id and the seed", async () => {
+    const sql = buildFilteredEntitiesPageQuery(
+      await build("sort:random"),
+      "before",
+    );
+    expect(sql).toContain(
+      "(_rand, id) < (HASHTEXT($cursorId::uuid::text || $seed::text), $cursorId::uuid)",
+    );
+    expect(sql).not.toContain("$cursorTs");
   });
 });

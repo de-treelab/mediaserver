@@ -23,6 +23,8 @@ export type Document = {
   previousId: string | undefined;
   nextId: string | undefined;
   queryIndex: number;
+  // Opaque position of the document within the listing it was returned by
+  cursor?: string | undefined;
   ownerId: string;
   isPublic: boolean;
 };

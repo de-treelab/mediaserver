@@ -1,4 +1,4 @@
-import type { PaginatedResponse } from "../util/PaginatedResponse";
+import type { CursorPaginatedResponse, PaginatedResponse } from "../util/PaginatedResponse";
 export type DocumentUpload = {
     file: File;
     webSocketClientId: string;
@@ -13,8 +13,19 @@ export type Document = {
     previousId: string | undefined;
     nextId: string | undefined;
     queryIndex: number;
+    cursor?: string;
     ownerId: string;
     isPublic: boolean;
+};
+/** `before: END_CURSOR` requests the last page. */
+export declare const END_CURSOR = "end";
+export type ListDocumentsArgs = {
+    limit?: number;
+    query?: string;
+    seed?: string;
+    after?: string;
+    before?: string;
+    around?: string;
 };
 export type DocumentShareEntry = {
     userId: string;
@@ -134,12 +145,7 @@ export declare const api: import("@reduxjs/toolkit/query").Api<import("@reduxjs/
         status: string;
     }, "api", unknown>;
     documentUpload: import("@reduxjs/toolkit/query").MutationDefinition<DocumentUpload, import("@reduxjs/toolkit/query").BaseQueryFn<string | import("@reduxjs/toolkit/query").FetchArgs, unknown, import("@reduxjs/toolkit/query").FetchBaseQueryError, {}, import("@reduxjs/toolkit/query").FetchBaseQueryMeta>, "document" | "tag" | "collection" | "identity" | "role" | "user" | "authConfig" | "session", void, "api", unknown>;
-    listDocuments: import("@reduxjs/toolkit/query").QueryDefinition<{
-        limit?: number;
-        offset?: number;
-        query?: string;
-        seed?: string;
-    }, import("@reduxjs/toolkit/query").BaseQueryFn<string | import("@reduxjs/toolkit/query").FetchArgs, unknown, import("@reduxjs/toolkit/query").FetchBaseQueryError, {}, import("@reduxjs/toolkit/query").FetchBaseQueryMeta>, "document" | "tag" | "collection" | "identity" | "role" | "user" | "authConfig" | "session", PaginatedResponse<Document>, "api", unknown>;
+    listDocuments: import("@reduxjs/toolkit/query").QueryDefinition<ListDocumentsArgs, import("@reduxjs/toolkit/query").BaseQueryFn<string | import("@reduxjs/toolkit/query").FetchArgs, unknown, import("@reduxjs/toolkit/query").FetchBaseQueryError, {}, import("@reduxjs/toolkit/query").FetchBaseQueryMeta>, "document" | "tag" | "collection" | "identity" | "role" | "user" | "authConfig" | "session", CursorPaginatedResponse<Document>, "api", unknown>;
     listDocumentsByIds: import("@reduxjs/toolkit/query").QueryDefinition<string[], import("@reduxjs/toolkit/query").BaseQueryFn<string | import("@reduxjs/toolkit/query").FetchArgs, unknown, import("@reduxjs/toolkit/query").FetchBaseQueryError, {}, import("@reduxjs/toolkit/query").FetchBaseQueryMeta>, "document" | "tag" | "collection" | "identity" | "role" | "user" | "authConfig" | "session", DocumentWithTags[], "api", unknown>;
     bulkEditDocuments: import("@reduxjs/toolkit/query").MutationDefinition<BulkEditDocumentsRequest, import("@reduxjs/toolkit/query").BaseQueryFn<string | import("@reduxjs/toolkit/query").FetchArgs, unknown, import("@reduxjs/toolkit/query").FetchBaseQueryError, {}, import("@reduxjs/toolkit/query").FetchBaseQueryMeta>, "document" | "tag" | "collection" | "identity" | "role" | "user" | "authConfig" | "session", void, "api", unknown>;
     deleteDocument: import("@reduxjs/toolkit/query").MutationDefinition<string, import("@reduxjs/toolkit/query").BaseQueryFn<string | import("@reduxjs/toolkit/query").FetchArgs, unknown, import("@reduxjs/toolkit/query").FetchBaseQueryError, {}, import("@reduxjs/toolkit/query").FetchBaseQueryMeta>, "document" | "tag" | "collection" | "identity" | "role" | "user" | "authConfig" | "session", void, "api", unknown>;

@@ -34,7 +34,6 @@ export const CollectionCard = ({
   const { data } = enhancedApi.useListDocumentsQuery(
     {
       limit: 1,
-      offset: 0,
       query: collection.filterExpression,
     },
     { refetchOnFocus: true, refetchOnReconnect: true },
