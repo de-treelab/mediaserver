@@ -368,6 +368,34 @@ describe("TagRepository (integration)", () => {
       const tags = await tagRepository.getTagsForDocument(DOC_VIEWER_PRIVATE);
       expect(tags.some((t) => t.key === "mine")).toBe(true);
     });
+
+    it("removes tags without a value", async () => {
+      const tag = { key: "valueless", value: undefined, type: "default" };
+      await tagRepository.bulkEditDocuments([DOC_ID_2], [tag], []);
+      expect(
+        (await tagRepository.getTagsForDocument(DOC_ID_2)).some(
+          (t) => t.key === "valueless",
+        ),
+      ).toBe(true);
+
+      await tagRepository.bulkEditDocuments([DOC_ID_2], [], [tag]);
+      expect(
+        (await tagRepository.getTagsForDocument(DOC_ID_2)).some(
+          (t) => t.key === "valueless",
+        ),
+      ).toBe(false);
+    });
+
+    it("removes tags with a value", async () => {
+      const tag = { key: "rating", value: "5", type: "default" };
+      await tagRepository.bulkEditDocuments([DOC_ID_2], [tag], []);
+      await tagRepository.bulkEditDocuments([DOC_ID_2], [], [tag]);
+      expect(
+        (await tagRepository.getTagsForDocument(DOC_ID_2)).some(
+          (t) => t.key === "rating",
+        ),
+      ).toBe(false);
+    });
   });
 
   describe("resolveSelection / countTagsOfDocuments", () => {
