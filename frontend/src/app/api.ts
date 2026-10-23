@@ -348,10 +348,16 @@ export const api = baseApi.injectEndpoints({
 
     listCollections: build.query<
       PaginatedResponse<Collection>,
-      { limit?: number; offset?: number; type?: CollectionType }
+      {
+        limit?: number;
+        offset?: number;
+        type?: CollectionType;
+        // Case-insensitive substring match on the collection name
+        name?: string;
+      }
     >({
-      query: ({ limit = 20, offset = 0, type }) => ({
-        url: `/collections?limit=${limit}&offset=${offset}${type ? `&type=${type}` : ""}`,
+      query: ({ limit = 20, offset = 0, type, name }) => ({
+        url: `/collections?limit=${limit}&offset=${offset}${type ? `&type=${type}` : ""}${name ? `&name=${encodeURIComponent(name)}` : ""}`,
         method: "GET",
       }),
       providesTags: (response) => [

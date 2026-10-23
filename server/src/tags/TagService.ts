@@ -10,7 +10,11 @@ import type {
   DocumentWithTags,
 } from "../documents/DocumentRepository.js";
 import type { TagCache } from "./TagCache.js";
-import type { DocumentAccessScope } from "../auth/AccessScope.js";
+import type {
+  CollectionAccessScope,
+  DocumentAccessScope,
+} from "../auth/AccessScope.js";
+import type { CollectionRepository } from "../collections/CollectionRepository.js";
 import { TagParseError } from "./TagParseError.js";
 
 export type ListTagsRequest = {
@@ -23,6 +27,7 @@ export class TagService {
   constructor(
     private tagRepository: TagRepository,
     private readonly tagCache: TagCache,
+    private readonly collectionRepository?: CollectionRepository,
   ) {}
 
   public static normalizeTag(tag: string, type: string = "default"): ApiTag {
@@ -66,11 +71,25 @@ export class TagService {
     });
   }
 
+  /**
+   * @param collectionScope collections that `collection:"<name>"` filters may
+   * refer to. Without it, such filters only match plain tags.
+   */
   public async listDocuments(
     request: ListDocumentsRequest,
     scope: DocumentAccessScope = { type: "all" },
+    collectionScope?: CollectionAccessScope,
   ): Promise<CursorPaginatedResponse<Document>> {
-    return this.tagRepository.listDocuments({ ...request, scope });
+    const collectionRepository = this.collectionRepository;
+    return this.tagRepository.listDocuments({
+      ...request,
+      scope,
+      ...(collectionRepository &&
+        collectionScope && {
+          resolveCollections: (name: string) =>
+            collectionRepository.findCollectionsByName(name, collectionScope),
+        }),
+    });
   }
 
   public async listDocumentsByIds(

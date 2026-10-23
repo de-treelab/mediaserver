@@ -20,11 +20,16 @@ collectionRouter.get(
   requirePermission("collection:read"),
   apiHandler<
     PaginatedResponse<Collection>,
-    { limit?: number; offset?: number; type: "dynamic" | "static" | undefined }
+    {
+      limit?: number;
+      offset?: number;
+      type: "dynamic" | "static" | undefined;
+      name?: string;
+    }
   >(
     async ({
       diContainer,
-      query: { limit = 20, offset = 0, type = undefined },
+      query: { limit = 20, offset = 0, type = undefined, name = undefined },
       identity,
     }) => {
       const scopeResolver = diContainer.get<AccessScopeResolver>(
@@ -38,6 +43,7 @@ collectionRouter.get(
         limit,
         offset,
         type,
+        name,
         scope,
       });
       return { status: 200, body: response };

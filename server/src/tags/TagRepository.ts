@@ -16,6 +16,7 @@ import {
   buildFilteredEntitiesPageQuery,
   buildQueryFromSelectStatement,
   TagSqlBuilder,
+  type CollectionResolver,
 } from "./TagSqlBuilder.js";
 import {
   encodeDocumentCursor,
@@ -53,6 +54,8 @@ export type ListDocumentsRequest = {
   query: string;
   seed?: string;
   scope?: DocumentAccessScope;
+  // Resolves `collection:"<name>"` filters; only plain tags are matched without
+  resolveCollections?: CollectionResolver;
 };
 
 const documentRowSchema = z.object({
@@ -116,6 +119,7 @@ export class TagRepository {
     seed,
     position = { type: "first" },
     scope = { type: "all" },
+    resolveCollections,
   }: ListDocumentsRequest): Promise<CursorPaginatedResponse<Document>> {
     if (scope.type === "none") {
       return {
@@ -128,7 +132,9 @@ export class TagRepository {
     }
 
     const filter = new TagParser(query).parse();
-    const sql = await this.sqlBuilder.buildListFilteredEntitiesQuery(filter);
+    const sql = await this.sqlBuilder.buildListFilteredEntitiesQuery(filter, {
+      ...(resolveCollections && { resolveCollections }),
+    });
 
     if (!sql.success) {
       throw new TagParseError(sql.message);

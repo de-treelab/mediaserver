@@ -45,6 +45,7 @@ export class CollectionService {
     limit: number;
     offset: number;
     type: CollectionType | undefined;
+    name?: string | undefined;
     scope: CollectionAccessScope;
   }): Promise<PaginatedResponse<Collection>> {
     return this.collectionRepository.listCollections(request);

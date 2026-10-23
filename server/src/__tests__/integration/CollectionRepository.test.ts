@@ -150,6 +150,96 @@ describe("CollectionRepository (integration)", () => {
     });
   });
 
+  describe("collection names", () => {
+    const OTHER_USER_ID = "00000000-0000-0000-0000-000000000098";
+    const ids = {
+      systemPublic: "00000000-0000-0000-0000-000000000010",
+      systemPrivate: "00000000-0000-0000-0000-000000000011",
+      other: "00000000-0000-0000-0000-000000000012",
+    };
+
+    beforeAll(async () => {
+      await dbService.none(
+        "INSERT INTO users (id, external_id, name) VALUES ($id, $externalId, $name)",
+        { id: OTHER_USER_ID, externalId: "other-names", name: "Other" },
+      );
+      await repository.createCollection({
+        ...baseRequest,
+        id: ids.systemPublic,
+        name: "Summer 2024",
+      });
+      await repository.createCollection({
+        ...baseRequest,
+        id: ids.systemPrivate,
+        name: "summer 2024",
+        isPublic: false,
+      });
+      await repository.createCollection({
+        ...baseRequest,
+        id: ids.other,
+        name: "Summer 2024",
+        ownerId: OTHER_USER_ID,
+      });
+    });
+
+    it("lists collections whose name contains the filter", async () => {
+      const result = await repository.listCollections({
+        limit: 100,
+        offset: 0,
+        type: undefined,
+        name: "MMER 20",
+        scope: allScope,
+      });
+
+      expect(result.items.map((c) => c.id).sort()).toEqual(
+        Object.values(ids).sort(),
+      );
+    });
+
+    it("matches wildcard characters in the name filter literally", async () => {
+      const result = await repository.listCollections({
+        limit: 100,
+        offset: 0,
+        type: undefined,
+        name: "%",
+        scope: allScope,
+      });
+
+      expect(result.items).toHaveLength(0);
+    });
+
+    it("finds collections by exact name, ignoring case", async () => {
+      const result = await repository.findCollectionsByName(
+        "SUMMER 2024",
+        allScope,
+      );
+
+      expect(result.map((c) => c.id).sort()).toEqual(Object.values(ids).sort());
+      expect(
+        await repository.findCollectionsByName("Summer", allScope),
+      ).toEqual([]);
+    });
+
+    it("prefers the user's own collections", async () => {
+      const result = await repository.findCollectionsByName("Summer 2024", {
+        type: "accessible-by",
+        userId: OTHER_USER_ID,
+      });
+
+      expect(result.map((c) => c.id)).toEqual([ids.other]);
+    });
+
+    it("only finds collections visible to the user", async () => {
+      const result = await repository.findCollectionsByName("Summer 2024", {
+        type: "public-only",
+      });
+
+      expect(result.map((c) => c.id).sort()).toEqual(
+        [ids.systemPublic, ids.other].sort(),
+      );
+    });
+  });
+
   describe("updateCollection", () => {
     it("updates and returns the modified collection", async () => {
       const result = await repository.updateCollection({

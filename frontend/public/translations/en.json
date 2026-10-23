@@ -309,6 +309,7 @@
     }
   },
   "tagInput": {
-    "singleTagOnly": "Only a single tag is allowed (e.g. \"key\" or \"key:value\")"
+    "singleTagOnly": "Only a single tag is allowed (e.g. \"key\" or \"key:value\")",
+    "collectionSuggestion": "collection"
   }
 }

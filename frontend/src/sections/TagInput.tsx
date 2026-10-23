@@ -9,7 +9,10 @@ import React, {
   type KeyboardEvent,
 } from "react";
 import { twMerge } from "tailwind-merge";
-import { useTagCompletion } from "../hooks/useTagCompletion";
+import {
+  useTagCompletion,
+  type TagCompletionItem,
+} from "../hooks/useTagCompletion";
 import { Dropdown } from "../components/Dropdown";
 import { getWordFromCursor } from "../util/getWordFromCursor";
 import { useCursorPos } from "../hooks/useCursorPos";
@@ -20,7 +23,8 @@ import {
   setTagInputEasyMode,
 } from "../app/persistent.slice";
 import { useTranslation } from "react-i18next";
-import { MdClose } from "react-icons/md";
+import { MdClose, MdCollections } from "react-icons/md";
+import { isCollectionNameValue } from "../util/tag";
 import { HiMagnifyingGlass } from "react-icons/hi2";
 
 type Props = {
@@ -49,6 +53,48 @@ const parseQueryToChips = (query: string): string[] => {
         .trim(),
     )
     .filter((s) => s.length > 0);
+};
+
+// Name of the collection a chip filters by, if it is a `collection:"<name>"` chip
+const chipCollectionName = (chip: string): string | undefined => {
+  try {
+    const filter = new TagParser(chip).parse();
+    if (
+      filter instanceof MetaTag &&
+      filter.key === "collection" &&
+      isCollectionNameValue(filter.value)
+    ) {
+      return filter.value;
+    }
+  } catch {
+    // Not a single tag
+  }
+  return undefined;
+};
+
+const SuggestionLabel = ({ suggestion }: { suggestion: TagCompletionItem }) => {
+  const { t } = useTranslation();
+
+  if (suggestion.kind === "collection") {
+    return (
+      <span className="inline-flex items-center gap-1.5">
+        <MdCollections className="text-text-muted shrink-0" size={14} />
+        {suggestion.name}
+        <span className="text-text-muted text-xs">
+          {t("tagInput.collectionSuggestion")}
+        </span>
+      </span>
+    );
+  }
+
+  return (
+    <>
+      {suggestion.tag}
+      <span className="ml-1.5 text-text-muted text-xs">
+        ({suggestion.usageCount})
+      </span>
+    </>
+  );
 };
 
 export const TagInput = ({
@@ -239,23 +285,38 @@ export const TagInput = ({
             <HiMagnifyingGlass className="text-text-muted shrink-0" size={16} />
           )}
           <div className="flex flex-wrap gap-1.5 flex-1 items-center min-w-0">
-            {chips.map((chip, i) => (
-              <span
-                key={`${chip}-${i}`}
-                className="flex items-center gap-1 pl-2.5 pr-1.5 py-0.5 rounded-md bg-chip-bg text-chip-text text-xs font-medium shrink-0"
-              >
-                {chip}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeChip(i);
-                  }}
-                  className="text-text-muted hover:text-text-primary cursor-pointer flex items-center"
+            {chips.map((chip, i) => {
+              const collectionName = chipCollectionName(chip);
+              return (
+                <span
+                  key={`${chip}-${i}`}
+                  className={twMerge(
+                    "flex items-center gap-1 pl-2.5 pr-1.5 py-0.5 rounded-md bg-chip-bg text-chip-text text-xs font-medium shrink-0",
+                    collectionName !== undefined &&
+                      "bg-accent-dim text-accent-muted",
+                  )}
+                  title={collectionName !== undefined ? chip : undefined}
                 >
-                  <MdClose size={13} />
-                </button>
-              </span>
-            ))}
+                  {collectionName !== undefined ? (
+                    <>
+                      <MdCollections size={13} className="shrink-0" />
+                      {collectionName}
+                    </>
+                  ) : (
+                    chip
+                  )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeChip(i);
+                    }}
+                    className="text-text-muted hover:text-text-primary cursor-pointer flex items-center"
+                  >
+                    <MdClose size={13} />
+                  </button>
+                </span>
+              );
+            })}
             <input
               ref={easyInputRef}
               value={easyInput}
@@ -291,10 +352,7 @@ export const TagInput = ({
                     addChip(s.tag);
                   }}
                 >
-                  {s.tag}
-                  <span className="ml-1.5 text-text-muted text-xs">
-                    ({s.usageCount})
-                  </span>
+                  <SuggestionLabel suggestion={s} />
                 </div>
               ))}
             </div>
@@ -344,7 +402,7 @@ export const TagInput = ({
           values={advSuggestions.map((s, index) => ({
             value: s.tag,
             key: index.toString(),
-            node: `${s.tag} (${s.usageCount})`,
+            node: <SuggestionLabel suggestion={s} />,
           }))}
           onSelect={(val) => {
             const { newText, newCursorPos } = replaceWordAtCursor(

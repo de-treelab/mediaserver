@@ -1,15 +1,38 @@
+const isQuote = (c: string) => c === '"' || c === "`";
+
+/**
+ * The whitespace-delimited word around the cursor. Whitespace inside a quoted
+ * string (e.g. `collection:"Summer 2024"`) does not end a word, so quoted tag
+ * values are completed as a whole.
+ */
 export const getWordFromCursor = (
   text: string,
   cursorPos: number,
 ): { word: string; start: number; end: number } => {
-  const left = text.slice(0, cursorPos);
-  const right = text.slice(cursorPos);
+  let quote: string | null = null;
+  let start = 0;
+  for (let i = 0; i < cursorPos; i++) {
+    const c = text[i]!;
+    if (quote) {
+      if (c === quote) quote = null;
+    } else if (isQuote(c)) {
+      quote = c;
+    } else if (/\s/.test(c)) {
+      start = i + 1;
+    }
+  }
 
-  const leftMatch = left.match(/(\S+)$/);
-  const rightMatch = right.match(/^(\S+)/);
-
-  const start = leftMatch ? cursorPos - leftMatch[1].length : cursorPos;
-  const end = rightMatch ? cursorPos + rightMatch[1].length : cursorPos;
+  let end = cursorPos;
+  for (; end < text.length; end++) {
+    const c = text[end]!;
+    if (quote) {
+      if (c === quote) quote = null;
+    } else if (isQuote(c)) {
+      quote = c;
+    } else if (/\s/.test(c)) {
+      break;
+    }
+  }
 
   return {
     word: text.slice(start, end),

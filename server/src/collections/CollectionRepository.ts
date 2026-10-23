@@ -46,6 +46,8 @@ export interface ListCollectionsRequest {
   limit: number;
   offset: number;
   type: CollectionType | undefined;
+  // Case-insensitive substring match on the collection name
+  name?: string | undefined;
   scope: CollectionAccessScope;
 }
 
@@ -90,17 +92,21 @@ export class CollectionRepository {
     limit,
     offset,
     type,
+    name,
     scope,
   }: ListCollectionsRequest): Promise<PaginatedResponse<Collection>> {
     const scopeClause = buildCollectionScopeClause(scope);
     const params: Record<string, unknown> = { limit, offset };
     if (type) params.type = type;
+    if (name) params.name = name;
     if (scope.type === "accessible-by") params.userId = scope.userId;
 
     const typeClause = type ? `AND type = $type` : "";
+    // STRPOS instead of ILIKE so that % and _ in the name are matched literally
+    const nameClause = name ? `AND STRPOS(LOWER(name), LOWER($name)) > 0` : "";
     const whereClause =
-      scopeClause || typeClause
-        ? `WHERE true ${scopeClause} ${typeClause}`
+      scopeClause || typeClause || nameClause
+        ? `WHERE true ${scopeClause} ${typeClause} ${nameClause}`
         : "";
 
     const rows = await this.dbService.any(
@@ -135,6 +141,34 @@ export class CollectionRepository {
       params,
     );
     return row ? toCollection(row) : null;
+  }
+
+  /**
+   * Visible collections whose name equals `name` (case-insensitive). When the
+   * user owns one of them, only their own collections are returned.
+   */
+  public async findCollectionsByName(
+    name: string,
+    scope: CollectionAccessScope,
+  ): Promise<Collection[]> {
+    if (scope.type === "none") return [];
+
+    const scopeClause = buildCollectionScopeClause(scope);
+    const params: Record<string, unknown> = { name };
+    if (scope.type === "accessible-by") params.userId = scope.userId;
+
+    const rows = await this.dbService.any(
+      collectionRowSchema,
+      `SELECT id, name, description, filter_expression, is_favorite, type, owner_id, is_public, created_at, updated_at
+       FROM collections WHERE LOWER(name) = LOWER($name)${scopeClause}
+       ORDER BY created_at ASC`,
+      params,
+    );
+    const collections = rows.map(toCollection);
+    if (scope.type !== "accessible-by") return collections;
+
+    const own = collections.filter((c) => c.ownerId === scope.userId);
+    return own.length > 0 ? own : collections;
   }
 
   public async createCollection(

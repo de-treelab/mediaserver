@@ -4,6 +4,7 @@ import {
   NotTag,
   OrTag,
   Tag,
+  TagParser,
   TrueTag,
   type Filter,
 } from "@lars_hagemann/tags";
@@ -266,6 +267,31 @@ export type TagSqlBuilderResult<
       params?: Record<string, string | number>;
     };
 
+export type ResolvedCollection = {
+  id: string;
+  type: "dynamic" | "static";
+  filterExpression: string;
+};
+
+/**
+ * Looks up the collections a `collection:"<name>"` filter refers to. MUST only
+ * return collections visible to the requesting user.
+ */
+export type CollectionResolver = (
+  name: string,
+) => Promise<ResolvedCollection[]>;
+
+export type BuildListFilteredEntitiesOptions = {
+  // Without a resolver, `collection:<value>` is only matched as a plain tag
+  resolveCollections?: CollectionResolver;
+};
+
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Dynamic collections may reference other collections by name
+const MAX_COLLECTION_DEPTH = 8;
+
 // Per-build state. Kept local to each build() call (rather than on the instance)
 // so that concurrent/interleaved async builds cannot clobber each other's sort
 // settings or bind parameters.
@@ -274,6 +300,9 @@ type BuildContext = {
   next: number;
   sortBy: "created_at" | "random";
   sortDirection: "asc" | "desc";
+  resolveCollections?: CollectionResolver;
+  // Ids of the dynamic collections currently being expanded (cycle detection)
+  expanding: string[];
 };
 
 export class TagSqlBuilder {
@@ -282,13 +311,74 @@ export class TagSqlBuilder {
     private readonly tagCache: TagCache,
   ) {}
 
-  private newContext(): BuildContext {
+  private newContext(resolveCollections?: CollectionResolver): BuildContext {
     return {
       params: {},
       next: 0,
       sortBy: "created_at",
       sortDirection: "desc",
+      ...(resolveCollections && { resolveCollections }),
+      expanding: [],
     };
+  }
+
+  private tagIdCondition(ctx: BuildContext, tagId: string): string {
+    return `SUM(CASE WHEN ut.tag_id = ${this.addParam(ctx, tagId)} THEN 1 ELSE 0 END) > 0`;
+  }
+
+  /**
+   * `collection:"<name>"`: matches the members of every visible collection with
+   * that name. Static collections match their `collection:<id>` membership tag,
+   * dynamic ones are expanded into their filter expression.
+   */
+  private async collectionByNameCondition(
+    name: string,
+    resolveCollections: CollectionResolver,
+    ctx: BuildContext,
+  ): Promise<string> {
+    const collections = await resolveCollections(name);
+    const conditions: string[] = [];
+    for (const collection of collections) {
+      if (collection.type === "static") {
+        try {
+          const tagId = await this.tagCache.tagToTagId(
+            new MetaTag("collection", collection.id),
+          );
+          conditions.push(this.tagIdCondition(ctx, tagId));
+        } catch (err) {
+          // The membership tag only exists once a document was added
+          if (err instanceof Error && err.message.includes("Tag not found")) {
+            continue;
+          }
+          throw err;
+        }
+        continue;
+      }
+
+      if (ctx.expanding.includes(collection.id)) {
+        throw new Error(`Collection "${name}" references itself`);
+      }
+      if (ctx.expanding.length >= MAX_COLLECTION_DEPTH) {
+        throw new Error(`Collection "${name}" is nested too deeply`);
+      }
+
+      let filter: Filter;
+      try {
+        filter = new TagParser(collection.filterExpression).parse();
+      } catch (err) {
+        throw new Error(
+          `Invalid filter expression in collection "${name}": ${err instanceof Error ? err.message : "Unknown error"}`,
+        );
+      }
+      ctx.expanding.push(collection.id);
+      try {
+        conditions.push(await this.sqlFilterConditions(filter, ctx));
+      } finally {
+        ctx.expanding.pop();
+      }
+    }
+
+    return conditions.length > 0 ? `(${conditions.join(" OR ")})` : "1=0";
   }
 
   /**
@@ -305,6 +395,8 @@ export class TagSqlBuilder {
 
   private async parseMetaTag(tag: MetaTag, ctx: BuildContext): Promise<string> {
     if (tag.key === "sort") {
+      // The sort of an expanded collection must not override the user's sort
+      if (ctx.expanding.length > 0) return `1=1`;
       switch (tag.value) {
         case "random":
           ctx.sortBy = "random";
@@ -321,8 +413,20 @@ export class TagSqlBuilder {
       return `1=1`;
     }
 
+    if (
+      tag.key === "collection" &&
+      ctx.resolveCollections &&
+      !UUID_PATTERN.test(tag.value)
+    ) {
+      return await this.collectionByNameCondition(
+        tag.value,
+        ctx.resolveCollections,
+        ctx,
+      );
+    }
+
     const tagId = await this.tagCache.tagToTagId(tag);
-    return `SUM(CASE WHEN ut.tag_id = ${this.addParam(ctx, tagId)} THEN 1 ELSE 0 END) > 0`;
+    return this.tagIdCondition(ctx, tagId);
   }
 
   private async sqlFilterConditions(
@@ -332,7 +436,7 @@ export class TagSqlBuilder {
     if (filter instanceof Tag) {
       try {
         const tagId = await this.tagCache.tagToTagId(filter);
-        return `SUM(CASE WHEN ut.tag_id = ${this.addParam(ctx, tagId)} THEN 1 ELSE 0 END) > 0`;
+        return this.tagIdCondition(ctx, tagId);
       } catch (err) {
         if (err instanceof Error && err.message.includes("Tag not found")) {
           // This could be the key of a meta tag that is not listed in the tag id cache
@@ -371,8 +475,9 @@ export class TagSqlBuilder {
    */
   public async buildListFilteredEntitiesQuery(
     filter: Filter,
+    { resolveCollections }: BuildListFilteredEntitiesOptions = {},
   ): Promise<TagSqlBuilderResult<FilteredEntitiesQuery>> {
-    const ctx = this.newContext();
+    const ctx = this.newContext(resolveCollections);
 
     const idCol = this.builderConfig.userdataTableIdColumn;
     const tableName = this.builderConfig.userdataTableName;

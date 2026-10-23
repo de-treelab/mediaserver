@@ -192,6 +192,7 @@ documentRouter.get(
           seed: seed ?? "",
         },
         scope,
+        scopeResolver.collectionScope(identity),
       );
       return {
         status: 200,
