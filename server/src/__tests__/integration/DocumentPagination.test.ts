@@ -50,6 +50,8 @@ describe("TagRepository.listDocuments pagination (integration)", () => {
       type: "image/jpeg",
       isPublic,
       ownerId: SYSTEM_USER_ID,
+      contentHash: n.toString(16).padStart(64, "0"),
+      sizeBytes: 1024,
     });
     await dbService.none(
       "UPDATE documents SET created_at = $createdAt::timestamp WHERE id = $id",
