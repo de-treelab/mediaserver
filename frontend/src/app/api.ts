@@ -39,6 +39,8 @@ export type ListDocumentsArgs = {
   before?: string;
   // Document id to center a window of `limit` documents on
   around?: string;
+  // Query index of the first document of a window of `limit` documents
+  at?: number;
 };
 
 export type DocumentShareEntry = {
@@ -116,8 +118,19 @@ export type ApiTagWithCount = ApiTag & {
   usageCount: number;
 };
 
+/** Documents given by id, or all documents matching a query except some. */
+export type DocumentSelection =
+  | { type: "ids"; ids: string[] }
+  | { type: "query"; query: string; excludedIds: string[] };
+
+export type SelectionTags = {
+  // Number of selected documents
+  total: number;
+  tags: ApiTagWithCount[];
+};
+
 export type BulkEditDocumentsRequest = {
-  documentIds: string[];
+  selection: DocumentSelection;
   tagsToAdd: ApiTag[];
   tagsToRemove: ApiTag[];
 };
@@ -205,12 +218,13 @@ export const api = baseApi.injectEndpoints({
       CursorPaginatedResponse<Document>,
       ListDocumentsArgs
     >({
-      query: ({ limit = 100, query = "", seed, after, before, around }) => {
+      query: ({ limit = 100, query = "", seed, after, before, around, at }) => {
         const params = new URLSearchParams({ limit: String(limit), query });
         if (seed) params.set("seed", seed);
         if (after) params.set("after", after);
         if (before) params.set("before", before);
         if (around) params.set("around", around);
+        if (at !== undefined) params.set("at", String(at));
         return { url: `/documents?${params}`, method: "GET" };
       },
       providesTags: (response) => [
@@ -234,6 +248,15 @@ export const api = baseApi.injectEndpoints({
           (doc) => ({ type: "document", id: doc.id }) as const,
         ) || []),
       ],
+    }),
+
+    listSelectionTags: build.query<SelectionTags, DocumentSelection>({
+      query: (selection) => ({
+        url: `/documents/selection/tags`,
+        method: "POST",
+        body: { selection },
+      }),
+      providesTags: ["document", "tag"],
     }),
 
     bulkEditDocuments: build.mutation<void, BulkEditDocumentsRequest>({

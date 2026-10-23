@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from "react";
 import { useSearchParams } from "react-router";
-import { clearPagePosition } from "./useCursorPageParams";
+import { clearGalleryPosition } from "./useGalleryPosition";
 
 const generateSeed = () => Math.random().toString(36).slice(2);
 
@@ -31,8 +31,8 @@ export const useGallerySeed = (enabled: boolean) => {
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
       next.set("seed", generateSeed());
-      // Cursors of the previous order are meaningless in the new one
-      clearPagePosition(next);
+      // Positions of the previous order are meaningless in the new one
+      clearGalleryPosition(next);
       return next;
     });
   }, [setSearchParams]);

@@ -9,6 +9,7 @@ import { ProgressBar } from "../components/ProgressBar";
 import { Tabs } from "../components/Tabs";
 import { ThumbnailContainer } from "../components/ThumbnailContainer";
 import { Thumbnail } from "../sections/Thumbnail";
+import { DocumentFilmstrip } from "../sections/DocumentFilmstrip";
 import type { PluginComponents } from "./plugin";
 
 /**
@@ -31,4 +32,5 @@ export const pluginComponents: PluginComponents = {
   Tabs,
   ThumbnailContainer,
   Thumbnail,
+  DocumentFilmstrip,
 };

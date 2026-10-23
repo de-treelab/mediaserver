@@ -1,6 +1,7 @@
 import type {
   DocumentInfoPlugin,
   FrontendPlugin,
+  HomeWidget,
   NavItem,
   PluginRoute,
 } from "./plugin";
@@ -31,6 +32,10 @@ export const pluginRegistry = {
     return plugins
       .flatMap((p) => p.navItems ?? [])
       .sort((a, b) => (a.priority ?? 100) - (b.priority ?? 100));
+  },
+
+  getHomeWidgets(): HomeWidget[] {
+    return plugins.flatMap((p) => p.homeWidgets ?? []);
   },
 
   getRoutes(): PluginRoute[] {

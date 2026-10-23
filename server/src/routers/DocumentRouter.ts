@@ -14,12 +14,16 @@ import type {
   Document,
   DocumentWithTags,
 } from "../documents/DocumentRepository.js";
-import { TagService } from "../tags/TagService.js";
+import { TagService, type SelectionTags } from "../tags/TagService.js";
 import type { AccessScopeResolver } from "../auth/AccessScopeResolver.js";
 import z from "zod";
 import type { UploadService } from "../files/UploadService.js";
 import { isValidExtension } from "../files/FileService.js";
-import type { ApiTag, DocumentListPosition } from "../tags/TagRepository.js";
+import type {
+  ApiTag,
+  DocumentListPosition,
+  DocumentSelection,
+} from "../tags/TagRepository.js";
 import { requirePermission } from "../auth/requirePermission.js";
 import { SYSTEM_USER_ID } from "../auth/Identity.js";
 import type { DuplicateGroup } from "../duplicates/DuplicateRepository.js";
@@ -38,8 +42,27 @@ type DocumentUpload = {
   friendlyName?: string;
 };
 
+const documentSelectionSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("ids"), ids: z.array(z.string()) }),
+  z.object({
+    type: z.literal("query"),
+    query: z.string(),
+    excludedIds: z.array(z.string()),
+  }),
+]);
+
+const parseSelection = (value: unknown): DocumentSelection => {
+  const result = documentSelectionSchema.safeParse(value);
+  if (!result.success) {
+    throw new ApiError("BadRequest", 400, "Invalid document selection");
+  }
+  return result.data;
+};
+
 type BulkEditDocumentsRequest = {
-  documentIds: string[];
+  // Either of them; `documentIds` is kept for existing clients
+  documentIds?: string[];
+  selection?: DocumentSelection;
   tagsToAdd: ApiTag[];
   tagsToRemove: ApiTag[];
 };
@@ -132,16 +155,18 @@ const parseListPosition = ({
   after,
   before,
   around,
+  at,
 }: {
   after: string | undefined;
   before: string | undefined;
   around: string | undefined;
+  at: string | undefined;
 }): DocumentListPosition => {
-  if ([after, before, around].filter((p) => p !== undefined).length > 1) {
+  if ([after, before, around, at].filter((p) => p !== undefined).length > 1) {
     throw new ApiError(
       "InvalidCursor",
       400,
-      "Only one of after, before and around may be given",
+      "Only one of after, before, around and at may be given",
     );
   }
   if (after !== undefined) {
@@ -160,6 +185,13 @@ const parseListPosition = ({
     }
     return { type: "around", documentId: documentId.data.toLowerCase() };
   }
+  if (at !== undefined) {
+    const index = z.coerce.number().int().min(0).safeParse(at);
+    if (!index.success) {
+      throw new ApiError("InvalidCursor", 400, "Invalid index");
+    }
+    return { type: "at", index: index.data };
+  }
   return { type: "first" };
 };
 
@@ -175,11 +207,12 @@ documentRouter.get(
       after?: string;
       before?: string;
       around?: string;
+      at?: string;
     }
   >(
     async ({
       diContainer,
-      query: { limit = 100, query = "", seed, after, before, around },
+      query: { limit = 100, query = "", seed, after, before, around, at },
       identity,
     }) => {
       const scopeResolver = diContainer.get<AccessScopeResolver>(
@@ -190,9 +223,10 @@ documentRouter.get(
       const response = await tagService.listDocuments(
         {
           limit,
-          position: parseListPosition({ after, before, around }),
+          position: parseListPosition({ after, before, around, at }),
           query: decodeURIComponent(query),
           seed: seed ?? "",
+          currentUserId: scopeResolver.currentUserId(identity),
         },
         scope,
         scopeResolver.collectionScope(identity),
@@ -236,17 +270,44 @@ documentRouter.post(
       for (const tag of body.tagsToAdd) {
         TagService.assertSingleTag(TagService.toString(tag));
       }
-      const scope = scopeResolver.documentScope(identity);
+      const selection = parseSelection(
+        body.selection ?? { type: "ids", ids: body.documentIds },
+      );
       const tagService = diContainer.get<TagService>(services.tag);
       await tagService.bulkEditDocuments(
-        body.documentIds,
+        selection,
         body.tagsToAdd,
         body.tagsToRemove,
-        scope,
+        scopeResolver.documentScope(identity),
+        scopeResolver.collectionScope(identity),
+        scopeResolver.currentUserId(identity),
       );
       return {
         status: 204,
         body: {},
+      };
+    },
+  ),
+);
+
+documentRouter.post(
+  "/selection/tags",
+  requirePermission("document:read"),
+  apiHandler<SelectionTags, EmptyObject, { selection: DocumentSelection }>(
+    async ({ diContainer, body, identity }) => {
+      const scopeResolver = diContainer.get<AccessScopeResolver>(
+        services.accessScopeResolver,
+      );
+      const tagService = diContainer.get<TagService>(services.tag);
+      const response = await tagService.listSelectionTags(
+        parseSelection(body.selection),
+        scopeResolver.documentScope(identity),
+        scopeResolver.collectionScope(identity),
+        scopeResolver.currentUserId(identity),
+      );
+      return {
+        status: 200,
+        body: response,
       };
     },
   ),

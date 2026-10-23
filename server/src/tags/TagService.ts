@@ -1,6 +1,8 @@
 import { MetaTag, Tag, TagParser } from "@lars_hagemann/tags";
 import type {
   ApiTag,
+  ApiTagWithCount,
+  DocumentSelection,
   ListDocumentsRequest,
   TagRepository,
 } from "./TagRepository.js";
@@ -21,6 +23,12 @@ export type ListTagsRequest = {
   limit: number;
   offset: number;
   query: string;
+};
+
+export type SelectionTags = {
+  // Number of selected documents
+  total: number;
+  tags: ApiTagWithCount[];
 };
 
 export class TagService {
@@ -80,16 +88,38 @@ export class TagService {
     scope: DocumentAccessScope = { type: "all" },
     collectionScope?: CollectionAccessScope,
   ): Promise<CursorPaginatedResponse<Document>> {
-    const collectionRepository = this.collectionRepository;
+    const resolveCollections = this.collectionResolver(collectionScope);
     return this.tagRepository.listDocuments({
       ...request,
       scope,
-      ...(collectionRepository &&
-        collectionScope && {
-          resolveCollections: (name: string) =>
-            collectionRepository.findCollectionsByName(name, collectionScope),
-        }),
+      ...(resolveCollections && { resolveCollections }),
     });
+  }
+
+  private collectionResolver(collectionScope?: CollectionAccessScope) {
+    const collectionRepository = this.collectionRepository;
+    if (!collectionRepository || !collectionScope) return undefined;
+    return (name: string) =>
+      collectionRepository.findCollectionsByName(name, collectionScope);
+  }
+
+  /** Tags of the selected documents, counting how many of them carry each. */
+  public async listSelectionTags(
+    selection: DocumentSelection,
+    scope: DocumentAccessScope = { type: "all" },
+    collectionScope?: CollectionAccessScope,
+    currentUserId?: string,
+  ): Promise<SelectionTags> {
+    const ids = await this.tagRepository.resolveSelection(
+      selection,
+      scope,
+      this.collectionResolver(collectionScope),
+      currentUserId,
+    );
+    return {
+      total: ids.length,
+      tags: await this.tagRepository.countTagsOfDocuments(ids),
+    };
   }
 
   public async listDocumentsByIds(
@@ -135,13 +165,21 @@ export class TagService {
   }
 
   public async bulkEditDocuments(
-    documentIds: string[],
+    selection: DocumentSelection,
     tagsToAdd: ApiTag[],
     tagsToRemove: ApiTag[],
     scope: DocumentAccessScope = { type: "all" },
+    collectionScope?: CollectionAccessScope,
+    currentUserId?: string,
   ): Promise<void> {
+    const ids = await this.tagRepository.resolveSelection(
+      selection,
+      scope,
+      this.collectionResolver(collectionScope),
+      currentUserId,
+    );
     await this.tagRepository.bulkEditDocuments(
-      documentIds,
+      ids,
       tagsToAdd,
       tagsToRemove,
       scope,

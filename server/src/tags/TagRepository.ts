@@ -13,6 +13,7 @@ import {
   buildQueryFromDeleteStatement,
   buildQueryFromInsertStatement,
   buildFilteredEntitiesCountQuery,
+  buildFilteredEntitiesIdsQuery,
   buildFilteredEntitiesPageQuery,
   buildQueryFromSelectStatement,
   TagSqlBuilder,
@@ -46,7 +47,9 @@ export type DocumentListPosition =
   | { type: "after"; cursor: DocumentCursor }
   | { type: "before"; cursor: DocumentCursor }
   // Window centered on a document, e.g. for the preview strip
-  | { type: "around"; documentId: string };
+  | { type: "around"; documentId: string }
+  // `limit` documents starting at a query index
+  | { type: "at"; index: number };
 
 export type ListDocumentsRequest = {
   limit: number;
@@ -56,7 +59,17 @@ export type ListDocumentsRequest = {
   scope?: DocumentAccessScope;
   // Resolves `collection:"<name>"` filters; only plain tags are matched without
   resolveCollections?: CollectionResolver;
+  // The user `shared:me` filters refer to
+  currentUserId?: string | undefined;
 };
+
+/**
+ * Documents to operate on: either given by id, or all documents matching a
+ * query except the excluded ones (e.g. "select all" in the gallery).
+ */
+export type DocumentSelection =
+  | { type: "ids"; ids: string[] }
+  | { type: "query"; query: string; excludedIds: string[] };
 
 const documentRowSchema = z.object({
   id: z.string(),
@@ -120,6 +133,7 @@ export class TagRepository {
     position = { type: "first" },
     scope = { type: "all" },
     resolveCollections,
+    currentUserId,
   }: ListDocumentsRequest): Promise<CursorPaginatedResponse<Document>> {
     if (scope.type === "none") {
       return {
@@ -131,30 +145,13 @@ export class TagRepository {
       };
     }
 
-    const filter = new TagParser(query).parse();
-    const sql = await this.sqlBuilder.buildListFilteredEntitiesQuery(filter, {
-      ...(resolveCollections && { resolveCollections }),
-    });
-
-    if (!sql.success) {
-      throw new TagParseError(sql.message);
-    }
-
-    const scopeHaving = buildScopeHaving(scope, "u");
-    if (scopeHaving) {
-      sql.stmt.filtered.having = `(${sql.stmt.filtered.having})${scopeHaving}`;
-    }
-
-    const isRandom = sql.stmt.sortBy === "random";
-    // Only pass parameters the query references: unreferenced bind parameters
-    // have no inferable type and make Postgres reject the query.
-    const filterParams = {
-      ...(isRandom ? { seed: seed ?? "" } : {}),
-      ...(scope.type === "accessible-by" ? { userId: scope.userId } : {}),
-      // Bind parameters for the dynamic tag-filter values (tag ids and
-      // user-supplied tag keys) collected by the SQL builder.
-      ...(sql.params ?? {}),
-    };
+    const { stmt, isRandom, filterParams } = await this.buildFilteredQuery(
+      query,
+      scope,
+      resolveCollections,
+      currentUserId,
+      seed,
+    );
     const positionParams =
       position.type === "after" || position.type === "before"
         ? isRandom
@@ -162,11 +159,13 @@ export class TagRepository {
           : { cursorId: position.cursor.id, cursorTs: position.cursor.ts }
         : position.type === "around"
           ? { anchorId: position.documentId }
-          : {};
+          : position.type === "at"
+            ? { at: position.index }
+            : {};
 
     const rows = await this.dbService.any(
       paginated(documentListRowSchema),
-      buildFilteredEntitiesPageQuery(sql.stmt, position.type),
+      buildFilteredEntitiesPageQuery(stmt, position.type),
       { ...filterParams, ...positionParams, limit },
     );
 
@@ -196,7 +195,7 @@ export class TagRepository {
         : (
             await this.dbService.one(
               z.object({ total: z.number().int() }),
-              buildFilteredEntitiesCountQuery(sql.stmt),
+              buildFilteredEntitiesCountQuery(stmt),
               filterParams,
             )
           ).total);
@@ -217,11 +216,108 @@ export class TagRepository {
         isPublic: item.is_public,
       })),
       total,
-      startIndex: first?.query_index ?? (position.type === "after" ? total : 0),
+      startIndex:
+        first?.query_index ??
+        (position.type === "after"
+          ? total
+          : position.type === "at"
+            ? Math.min(position.index, total)
+            : 0),
       prevCursor: first && first.query_index > 0 ? toCursor(first) : undefined,
       nextCursor:
         last && last.query_index < total - 1 ? toCursor(last) : undefined,
     };
+  }
+
+  /** Filtered documents of `query` within `scope`, as used by every listing. */
+  private async buildFilteredQuery(
+    query: string,
+    scope: DocumentAccessScope,
+    resolveCollections: CollectionResolver | undefined,
+    currentUserId: string | undefined,
+    seed?: string,
+  ) {
+    const filter = new TagParser(query).parse();
+    const sql = await this.sqlBuilder.buildListFilteredEntitiesQuery(filter, {
+      ...(resolveCollections && { resolveCollections }),
+      ...(currentUserId && { currentUserId }),
+    });
+
+    if (!sql.success) {
+      throw new TagParseError(sql.message);
+    }
+
+    const scopeHaving = buildScopeHaving(scope, "u");
+    if (scopeHaving) {
+      sql.stmt.filtered.having = `(${sql.stmt.filtered.having})${scopeHaving}`;
+    }
+
+    const isRandom = sql.stmt.sortBy === "random";
+    // Only pass parameters the query references: unreferenced bind parameters
+    // have no inferable type and make Postgres reject the query.
+    const filterParams = {
+      ...(isRandom ? { seed: seed ?? "" } : {}),
+      ...(scope.type === "accessible-by" ? { userId: scope.userId } : {}),
+      // Bind parameters for the dynamic tag-filter values (tag ids and
+      // user-supplied tag keys) collected by the SQL builder.
+      ...(sql.params ?? {}),
+    };
+
+    return { stmt: sql.stmt, isRandom, filterParams };
+  }
+
+  /** Ids of the selected documents that lie within `scope`. */
+  public async resolveSelection(
+    selection: DocumentSelection,
+    scope: DocumentAccessScope = { type: "all" },
+    resolveCollections?: CollectionResolver,
+    currentUserId?: string,
+  ): Promise<string[]> {
+    if (scope.type === "none") return [];
+    if (selection.type === "ids") {
+      return this.filterAccessibleDocumentIds(selection.ids, scope);
+    }
+
+    const { stmt, filterParams } = await this.buildFilteredQuery(
+      selection.query,
+      scope,
+      resolveCollections,
+      currentUserId,
+    );
+    const rows = await this.dbService.any(
+      z.object({ id: z.string() }),
+      buildFilteredEntitiesIdsQuery(stmt),
+      filterParams,
+    );
+    const excluded = new Set(selection.excludedIds);
+    return rows.map((row) => row.id).filter((id) => !excluded.has(id));
+  }
+
+  /** Tags of the given documents with the number of documents carrying each. */
+  public async countTagsOfDocuments(
+    documentIds: string[],
+  ): Promise<ApiTagWithCount[]> {
+    if (documentIds.length === 0) return [];
+    const rows = await this.dbService.any(
+      tagWithCountRowSchema,
+      `SELECT
+        tags.id,
+        tags.key,
+        tags.value,
+        tags.type,
+        COUNT(DISTINCT userdata_tags.userdata_id)::int AS usage_count
+      FROM userdata_tags
+      JOIN tags ON tags.id = userdata_tags.tag_id
+      WHERE userdata_tags.userdata_id = ANY($ids::uuid[])
+      GROUP BY tags.id`,
+      { ids: documentIds },
+    );
+    return rows.map((row) => ({
+      key: row.key,
+      value: row.value ?? undefined,
+      type: row.type,
+      usageCount: row.usage_count,
+    }));
   }
 
   public async listDocumentsByIds(

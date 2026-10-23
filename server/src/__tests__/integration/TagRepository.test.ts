@@ -368,6 +368,109 @@ describe("TagRepository (integration)", () => {
       const tags = await tagRepository.getTagsForDocument(DOC_VIEWER_PRIVATE);
       expect(tags.some((t) => t.key === "mine")).toBe(true);
     });
+
+    it("removes tags without a value", async () => {
+      const tag = { key: "valueless", value: undefined, type: "default" };
+      await tagRepository.bulkEditDocuments([DOC_ID_2], [tag], []);
+      expect(
+        (await tagRepository.getTagsForDocument(DOC_ID_2)).some(
+          (t) => t.key === "valueless",
+        ),
+      ).toBe(true);
+
+      await tagRepository.bulkEditDocuments([DOC_ID_2], [], [tag]);
+      expect(
+        (await tagRepository.getTagsForDocument(DOC_ID_2)).some(
+          (t) => t.key === "valueless",
+        ),
+      ).toBe(false);
+    });
+
+    it("removes tags with a value", async () => {
+      const tag = { key: "rating", value: "5", type: "default" };
+      await tagRepository.bulkEditDocuments([DOC_ID_2], [tag], []);
+      await tagRepository.bulkEditDocuments([DOC_ID_2], [], [tag]);
+      expect(
+        (await tagRepository.getTagsForDocument(DOC_ID_2)).some(
+          (t) => t.key === "rating",
+        ),
+      ).toBe(false);
+    });
+  });
+
+  describe("resolveSelection / countTagsOfDocuments", () => {
+    const viewerScope = {
+      type: "accessible-by" as const,
+      userId: VIEWER_USER_ID,
+    };
+    const selected = [DOC_PUBLIC, DOC_VIEWER_PRIVATE, DOC_FOREIGN_PRIVATE];
+
+    beforeAll(async () => {
+      await tagRepository.addTags([
+        { key: "selection-a", value: undefined, type: "default" },
+        { key: "selection-b", value: undefined, type: "default" },
+      ]);
+      for (const id of selected) {
+        await tagRepository.addTagToDocument(id, {
+          key: "selection-a",
+          value: undefined,
+          type: "default",
+        });
+      }
+      await tagRepository.addTagToDocument(DOC_PUBLIC, {
+        key: "selection-b",
+        value: undefined,
+        type: "default",
+      });
+    });
+
+    it("selects every document matching the query", async () => {
+      const ids = await tagRepository.resolveSelection({
+        type: "query",
+        query: "selection-a",
+        excludedIds: [],
+      });
+      expect(ids.sort()).toEqual([...selected].sort());
+    });
+
+    it("leaves out excluded documents", async () => {
+      const ids = await tagRepository.resolveSelection({
+        type: "query",
+        query: "selection-a",
+        excludedIds: [DOC_PUBLIC],
+      });
+      expect(ids.sort()).toEqual(
+        [DOC_VIEWER_PRIVATE, DOC_FOREIGN_PRIVATE].sort(),
+      );
+    });
+
+    it("selects only matching documents within the caller's scope", async () => {
+      const ids = await tagRepository.resolveSelection(
+        { type: "query", query: "selection-a", excludedIds: [] },
+        viewerScope,
+      );
+      expect(ids.sort()).toEqual([DOC_PUBLIC, DOC_VIEWER_PRIVATE].sort());
+    });
+
+    it("drops selected ids outside the caller's scope", async () => {
+      const ids = await tagRepository.resolveSelection(
+        { type: "ids", ids: selected },
+        viewerScope,
+      );
+      expect(ids.sort()).toEqual([DOC_PUBLIC, DOC_VIEWER_PRIVATE].sort());
+    });
+
+    it("counts the documents carrying each tag", async () => {
+      const tags = await tagRepository.countTagsOfDocuments(selected);
+      const count = (key: string) =>
+        tags.find((tag) => tag.key === key)?.usageCount;
+      expect(count("selection-a")).toBe(3);
+      expect(count("selection-b")).toBe(1);
+    });
+
+    it("counts nothing for an empty selection", async () => {
+      expect(await tagRepository.countTagsOfDocuments([])).toEqual([]);
+    });
   });
 
   describe("deleteTag", () => {
@@ -445,6 +548,39 @@ describe("TagRepository (integration)", () => {
       });
       const ids = result.items.map((d) => d.id);
       expect(ids).toContain(DOC_SHARED_WITH_VIEWER);
+    });
+  });
+
+  describe("listDocuments — shared:me", () => {
+    it("lists only the documents shared with the current user", async () => {
+      const result = await tagRepository.listDocuments({
+        limit: 100,
+        query: "shared:me",
+        scope: { type: "accessible-by", userId: VIEWER_USER_ID },
+        currentUserId: VIEWER_USER_ID,
+      });
+      expect(result.items.map((d) => d.id)).toEqual([DOC_SHARED_WITH_VIEWER]);
+      expect(result.total).toBe(1);
+    });
+
+    it("combines with other filters", async () => {
+      const result = await tagRepository.listDocuments({
+        limit: 100,
+        query: "!shared:me",
+        scope: { type: "accessible-by", userId: VIEWER_USER_ID },
+        currentUserId: VIEWER_USER_ID,
+      });
+      const ids = result.items.map((d) => d.id);
+      expect(ids).not.toContain(DOC_SHARED_WITH_VIEWER);
+      expect(ids).toContain(DOC_VIEWER_PRIVATE);
+    });
+
+    it("matches nothing without a current user", async () => {
+      const result = await tagRepository.listDocuments({
+        limit: 100,
+        query: "shared:me",
+      });
+      expect(result.items).toEqual([]);
     });
   });
 });

@@ -122,6 +122,8 @@ export type FilteredEntitiesQuery = {
  * - around: up to `$limit` entities on either side of the anchor ($anchorId),
  *   the anchor itself included in the "after" half. Rows carry a
  *   `before_anchor` flag telling which half they belong to.
+ * - at: the `$limit` entities starting at query index `$at`, so callers can
+ *   fetch any part of the listing without knowing a document there.
  *
  * Rows of "before"/"last" come back in reverse order. All placeholders besides
  * the ones listed above are $limit and (when sorting randomly) $seed.
@@ -131,13 +133,18 @@ export type FilteredEntitiesPosition =
   | "last"
   | "after"
   | "before"
-  | "around";
+  | "around"
+  | "at";
 
 const filteredEntitiesCte = (q: FilteredEntitiesQuery) =>
   `filtered AS (${buildQueryFromSelectStatement(q.filtered)})`;
 
 export const buildFilteredEntitiesCountQuery = (q: FilteredEntitiesQuery) =>
   `WITH ${filteredEntitiesCte(q)} SELECT COUNT(*)::int AS total FROM filtered`;
+
+/** Ids of all filtered entities, unordered. */
+export const buildFilteredEntitiesIdsQuery = (q: FilteredEntitiesQuery) =>
+  `WITH ${filteredEntitiesCte(q)} SELECT ${q.idColumn}::text AS id FROM filtered`;
 
 export const buildFilteredEntitiesPageQuery = (
   q: FilteredEntitiesQuery,
@@ -199,6 +206,9 @@ export const buildFilteredEntitiesPageQuery = (
         `(${slice(`${rowKey} ${backward} ${keyOf("$anchorId")}`, "DESC", "*, true AS before_anchor")}) ` +
         `UNION ALL ` +
         `(${slice(`${rowKey} ${forward}= ${keyOf("$anchorId")}`, "ASC", "*, false AS before_anchor")})`;
+      break;
+    case "at":
+      body = slice("query_index >= $at", "ASC");
       break;
   }
 
@@ -284,6 +294,8 @@ export type CollectionResolver = (
 export type BuildListFilteredEntitiesOptions = {
   // Without a resolver, `collection:<value>` is only matched as a plain tag
   resolveCollections?: CollectionResolver;
+  // The user `shared:me` refers to; without it, `shared:me` matches nothing
+  currentUserId?: string;
 };
 
 const UUID_PATTERN =
@@ -301,6 +313,7 @@ type BuildContext = {
   sortBy: "created_at" | "random";
   sortDirection: "asc" | "desc";
   resolveCollections?: CollectionResolver;
+  currentUserId?: string;
   // Ids of the dynamic collections currently being expanded (cycle detection)
   expanding: string[];
 };
@@ -311,13 +324,17 @@ export class TagSqlBuilder {
     private readonly tagCache: TagCache,
   ) {}
 
-  private newContext(resolveCollections?: CollectionResolver): BuildContext {
+  private newContext({
+    resolveCollections,
+    currentUserId,
+  }: BuildListFilteredEntitiesOptions): BuildContext {
     return {
       params: {},
       next: 0,
       sortBy: "created_at",
       sortDirection: "desc",
       ...(resolveCollections && { resolveCollections }),
+      ...(currentUserId && { currentUserId }),
       expanding: [],
     };
   }
@@ -385,7 +402,7 @@ export class TagSqlBuilder {
    * Registers a dynamic value as a bind parameter and returns its `$name`
    * placeholder. The `p`-prefix avoids collisions with the caller-supplied
    * placeholders ($limit, $offset, $seed, $userId, $entityId, $cursorId,
-   * $cursorTs, $anchorId).
+   * $cursorTs, $anchorId, $at).
    */
   private addParam(ctx: BuildContext, value: string | number): string {
     const name = `p${ctx.next++}`;
@@ -411,6 +428,11 @@ export class TagSqlBuilder {
           break;
       }
       return `1=1`;
+    }
+
+    if (tag.key === "shared" && tag.value === "me") {
+      if (!ctx.currentUserId) return `1=0`;
+      return `EXISTS (SELECT 1 FROM document_shares ds WHERE ds.document_id = u.id AND ds.shared_with_user_id = ${this.addParam(ctx, ctx.currentUserId)})`;
     }
 
     if (
@@ -475,9 +497,9 @@ export class TagSqlBuilder {
    */
   public async buildListFilteredEntitiesQuery(
     filter: Filter,
-    { resolveCollections }: BuildListFilteredEntitiesOptions = {},
+    options: BuildListFilteredEntitiesOptions = {},
   ): Promise<TagSqlBuilderResult<FilteredEntitiesQuery>> {
-    const ctx = this.newContext(resolveCollections);
+    const ctx = this.newContext(options);
 
     const idCol = this.builderConfig.userdataTableIdColumn;
     const tableName = this.builderConfig.userdataTableName;

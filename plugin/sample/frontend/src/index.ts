@@ -1,11 +1,12 @@
 import type { FrontendPlugin } from "@lars_hagemann/mediaserver-frontend-plugin-types";
 import { scorePanel } from "./scorePanel.js";
 import { samplePage } from "./samplePage.js";
+import { sampleHomeWidget } from "./sampleHomeWidget.js";
 
 const plugin: FrontendPlugin = {
   id: "sample-plugin",
   name: "Sample Plugin",
-  description: "Demonstrates nav items, routes, and API access",
+  description: "Demonstrates nav items, routes, home widgets, and API access",
 
   navItems: [
     {
@@ -20,6 +21,8 @@ const plugin: FrontendPlugin = {
   documentInfo: scorePanel,
 
   routes: [samplePage],
+
+  homeWidgets: [sampleHomeWidget],
 };
 
 export default plugin;

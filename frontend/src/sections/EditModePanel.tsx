@@ -4,18 +4,25 @@ import { Card } from "../components/Card";
 import { pageGutter } from "../components/styles";
 
 type Props = {
-  editDocuments: Set<string>;
-  entirePageSelected: boolean;
-  onTogglePage: () => void;
+  selectedCount: number;
+  // Documents matching the current filter
+  total: number;
+  allSelected: boolean;
+  onSelectAll: () => void;
+  allVisibleSelected: boolean;
+  onToggleVisible: () => void;
   onClearSelection: () => void;
   onOpenBulkEdit: () => void;
   onCancel: () => void;
 };
 
 export const EditModePanel = ({
-  editDocuments,
-  entirePageSelected,
-  onTogglePage,
+  selectedCount,
+  total,
+  allSelected,
+  onSelectAll,
+  allVisibleSelected,
+  onToggleVisible,
   onClearSelection,
   onOpenBulkEdit,
   onCancel,
@@ -38,13 +45,18 @@ export const EditModePanel = ({
         </div>
         <div className="flex flex-row gap-2 items-center justify-start flex-wrap border-t border-border pt-3">
           <span className="px-2 py-0.5 rounded-full bg-accent-dim text-accent-muted text-xs font-medium">
-            {editDocuments.size} {t("pages.gallery.selected")}
+            {selectedCount} {t("pages.gallery.selected")}
           </span>
-          <Button variant="outline" size="sm" onClick={onTogglePage}>
-            {entirePageSelected
-              ? t("pages.gallery.deselectPage")
-              : t("pages.gallery.selectPage")}
+          <Button variant="outline" size="sm" onClick={onToggleVisible}>
+            {allVisibleSelected
+              ? t("pages.gallery.deselectVisible")
+              : t("pages.gallery.selectVisible")}
           </Button>
+          {!allSelected && total > 0 && (
+            <Button variant="outline" size="sm" onClick={onSelectAll}>
+              {t("pages.gallery.selectAll", { total })}
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={onClearSelection}>
             {t("pages.gallery.clearSelection")}
           </Button>
@@ -52,7 +64,7 @@ export const EditModePanel = ({
             variant="primary"
             size="sm"
             onClick={onOpenBulkEdit}
-            disabled={editDocuments.size === 0}
+            disabled={selectedCount === 0}
           >
             {t("pages.gallery.bulkEdit")}
           </Button>

@@ -26,6 +26,7 @@ export type ListDocumentsArgs = {
     after?: string;
     before?: string;
     around?: string;
+    at?: number;
 };
 export type DocumentShareEntry = {
     userId: string;
@@ -90,8 +91,21 @@ export type CollectionAccess = {
 export type ApiTagWithCount = ApiTag & {
     usageCount: number;
 };
+/** Documents given by id, or all documents matching a query except some. */
+export type DocumentSelection = {
+    type: "ids";
+    ids: string[];
+} | {
+    type: "query";
+    query: string;
+    excludedIds: string[];
+};
+export type SelectionTags = {
+    total: number;
+    tags: ApiTagWithCount[];
+};
 export type BulkEditDocumentsRequest = {
-    documentIds: string[];
+    selection: DocumentSelection;
     tagsToAdd: ApiTag[];
     tagsToRemove: ApiTag[];
 };
@@ -147,6 +161,7 @@ export declare const api: import("@reduxjs/toolkit/query").Api<import("@reduxjs/
     documentUpload: import("@reduxjs/toolkit/query").MutationDefinition<DocumentUpload, import("@reduxjs/toolkit/query").BaseQueryFn<string | import("@reduxjs/toolkit/query").FetchArgs, unknown, import("@reduxjs/toolkit/query").FetchBaseQueryError, {}, import("@reduxjs/toolkit/query").FetchBaseQueryMeta>, "document" | "tag" | "collection" | "identity" | "role" | "user" | "authConfig" | "session", void, "api", unknown>;
     listDocuments: import("@reduxjs/toolkit/query").QueryDefinition<ListDocumentsArgs, import("@reduxjs/toolkit/query").BaseQueryFn<string | import("@reduxjs/toolkit/query").FetchArgs, unknown, import("@reduxjs/toolkit/query").FetchBaseQueryError, {}, import("@reduxjs/toolkit/query").FetchBaseQueryMeta>, "document" | "tag" | "collection" | "identity" | "role" | "user" | "authConfig" | "session", CursorPaginatedResponse<Document>, "api", unknown>;
     listDocumentsByIds: import("@reduxjs/toolkit/query").QueryDefinition<string[], import("@reduxjs/toolkit/query").BaseQueryFn<string | import("@reduxjs/toolkit/query").FetchArgs, unknown, import("@reduxjs/toolkit/query").FetchBaseQueryError, {}, import("@reduxjs/toolkit/query").FetchBaseQueryMeta>, "document" | "tag" | "collection" | "identity" | "role" | "user" | "authConfig" | "session", DocumentWithTags[], "api", unknown>;
+    listSelectionTags: import("@reduxjs/toolkit/query").QueryDefinition<DocumentSelection, import("@reduxjs/toolkit/query").BaseQueryFn<string | import("@reduxjs/toolkit/query").FetchArgs, unknown, import("@reduxjs/toolkit/query").FetchBaseQueryError, {}, import("@reduxjs/toolkit/query").FetchBaseQueryMeta>, "document" | "tag" | "collection" | "identity" | "role" | "user" | "authConfig" | "session", SelectionTags, "api", unknown>;
     bulkEditDocuments: import("@reduxjs/toolkit/query").MutationDefinition<BulkEditDocumentsRequest, import("@reduxjs/toolkit/query").BaseQueryFn<string | import("@reduxjs/toolkit/query").FetchArgs, unknown, import("@reduxjs/toolkit/query").FetchBaseQueryError, {}, import("@reduxjs/toolkit/query").FetchBaseQueryMeta>, "document" | "tag" | "collection" | "identity" | "role" | "user" | "authConfig" | "session", void, "api", unknown>;
     deleteDocument: import("@reduxjs/toolkit/query").MutationDefinition<string, import("@reduxjs/toolkit/query").BaseQueryFn<string | import("@reduxjs/toolkit/query").FetchArgs, unknown, import("@reduxjs/toolkit/query").FetchBaseQueryError, {}, import("@reduxjs/toolkit/query").FetchBaseQueryMeta>, "document" | "tag" | "collection" | "identity" | "role" | "user" | "authConfig" | "session", void, "api", unknown>;
     getDocumentAccess: import("@reduxjs/toolkit/query").QueryDefinition<string, import("@reduxjs/toolkit/query").BaseQueryFn<string | import("@reduxjs/toolkit/query").FetchArgs, unknown, import("@reduxjs/toolkit/query").FetchBaseQueryError, {}, import("@reduxjs/toolkit/query").FetchBaseQueryMeta>, "document" | "tag" | "collection" | "identity" | "role" | "user" | "authConfig" | "session", DocumentAccess, "api", unknown>;

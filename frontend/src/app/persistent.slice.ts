@@ -7,6 +7,11 @@ type PersistentState = {
   activeThemeName: string | null;
   maxConcurrentUploads: number;
   tagInputEasyMode: boolean;
+  // null: decided by screen size
+  showFilmstrip: boolean | null;
+  // Ids of the home widgets in the user's order; null: by widget priority
+  homeWidgetOrder: string[] | null;
+  hiddenHomeWidgets: string[];
 };
 
 const initialState: PersistentState = {
@@ -14,6 +19,9 @@ const initialState: PersistentState = {
   activeThemeName: null,
   maxConcurrentUploads: 3,
   tagInputEasyMode: true,
+  showFilmstrip: null,
+  homeWidgetOrder: null,
+  hiddenHomeWidgets: [],
 };
 
 export const persistentSlice = createSlice({
@@ -32,6 +40,22 @@ export const persistentSlice = createSlice({
     setTagInputEasyMode: (state, action: { payload: boolean }) => {
       state.tagInputEasyMode = action.payload;
     },
+    setShowFilmstrip: (state, action: { payload: boolean }) => {
+      state.showFilmstrip = action.payload;
+    },
+    setHomeWidgetOrder: (state, action: { payload: string[] }) => {
+      state.homeWidgetOrder = action.payload;
+    },
+    toggleHomeWidgetHidden: (state, action: { payload: string }) => {
+      const hidden = state.hiddenHomeWidgets ?? [];
+      state.hiddenHomeWidgets = hidden.includes(action.payload)
+        ? hidden.filter((id) => id !== action.payload)
+        : [...hidden, action.payload];
+    },
+    resetHomeWidgets: (state) => {
+      state.homeWidgetOrder = null;
+      state.hiddenHomeWidgets = [];
+    },
   },
 });
 
@@ -40,6 +64,10 @@ export const {
   setActiveTheme,
   setMaxConcurrentUploads,
   setTagInputEasyMode,
+  setShowFilmstrip,
+  setHomeWidgetOrder,
+  toggleHomeWidgetHidden,
+  resetHomeWidgets,
 } = persistentSlice.actions;
 export const persistentSliceReducer = persistentSlice.reducer;
 
@@ -50,3 +78,12 @@ export const selectMaxConcurrentUploads = (state: RootState) =>
   state.local.maxConcurrentUploads ?? 3;
 export const selectTagInputEasyMode = (state: RootState) =>
   state.local.tagInputEasyMode ?? true;
+export const selectShowFilmstrip = (state: RootState) =>
+  state.local.showFilmstrip ?? null;
+
+const EMPTY_IDS: string[] = [];
+
+export const selectHomeWidgetOrder = (state: RootState) =>
+  state.local.homeWidgetOrder ?? null;
+export const selectHiddenHomeWidgets = (state: RootState) =>
+  state.local.hiddenHomeWidgets ?? EMPTY_IDS;

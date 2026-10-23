@@ -16,6 +16,17 @@ export class AccessScopeResolver {
     return { type: "public-only" };
   }
 
+  /**
+   * The real user behind `identity`, e.g. for `shared:me` filters. Undefined
+   * for anonymous users and the AllowAllIdentity (IDP disabled).
+   */
+  currentUserId(identity: Identity): string | undefined {
+    if (identity.userId === null || identity.userId === "system") {
+      return undefined;
+    }
+    return identity.userId;
+  }
+
   documentScope(identity: Identity): DocumentAccessScope {
     if (!identity.hasPermission("document:read")) return { type: "none" };
     // AllowAllIdentity (IDP disabled) or admin role

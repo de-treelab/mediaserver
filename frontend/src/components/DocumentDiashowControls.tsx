@@ -39,6 +39,7 @@ export const DocumentDiashowControls = ({
     <AutoHideOverlay className="bottom-0 flex justify-center gap-4 bg-surface-2 p-2">
       <IconButton
         onClick={previousDocument}
+        aria-label={t("document.preview.previous")}
         className="bg-surface-1 rounded-full p-2 hover:bg-surface-3"
       >
         <FaChevronLeft size={16} />
@@ -51,6 +52,7 @@ export const DocumentDiashowControls = ({
       </IconButton>
       <IconButton
         onClick={nextDocument}
+        aria-label={t("document.preview.next")}
         className="bg-surface-1 rounded-full p-2 hover:bg-surface-3"
       >
         <FaChevronRight size={16} />
@@ -69,6 +71,7 @@ export const DocumentDiashowControls = ({
       </div>
       <IconButton
         onClick={toggleInfoPanel}
+        aria-label={t("document.preview.info")}
         className={twMerge(
           "bg-surface-1 rounded-full p-2 hover:bg-surface-3",
           showInfoPanel && "text-accent-subtle",
@@ -79,6 +82,7 @@ export const DocumentDiashowControls = ({
       <IconButton
         onClick={endPresentation}
         title={t("document.preview.endPresentation")}
+        aria-label={t("document.preview.endPresentation")}
         className="bg-surface-1 rounded-full p-2 hover:bg-surface-3"
       >
         <MdFullscreenExit size={16} />

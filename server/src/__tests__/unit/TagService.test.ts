@@ -13,6 +13,9 @@ const makeTagRepository = (): TagRepository => ({
   removeTagFromDocument: vi.fn(),
   deleteTag: vi.fn(),
   enumerateTags: vi.fn(),
+  resolveSelection: vi.fn(),
+  countTagsOfDocuments: vi.fn(),
+  bulkEditDocuments: vi.fn(),
 }) as unknown as TagRepository;
 
 const makeTagCache = (): TagCache =>
@@ -189,6 +192,52 @@ describe("TagService", () => {
           tagId: "2",
           tag: { key: "uploaded", value: "01.01.2025", type: "default" },
         },
+      ]);
+    });
+  });
+
+  describe("selections", () => {
+    const selection = {
+      type: "query" as const,
+      query: "nature",
+      excludedIds: ["doc-3"],
+    };
+    const scope = { type: "accessible-by" as const, userId: "user-1" };
+
+    beforeEach(() => {
+      vi.mocked(tagRepository.resolveSelection).mockResolvedValue([
+        "doc-1",
+        "doc-2",
+      ]);
+    });
+
+    it("bulk edits the documents the selection resolves to", async () => {
+      const tagsToAdd: ApiTag[] = [{ key: "a", type: "default" }];
+      await tagService.bulkEditDocuments(selection, tagsToAdd, [], scope);
+      expect(tagRepository.resolveSelection).toHaveBeenCalledWith(
+        selection,
+        scope,
+        undefined,
+        undefined,
+      );
+      expect(tagRepository.bulkEditDocuments).toHaveBeenCalledWith(
+        ["doc-1", "doc-2"],
+        tagsToAdd,
+        [],
+        scope,
+      );
+    });
+
+    it("counts the tags of the documents the selection resolves to", async () => {
+      const tags = [{ key: "a", type: "default", usageCount: 2 }];
+      vi.mocked(tagRepository.countTagsOfDocuments).mockResolvedValue(tags);
+      expect(await tagService.listSelectionTags(selection, scope)).toEqual({
+        total: 2,
+        tags,
+      });
+      expect(tagRepository.countTagsOfDocuments).toHaveBeenCalledWith([
+        "doc-1",
+        "doc-2",
       ]);
     });
   });

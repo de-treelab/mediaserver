@@ -287,6 +287,41 @@ describe("TagRepository.listDocuments pagination (integration)", () => {
     });
   });
 
+  describe("at", () => {
+    it("returns the window starting at the index", async () => {
+      const page = await list({ type: "at", index: 2 }, 3);
+      expect(page.items.map((d) => d.id)).toEqual(NEWEST_ORDER.slice(2, 5));
+      expect(page.items.map((d) => d.queryIndex)).toEqual([2, 3, 4]);
+      expect(page.startIndex).toBe(2);
+      expect(page.total).toBe(7);
+    });
+
+    it("truncates the window at the end of the listing", async () => {
+      const page = await list({ type: "at", index: 5 }, 5);
+      expect(page.items.map((d) => d.id)).toEqual(NEWEST_ORDER.slice(5));
+    });
+
+    it("returns an empty window past the end of the listing", async () => {
+      const page = await list({ type: "at", index: 10 }, 5);
+      expect(page.items).toEqual([]);
+      expect(page.total).toBe(7);
+      expect(page.startIndex).toBe(7);
+    });
+
+    it("works with random sort", async () => {
+      const all = (
+        await list({ type: "first" }, 100, "sort:random", "abc")
+      ).items.map((d) => d.id);
+      const page = await list(
+        { type: "at", index: 3 },
+        2,
+        "sort:random",
+        "abc",
+      );
+      expect(page.items.map((d) => d.id)).toEqual(all.slice(3, 5));
+    });
+  });
+
   describe("cursor encoding", () => {
     it("round-trips microsecond timestamps", () => {
       const cursor = { ts: "2026-01-04T10:00:00.000001", id: docId(6) };

@@ -108,11 +108,24 @@ var samplePage = {
   }
 };
 
+// src/sampleHomeWidget.ts
+var sampleHomeWidget = {
+  id: "sample-plugin:videos",
+  label: "Videos (Sample Plugin)",
+  priority: 50,
+  Component: ({ React, components }) => React.createElement(components.DocumentFilmstrip, {
+    title: "Videos",
+    query: "video",
+    limit: 12,
+    hideWhenEmpty: true
+  })
+};
+
 // src/index.ts
 var plugin = {
   id: "sample-plugin",
   name: "Sample Plugin",
-  description: "Demonstrates nav items, routes, and API access",
+  description: "Demonstrates nav items, routes, home widgets, and API access",
   navItems: [
     {
       id: "sample-page",
@@ -123,7 +136,8 @@ var plugin = {
     }
   ],
   documentInfo: scorePanel,
-  routes: [samplePage]
+  routes: [samplePage],
+  homeWidgets: [sampleHomeWidget]
 };
 var index_default = plugin;
 export {

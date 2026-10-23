@@ -15,7 +15,8 @@ type Props = {
   sortMode: "newest" | "random";
   onSetSortMode: (mode: "newest" | "random") => void;
   total: number;
-  pageSize: number;
+  // Inclusive range of query indices in view
+  visibleRange: [number, number];
 };
 
 export const GalleryControls = ({
@@ -28,7 +29,7 @@ export const GalleryControls = ({
   sortMode,
   onSetSortMode,
   total,
-  pageSize,
+  visibleRange: [first, last],
 }: Props) => {
   const { t } = useTranslation();
 
@@ -47,7 +48,11 @@ export const GalleryControls = ({
         />
       )}
       <span className="text-sm text-text-muted whitespace-nowrap">
-        {t("pages.gallery.shownOfTotal", { shown: pageSize, total })}
+        {t("pages.gallery.visibleRange", {
+          start: last >= first ? first + 1 : 0,
+          end: last + 1,
+          total,
+        })}
       </span>
       <div className="flex items-center gap-1.5">
         <Select

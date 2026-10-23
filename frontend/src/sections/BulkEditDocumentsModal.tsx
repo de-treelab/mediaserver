@@ -6,7 +6,7 @@ import { enhancedApi } from "../app/enhancedApi";
 import { TagList } from "../components/TagList";
 import { TagInput } from "./TagInput";
 import { skipToken } from "@reduxjs/toolkit/query";
-import type { ApiTag } from "../app/api";
+import type { ApiTag, DocumentSelection } from "../app/api";
 import { Button } from "../components/Button";
 import { CollectionCard } from "./CollectionCard";
 import { BiLoader } from "react-icons/bi";
@@ -14,14 +14,17 @@ import { tagToString, stringToTag } from "../util/tag";
 import { Input } from "../components/Input";
 
 type Props = {
-  documentIds: string[];
+  selection: DocumentSelection;
+  // Number of selected documents as known before the server counted them
+  count: number;
   isOpen: boolean;
   onConfirm: () => void;
   onAbort: () => void;
 };
 
 export const BulkEditDocumentsModal = ({
-  documentIds,
+  selection,
+  count,
   isOpen,
   onConfirm,
   onAbort,
@@ -31,9 +34,11 @@ export const BulkEditDocumentsModal = ({
     "tag",
   );
 
-  const { data: documents } = enhancedApi.useListDocumentsByIdsQuery(
-    isOpen ? documentIds : skipToken,
+  // Counted by the server, as selecting all doesn't come with the ids
+  const { data: selectionTags } = enhancedApi.useListSelectionTagsQuery(
+    isOpen ? selection : skipToken,
   );
+  const selectedCount = selectionTags?.total;
   const { data: fetchedTags } = enhancedApi.useListTagsQuery({
     limit: 1000,
     offset: 0,
@@ -54,18 +59,18 @@ export const BulkEditDocumentsModal = ({
   }, [isOpen]);
 
   const allTagsWithUsage = useMemo(() => {
-    if (!documents) return [];
-    const n = documents.length;
+    if (!selectionTags) return [];
+    const n = selectionTags.total;
 
     const tagsMap: Record<string, ApiTag & { usageCount: number }> = {};
     fetchedTags?.items.forEach((tag) => {
       tagsMap[tagToString(tag)] = { ...tag, usageCount: 0 };
     });
-    documents.forEach((doc) => {
-      doc.tags.forEach((tag) => {
-        const k = tagToString(tag);
-        if (!(k in tagsMap)) tagsMap[k] = { ...tag, usageCount: 0 };
-      });
+    const originalCounts = new Map<string, number>();
+    selectionTags.tags.forEach(({ usageCount, ...tag }) => {
+      const k = tagToString(tag);
+      originalCounts.set(k, usageCount);
+      if (!(k in tagsMap)) tagsMap[k] = { ...tag, usageCount: 0 };
     });
     tagsToAdd.forEach((tag) => {
       const k = tagToString(tag);
@@ -74,9 +79,7 @@ export const BulkEditDocumentsModal = ({
 
     return Object.values(tagsMap).map((tag) => {
       const k = tagToString(tag);
-      const originalCount = documents.filter((doc) =>
-        doc.tags.some((t) => tagToString(t) === k),
-      ).length;
+      const originalCount = originalCounts.get(k) ?? 0;
       const pendingAdd = tagsToAdd.some((t) => tagToString(t) === k);
       const pendingRemove = tagsToRemove.some((t) => tagToString(t) === k);
       return {
@@ -84,7 +87,7 @@ export const BulkEditDocumentsModal = ({
         usageCount: pendingAdd ? n : pendingRemove ? 0 : originalCount,
       };
     });
-  }, [documents, fetchedTags, tagsToAdd, tagsToRemove]);
+  }, [selectionTags, fetchedTags, tagsToAdd, tagsToRemove]);
 
   const tags = useMemo(() => {
     return allTagsWithUsage.filter(
@@ -96,16 +99,16 @@ export const BulkEditDocumentsModal = ({
   }, [allTagsWithUsage]);
 
   const sharedTags = useMemo(() => {
-    return tags.filter((tag) => tag.usageCount === documents?.length);
-  }, [tags, documents]);
+    return tags.filter((tag) => tag.usageCount === selectedCount);
+  }, [tags, selectedCount]);
 
   const sharedCollections = useMemo(() => {
     return allTagsWithUsage.filter(
       (tag) =>
         (tag.key === "collection" || tag.type === "collection") &&
-        tag.usageCount === documents?.length,
+        tag.usageCount === selectedCount,
     );
-  }, [allTagsWithUsage, documents]);
+  }, [allTagsWithUsage, selectedCount]);
 
   const [collectionFilter, setCollectionFilter] = useState("");
   const [query, setQuery] = useState("");
@@ -159,20 +162,20 @@ export const BulkEditDocumentsModal = ({
 
   const onBulkEditConfirm = useCallback(() => {
     bulkEditDocuments({
-      documentIds,
+      selection,
       tagsToAdd,
       tagsToRemove,
     }).then(() => {
       onConfirm();
     });
-  }, [tagsToAdd, tagsToRemove, bulkEditDocuments, documentIds, onConfirm]);
+  }, [tagsToAdd, tagsToRemove, bulkEditDocuments, selection, onConfirm]);
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onAbort}
       title={t("pages.gallery.bulkEditDocuments", {
-        count: documentIds.length,
+        count: selectedCount ?? count,
       })}
     >
       <div className="flex flex-col gap-2 min-h-[400px]">
@@ -235,7 +238,9 @@ export const BulkEditDocumentsModal = ({
           disabled={isLoading || (!tagsToAdd.length && !tagsToRemove.length)}
         >
           {isLoading ? <BiLoader className="animate-spin" /> : undefined}
-          {t("pages.gallery.bulkEditConfirm", { count: documentIds.length })}
+          {t("pages.gallery.bulkEditConfirm", {
+            count: selectedCount ?? count,
+          })}
         </Button>
       </div>
     </Modal>

@@ -33,6 +33,23 @@ const parseDateFromTags = (tags: ApiTag[]): string | undefined => {
   }
 };
 
+// Fixed size, so all cards are equally tall regardless of their tags. Lets
+// the gallery position rows without rendering them.
+const cardClass =
+  "relative rounded-xl overflow-hidden bg-surface-1 border border-border flex flex-col";
+const footerClass = "h-24 p-3 flex flex-col gap-1.5 overflow-hidden";
+
+/** Stand-in of the same size for a document that isn't loaded yet. */
+export const DocumentCardPlaceholder = () => (
+  <div className={cardClass}>
+    <div className="w-full aspect-[4/3] bg-surface-2" />
+    <div className={footerClass}>
+      <div className="h-3.5 w-2/3 rounded bg-surface-2" />
+      <div className="h-3 w-1/4 rounded bg-surface-2" />
+    </div>
+  </div>
+);
+
 type Props = {
   document: Document;
   tags?: ApiTag[];
@@ -79,7 +96,8 @@ export const DocumentCard = ({
   return (
     <div
       className={twMerge(
-        "relative rounded-xl overflow-hidden bg-surface-1 border border-border cursor-pointer transition-colors hover:border-border-strong flex flex-col",
+        cardClass,
+        "cursor-pointer transition-colors hover:border-border-strong",
         selected && "ring-2 ring-accent",
       )}
       onClick={onClick}
@@ -134,7 +152,7 @@ export const DocumentCard = ({
       </div>
 
       {/* Card footer */}
-      <div className="p-3 flex flex-col gap-1.5">
+      <div className={footerClass}>
         <p className="text-sm font-medium text-text-primary truncate leading-tight">
           {document.friendlyName || document.id}
         </p>
@@ -150,13 +168,13 @@ export const DocumentCard = ({
           )}
         </div>
         {displayTags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-0.5">
+          <div className="flex gap-1 mt-0.5">
             {displayTags.map((tag) => {
               const label = tag.value ? `${tag.key}:${tag.value}` : tag.key;
               return (
                 <span
                   key={label}
-                  className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-chip-bg text-chip-text text-[11px]"
+                  className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-chip-bg text-chip-text text-[11px] whitespace-nowrap"
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-accent-subtle shrink-0" />
                   {label}
