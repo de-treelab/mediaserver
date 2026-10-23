@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { twMerge } from "tailwind-merge";
 import { AddDocumentToCollection } from "./AddDocumentToCollection";
 import { DocumentAccessPanel } from "./DocumentAccessPanel";
 import { DocumentTagsPanel } from "./DocumentTagsPanel";
 import { InfoProperties } from "./InfoProperties";
 import type { Document } from "../app/api";
+import { Tabs } from "../components/Tabs";
 
 type Tab = "info" | "tags" | "collections" | "access";
 
@@ -21,6 +23,7 @@ export const DocumentInfoPanel = ({
   canManageAccess,
   className,
 }: Props) => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>("info");
 
   const tabs: Tab[] = [
@@ -37,27 +40,21 @@ export const DocumentInfoPanel = ({
         className,
       )}
     >
-      <div className="flex border-b border-border flex-shrink-0">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={twMerge(
-              "flex-1 py-3 text-sm font-medium transition-colors capitalize",
-              activeTab === tab
-                ? "border-b-2 border-accent text-text-primary"
-                : "text-text-muted hover:text-text-primary",
-            )}
-          >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-          </button>
-        ))}
-      </div>
+      <Tabs
+        fill
+        className="flex-shrink-0"
+        currentTab={activeTab}
+        onTabChange={setActiveTab}
+        tabs={tabs.map((tab) => ({
+          tabId: tab,
+          node: t(`document.tabs.${tab}`),
+        }))}
+      />
       <div className="flex-1 overflow-hidden flex flex-col">
         {activeTab === "info" && <InfoProperties document={currentDocument} />}
         {activeTab === "tags" && <DocumentTagsPanel documentId={documentId} />}
         {activeTab === "collections" && (
-          <div className="flex-1 overflow-y-auto p-3">
+          <div className="flex-1 overflow-y-auto p-4">
             <AddDocumentToCollection documentId={documentId} />
           </div>
         )}

@@ -32,7 +32,7 @@ export const DocumentTagsPanel = ({ documentId }: { documentId: string }) => {
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
-      <div className="flex-1 overflow-y-auto p-3">
+      <div className="flex-1 overflow-y-auto p-4">
         <TagList
           tags={tags}
           onClick={(tag) =>
@@ -41,7 +41,7 @@ export const DocumentTagsPanel = ({ documentId }: { documentId: string }) => {
           onDelete={removeTagFromDocument}
         />
       </div>
-      <div className="flex-shrink-0 border-t border-border p-3">
+      <div className="flex-shrink-0 border-t border-border p-4">
         <TagInput
           value={tagInput}
           onChange={setTagInput}

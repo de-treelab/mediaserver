@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { MdLogout, MdHourglassEmpty } from "react-icons/md";
 import { AppIcon } from "../components/AppIcon";
+import { Button } from "../components/Button";
 
 export const PendingApprovalPage = () => {
   const { t } = useTranslation();
@@ -26,15 +27,16 @@ export const PendingApprovalPage = () => {
           {t("pendingApproval.description")}
         </p>
 
-        <button
+        <Button
+          variant="outline"
           onClick={() => {
             window.location.href = `${import.meta.env.VITE_BACKEND_URL}/auth/logout`;
           }}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-border text-text-primary text-sm font-medium hover:bg-surface-3 transition-colors"
+          className="w-full py-3"
         >
           <MdLogout size={16} />
           {t("sidebar.logout")}
-        </button>
+        </Button>
       </div>
     </div>
   );

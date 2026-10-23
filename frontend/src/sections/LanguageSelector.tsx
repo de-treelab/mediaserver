@@ -33,18 +33,18 @@ export const LanguageSelector = ({ className }: Props) => {
       <IoMdGlobe className="inline" size="1.75em" />
       <div
         className={twMerge(
-          "absolute top-full right-0 p-1 bg-surface-2 gap-2 w-60",
+          "absolute top-full right-0 z-50 w-60 py-1 bg-surface-2 rounded-md shadow-lg border border-border",
           hovered ? "inline" : "hidden",
         )}
       >
         <div className="flex flex-col">
-          <div className="p-1 font-bold border-b border-border-strong mb-1">
+          <div className="px-3 py-2 text-sm font-semibold border-b border-border mb-1">
             {t("settings.selectLanguage")}
           </div>
         </div>
         {languages.map((lng) => (
           <div
-            className="p-1 hover:bg-surface-3 flex flex-row flex-nowrap gap-2 text-lg"
+            className="px-3 py-2 hover:bg-surface-3 flex flex-row flex-nowrap gap-2 text-sm text-text-secondary"
             key={lng}
             onClick={() => dispatch(setLanguage(lng))}
           >

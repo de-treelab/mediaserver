@@ -7,6 +7,7 @@ import { MdClose, MdEdit, MdInfoOutline } from "react-icons/md";
 import { updateDocumentFriendlyName } from "../app/api";
 import { enhancedApi } from "../app/enhancedApi";
 import { useAppDispatch } from "../app/store";
+import { Input } from "./Input";
 
 type Props = {
   documentId: string;
@@ -66,9 +67,10 @@ export const DocumentPreviewControls: React.FC<Props> = ({
         <div className="min-w-0">
           <div className="flex items-center gap-1">
             {editing ? (
-              <input
+              <Input
                 autoFocus
-                className="text-sm font-semibold bg-surface-2 border border-border rounded px-1.5 py-0.5 outline-none focus:border-border-strong"
+                inputSize="sm"
+                className="text-sm font-semibold"
                 value={nameValue}
                 onChange={(e) => setNameValue(e.target.value)}
                 onBlur={commitRename}

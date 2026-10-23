@@ -19,6 +19,8 @@ import { enhancedApi } from "../app/enhancedApi";
 import { twMerge } from "tailwind-merge";
 import { useState } from "react";
 import { MdAccessTime, MdDeleteOutline, MdLock } from "react-icons/md";
+import { Card } from "../components/Card";
+import { NavGroupLabel, SectionLabel } from "../components/SectionLabel";
 
 type Section =
   | "profile"
@@ -34,6 +36,37 @@ type NavGroup = {
   label: string;
   items: { id: Section; label: string; adminOnly?: boolean }[];
 };
+
+const SettingsSection = ({
+  title,
+  actions,
+  children,
+}: {
+  title: string;
+  actions?: React.ReactNode;
+  children: React.ReactNode;
+}) => (
+  <div className="flex flex-col gap-4">
+    <div className="flex items-center justify-between gap-4">
+      <h2 className="text-xl font-semibold text-text-primary">{title}</h2>
+      {actions}
+    </div>
+    {children}
+  </div>
+);
+
+const Field = ({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) => (
+  <div className="flex flex-col gap-1">
+    <SectionLabel>{label}</SectionLabel>
+    {children}
+  </div>
+);
 
 const getUsername = (email?: string | null, name?: string | null): string => {
   if (email) return "@" + email.split("@")[0];
@@ -132,12 +165,10 @@ export const SettingsPage = () => {
   return (
     <div className="flex min-h-full w-full">
       {/* Left nav */}
-      <div className="hidden sm:flex flex-col w-56 flex-shrink-0 py-6 px-3 gap-1 sticky top-0 self-start h-[calc(100vh-64px)] sm:h-screen overflow-y-auto">
+      <div className="hidden sm:flex flex-col w-56 flex-shrink-0 py-6 px-3 gap-2 sticky top-0 self-start h-[calc(100vh-64px)] sm:h-screen overflow-y-auto">
         {navGroups.map((group) => (
-          <div key={group.label} className="mb-2">
-            <p className="px-3 pb-1 pt-2 text-xs font-semibold tracking-widest text-text-faint uppercase select-none">
-              {group.label}
-            </p>
+          <div key={group.label} className="flex flex-col gap-0.5">
+            <NavGroupLabel>{group.label}</NavGroupLabel>
             {group.items.map((item) => {
               const locked = item.adminOnly && !isAdmin;
               return (
@@ -148,10 +179,10 @@ export const SettingsPage = () => {
                   className={twMerge(
                     "w-full flex items-center justify-between gap-2 px-3 py-2 rounded-md text-sm transition-colors text-left",
                     section === item.id
-                      ? "border-2 border-border text-text-primary font-medium"
+                      ? "bg-surface-1 text-text-primary font-medium"
                       : locked
                         ? "text-text-faint cursor-not-allowed"
-                        : "text-text-secondary hover:bg-surface-2 hover:text-text-primary",
+                        : "text-text-secondary hover:bg-surface-1 hover:text-text-primary",
                   )}
                 >
                   {item.label}
@@ -164,13 +195,10 @@ export const SettingsPage = () => {
       </div>
 
       {/* Right content */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 min-w-0 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
         {section === "profile" && (
-          <div className="flex flex-col gap-4">
-            <h2 className="text-xl font-semibold text-text-primary">
-              {t("settings.nav.profile", "Profile")}
-            </h2>
-            <div className="flex items-center gap-4 mb-2">
+          <SettingsSection title={t("settings.nav.profile", "Profile")}>
+            <div className="flex items-center gap-4">
               <UserAvatar
                 name={identity?.name}
                 email={identity?.email}
@@ -186,39 +214,27 @@ export const SettingsPage = () => {
               </div>
             </div>
             {identity?.name && (
-              <div className="flex flex-col gap-1">
-                <p className="text-text-secondary text-xs uppercase tracking-wide">
-                  {t("account.profile.name")}
-                </p>
+              <Field label={t("account.profile.name")}>
                 <p className="text-text-primary">{identity.name}</p>
-              </div>
+              </Field>
             )}
             {identity?.email && (
-              <div className="flex flex-col gap-1">
-                <p className="text-text-secondary text-xs uppercase tracking-wide">
-                  {t("account.profile.email")}
-                </p>
+              <Field label={t("account.profile.email")}>
                 <p className="text-text-primary">{identity.email}</p>
-              </div>
+              </Field>
             )}
             {identity?.userId && (
-              <div className="flex flex-col gap-1">
-                <p className="text-text-secondary text-xs uppercase tracking-wide">
-                  {t("account.profile.userId")}
-                </p>
+              <Field label={t("account.profile.userId")}>
                 <p className="text-text-secondary text-xs font-mono break-all">
                   {identity.userId}
                 </p>
-              </div>
+              </Field>
             )}
-          </div>
+          </SettingsSection>
         )}
 
         {section === "sessions" && (
-          <div className="flex flex-col gap-4">
-            <h2 className="text-xl font-semibold text-text-primary">
-              {t("settings.nav.sessions", "Sessions")}
-            </h2>
+          <SettingsSection title={t("settings.nav.sessions", "Sessions")}>
             {sessionsLoading && (
               <p className="text-text-secondary text-sm">
                 {t("common.loading")}
@@ -231,7 +247,7 @@ export const SettingsPage = () => {
                   "flex items-center gap-3 p-3 rounded-lg border",
                   session.isCurrent
                     ? "border-accent bg-accent/5"
-                    : "border-border bg-surface-3",
+                    : "border-border bg-surface-1",
                 )}
               >
                 <MdAccessTime className="text-text-secondary w-5 h-5 flex-shrink-0" />
@@ -257,21 +273,18 @@ export const SettingsPage = () => {
                   <button
                     onClick={() => deleteSession(session.id)}
                     title={t("account.sessions.delete")}
-                    className="text-text-secondary hover:text-red-500 transition-colors flex-shrink-0"
+                    className="text-text-secondary hover:text-danger-subtle transition-colors flex-shrink-0"
                   >
                     <MdDeleteOutline size={18} />
                   </button>
                 )}
               </div>
             ))}
-          </div>
+          </SettingsSection>
         )}
 
         {section === "appearance" && (
-          <div className="flex flex-col gap-4">
-            <h2 className="text-xl font-semibold text-text-primary">
-              {t("settings.nav.appearance", "Appearance")}
-            </h2>
+          <SettingsSection title={t("settings.nav.appearance", "Appearance")}>
             <div className="flex flex-row flex-wrap gap-3">
               {themePlugins.map((plugin) => {
                 const isActive =
@@ -281,7 +294,7 @@ export const SettingsPage = () => {
                   <button
                     key={plugin.name}
                     onClick={() => handleThemeSelect(plugin)}
-                    className={`flex flex-col gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                    className={`flex flex-col gap-2 p-3 rounded-lg border-2 bg-surface-1 cursor-pointer transition-all ${
                       isActive
                         ? "border-accent"
                         : "border-border hover:border-border-strong"
@@ -315,22 +328,16 @@ export const SettingsPage = () => {
                 );
               })}
             </div>
-          </div>
+          </SettingsSection>
         )}
 
         {section === "language" && (
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-text-primary">
-                {t("settings.nav.language", "Language & translations")}
-              </h2>
-              <LanguageSelector />
-            </div>
+          <SettingsSection
+            title={t("settings.nav.language", "Language & translations")}
+            actions={<LanguageSelector />}
+          >
             {languages.map((lng) => (
-              <div
-                key={lng}
-                className="mb-4 p-4 border border-border rounded-lg"
-              >
+              <Card key={lng}>
                 <span className="font-semibold">
                   {t(`languages.${lng}.name`)}
                 </span>{" "}
@@ -343,26 +350,19 @@ export const SettingsPage = () => {
                       (lng in standardTranslations ? "yes" : "no"),
                   )}
                 </div>
-              </div>
+              </Card>
             ))}
-          </div>
+          </SettingsSection>
         )}
 
         {section === "plugins" && (
-          <div className="flex flex-col gap-6">
-            <h2 className="text-xl font-semibold text-text-primary">
-              {t("settings.nav.plugins", "Plugins")}
-            </h2>
-
+          <SettingsSection title={t("settings.nav.plugins", "Plugins")}>
             <div className="flex flex-col gap-3">
-              <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wide">
+              <SectionLabel>
                 {t("settings.nav.frontendPlugins", "Frontend Plugins")}
-              </h3>
+              </SectionLabel>
               {fileTypes.map((plugin, index) => (
-                <div
-                  key={index}
-                  className="p-4 border border-border rounded-lg flex items-start gap-3"
-                >
+                <Card key={index} className="flex items-start gap-3">
                   <Icon
                     Icon={plugin.icon(reactIcons)}
                     size="medium"
@@ -388,19 +388,16 @@ export const SettingsPage = () => {
                       </span>
                     </p>
                   </div>
-                </div>
+                </Card>
               ))}
             </div>
 
             <div className="flex flex-col gap-3">
-              <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wide">
+              <SectionLabel>
                 {t("state.backendPlugins", "Backend Plugins")}
-              </h3>
+              </SectionLabel>
               {backendState?.plugins.map((plugin, index) => (
-                <div
-                  key={index}
-                  className="p-4 border border-border rounded-lg flex items-start gap-3"
-                >
+                <Card key={index} className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-md bg-surface-3 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <span className="text-xs font-bold text-text-secondary uppercase">
                       {plugin.name.slice(0, 2)}
@@ -426,7 +423,7 @@ export const SettingsPage = () => {
                       </span>
                     </p>
                   </div>
-                </div>
+                </Card>
               ))}
               {backendState && backendState.plugins.length === 0 && (
                 <p className="text-text-secondary text-sm">
@@ -434,34 +431,27 @@ export const SettingsPage = () => {
                 </p>
               )}
             </div>
-          </div>
+          </SettingsSection>
         )}
 
         {section === "roles" && isAdmin && (
-          <div className="flex flex-col gap-4">
-            <h2 className="text-xl font-semibold text-text-primary">
-              {t("settings.nav.roles", "Roles")}
-            </h2>
+          <SettingsSection title={t("settings.nav.roles", "Roles")}>
             <RolesEditor2 />
-          </div>
+          </SettingsSection>
         )}
 
         {section === "users" && isAdmin && (
-          <div className="flex flex-col gap-4">
-            <h2 className="text-xl font-semibold text-text-primary">
-              {t("settings.nav.users", "Users")}
-            </h2>
+          <SettingsSection title={t("settings.nav.users", "Users")}>
             <UsersTab />
-          </div>
+          </SettingsSection>
         )}
 
         {section === "configuration" && isAdmin && (
-          <div className="flex flex-col gap-4">
-            <h2 className="text-xl font-semibold text-text-primary">
-              {t("settings.nav.configuration", "Configuration")}
-            </h2>
+          <SettingsSection
+            title={t("settings.nav.configuration", "Configuration")}
+          >
             <ConfigTab />
-          </div>
+          </SettingsSection>
         )}
       </div>
     </div>

@@ -3,6 +3,9 @@ import { useTranslation } from "react-i18next";
 import { api, type AdminUser } from "../app/api";
 import { Tabs } from "../components/Tabs";
 import { RolesEditor2 } from "./RolesEditor2";
+import { Card } from "../components/Card";
+import { Button } from "../components/Button";
+import { FormField, Select } from "../components/Input";
 
 export const UsersTab = () => {
   const { t } = useTranslation();
@@ -26,7 +29,7 @@ export const UsersTab = () => {
         <p className="text-text-secondary text-sm">{t("admin.users.empty")}</p>
       )}
       {usersData?.users.map((user) => (
-        <div key={user.id} className="p-4 border border-border rounded-lg">
+        <Card key={user.id}>
           <div className="mb-2">
             <span className="font-semibold">
               {user.name ?? user.email ?? user.externalId}
@@ -39,20 +42,27 @@ export const UsersTab = () => {
           </div>
           <div className="flex flex-wrap gap-2">
             {rolesData?.roles.map((role) => (
-              <button
+              <Button
                 key={role.id}
-                onClick={() => toggleUserRole(user, role.id)}
-                className={`text-xs px-2 py-1 rounded border transition-colors ${
+                size="sm"
+                variant={
                   user.roles.some((r) => r.id === role.id)
-                    ? "bg-accent border-accent text-white"
-                    : "border-border text-text-secondary hover:border-border-strong"
-                }`}
+                    ? "primary"
+                    : "outline"
+                }
+                // Keep both states the same size as the bordered outline variant
+                className={
+                  user.roles.some((r) => r.id === role.id)
+                    ? "border border-accent"
+                    : undefined
+                }
+                onClick={() => toggleUserRole(user, role.id)}
               >
                 {role.name}
-              </button>
+              </Button>
             ))}
           </div>
-        </div>
+        </Card>
       ))}
     </div>
   );
@@ -69,12 +79,11 @@ export const ConfigTab = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-2">
-        <label className="text-sm font-medium">
-          {t("admin.config.anonymousRole")}
-        </label>
-        <select
-          className="px-3 py-2 rounded border border-border bg-bg-base text-sm"
+      <FormField
+        label={t("admin.config.anonymousRole")}
+        hint={t("admin.config.anonymousRoleHint")}
+      >
+        <Select
           value={config?.anonymousRoleId ?? ""}
           onChange={(e) =>
             void updateConfig({ anonymousRoleId: e.target.value || undefined })
@@ -86,18 +95,14 @@ export const ConfigTab = () => {
               {role.name}
             </option>
           ))}
-        </select>
-        <p className="text-xs text-text-secondary">
-          {t("admin.config.anonymousRoleHint")}
-        </p>
-      </div>
+        </Select>
+      </FormField>
 
-      <div className="flex flex-col gap-2">
-        <label className="text-sm font-medium">
-          {t("admin.config.defaultRole")}
-        </label>
-        <select
-          className="px-3 py-2 rounded border border-border bg-bg-base text-sm"
+      <FormField
+        label={t("admin.config.defaultRole")}
+        hint={t("admin.config.defaultRoleHint")}
+      >
+        <Select
           value={config?.defaultRoleId ?? ""}
           onChange={(e) =>
             void updateConfig({ defaultRoleId: e.target.value || undefined })
@@ -109,11 +114,8 @@ export const ConfigTab = () => {
               {role.name}
             </option>
           ))}
-        </select>
-        <p className="text-xs text-text-secondary">
-          {t("admin.config.defaultRoleHint")}
-        </p>
-      </div>
+        </Select>
+      </FormField>
     </div>
   );
 };

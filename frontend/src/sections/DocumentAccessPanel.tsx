@@ -3,6 +3,9 @@ import { useTranslation } from "react-i18next";
 import { api } from "../app/api";
 import { usePermission, useIdentity } from "../hooks/usePermission";
 import { FaLock, FaGlobe, FaTimes } from "react-icons/fa";
+import { SectionLabel } from "../components/SectionLabel";
+import { Button } from "../components/Button";
+import { Select } from "../components/Input";
 
 type Props = {
   documentId: string;
@@ -27,7 +30,7 @@ export const DocumentAccessPanel = ({ documentId }: Props) => {
 
   if (isLoading)
     return (
-      <div className="text-sm text-text-secondary p-2">
+      <div className="text-sm text-text-secondary p-4">
         {t("common.loading")}
       </div>
     );
@@ -80,21 +83,17 @@ export const DocumentAccessPanel = ({ documentId }: Props) => {
     ) ?? [];
 
   return (
-    <div className="flex flex-col gap-4 p-3 text-sm w-full overflow-y-auto">
+    <div className="flex flex-col gap-4 p-4 text-sm w-full overflow-y-auto">
       <div>
-        <span className="text-text-secondary text-xs uppercase tracking-wide">
-          {t("document.access.owner")}
-        </span>
+        <SectionLabel>{t("document.access.owner")}</SectionLabel>
         <div className="mt-1 font-medium">{ownerLabel}</div>
       </div>
 
       <div>
-        <span className="text-text-secondary text-xs uppercase tracking-wide">
-          {t("document.access.title")}
-        </span>
+        <SectionLabel>{t("document.access.title")}</SectionLabel>
         <button
           onClick={handleTogglePublic}
-          className="mt-1 flex items-center gap-2 w-full p-2 rounded border border-border hover:border-border-strong transition-colors text-left"
+          className="mt-1 flex items-center gap-3 w-full px-3 py-2 rounded-md border border-border hover:border-border-strong transition-colors text-left"
         >
           {access.isPublic ? (
             <FaGlobe className="text-accent flex-shrink-0" />
@@ -118,19 +117,17 @@ export const DocumentAccessPanel = ({ documentId }: Props) => {
 
       {!access.isPublic && (
         <div>
-          <span className="text-text-secondary text-xs uppercase tracking-wide">
-            {t("document.access.sharedWith")}
-          </span>
+          <SectionLabel>{t("document.access.sharedWith")}</SectionLabel>
           <div className="mt-1 flex flex-col gap-1">
             {access.shares.length === 0 && (
-              <div className="text-text-secondary italic">
+              <div className="text-text-muted italic">
                 {t("document.access.noShares")}
               </div>
             )}
             {access.shares.map((share) => (
               <div
                 key={share.userId}
-                className="flex items-center justify-between p-2 rounded border border-border"
+                className="flex items-center justify-between px-3 py-2 rounded-md border border-border"
               >
                 <span>{share.name ?? share.email ?? share.userId}</span>
                 <button
@@ -146,10 +143,10 @@ export const DocumentAccessPanel = ({ documentId }: Props) => {
 
           {isAdmin && availableToAdd.length > 0 && (
             <div className="mt-2 flex gap-2">
-              <select
+              <Select
                 value={selectedUserId}
                 onChange={(e) => setSelectedUserId(e.target.value)}
-                className="flex-1 text-sm border border-border rounded p-1 bg-surface-1 text-text-primary"
+                className="flex-1"
               >
                 <option value="">{t("document.access.addUser")}</option>
                 {availableToAdd.map((u) => (
@@ -157,14 +154,14 @@ export const DocumentAccessPanel = ({ documentId }: Props) => {
                     {u.name ?? u.email ?? u.externalId}
                   </option>
                 ))}
-              </select>
-              <button
+              </Select>
+              <Button
+                size="sm"
                 onClick={handleAddShare}
                 disabled={!selectedUserId}
-                className="px-2 py-1 rounded bg-accent text-white text-xs disabled:opacity-50 hover:bg-accent/80 transition-colors"
               >
                 +
-              </button>
+              </Button>
             </div>
           )}
         </div>

@@ -35,7 +35,7 @@ export const Thumbnail = ({
 
   if (isLoading || error) {
     return (
-      <div className="w-[120px] h-[120px] bg-primary flex items-center justify-center" />
+      <div className="w-[60px] h-[60px] sm:w-[120px] sm:h-[120px] bg-surface-2 flex items-center justify-center" />
     );
   }
 

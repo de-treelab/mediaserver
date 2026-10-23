@@ -7,6 +7,8 @@ import { TagList } from "../components/TagList";
 import { Pagination } from "../components/Pagination";
 import { usePageOffsetAndLimitParams } from "../hooks/usePageOffsetAndLimitParams";
 import { useDebounce } from "../hooks/useDebounce";
+import { EmptyState, Page, PageHeader } from "../components/Page";
+import { Input } from "../components/Input";
 
 export const TagsPage = () => {
   const { t } = useTranslation();
@@ -29,26 +31,22 @@ export const TagsPage = () => {
   );
 
   return (
-    <div className="p-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-text-primary">
-          <MdOutlineLocalOffer className="text-text-muted" />
-          {t("pages.tags.title")}
-        </h1>
-        <input
-          type="search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={t("pages.tags.searchPlaceholder")}
-          className="w-full sm:w-64 px-3 py-1.5 rounded-lg text-sm bg-surface-1 border border-border text-text-primary placeholder:text-text-faint focus:outline-none focus:border-border-strong"
-        />
-      </div>
+    <Page>
+      <PageHeader
+        icon={<MdOutlineLocalOffer />}
+        title={t("pages.tags.title")}
+        actions={
+          <Input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t("pages.tags.searchPlaceholder")}
+            className="sm:w-64"
+          />
+        }
+      />
 
-      {tags.length === 0 && (
-        <div className="text-text-muted text-center py-12">
-          {t("pages.tags.empty")}
-        </div>
-      )}
+      {tags.length === 0 && <EmptyState>{t("pages.tags.empty")}</EmptyState>}
 
       <TagList
         tags={tags}
@@ -63,9 +61,8 @@ export const TagsPage = () => {
           limit={limit}
           currentPage={page}
           onPageChange={setPage}
-          className="mt-6"
         />
       )}
-    </div>
+    </Page>
   );
 };

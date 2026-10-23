@@ -19,7 +19,7 @@ export const CollectionBadge: React.FC<Props> = ({
         collection.type === "static"
           ? "bg-badge-static text-badge-static-text"
           : "bg-accent-dim text-accent-muted",
-        collection.isFavorite && "border-yellow-500",
+        collection.isFavorite && "border-warning-strong",
       )}
       onClick={onClick ? () => onClick(collection) : undefined}
       onDelete={onDelete ? () => onDelete(collection) : undefined}

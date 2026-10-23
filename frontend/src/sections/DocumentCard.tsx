@@ -106,7 +106,7 @@ export const DocumentCard = ({
           <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 flex items-center justify-center backdrop-blur-sm">
             {document.isPublic ? (
               <MdPublic
-                className="w-3.5 h-3.5 text-amber-400"
+                className="w-3.5 h-3.5 text-warning"
                 title={t("document.access.public")}
               />
             ) : (

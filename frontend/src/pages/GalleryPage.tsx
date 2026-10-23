@@ -24,6 +24,9 @@ import { AiOutlineUpload } from "react-icons/ai";
 import { MdEdit } from "react-icons/md";
 import { Button } from "../components/Button";
 import { useTranslation } from "react-i18next";
+import { twMerge } from "tailwind-merge";
+import { PageHeader } from "../components/Page";
+import { pageGutter } from "../components/styles";
 
 export const GalleryPage = () => {
   const { t } = useTranslation();
@@ -226,22 +229,14 @@ export const GalleryPage = () => {
   }, []);
 
   return (
-    <div className="h-full relative flex flex-col gap-2 overflow-hidden">
-      {/* Page header */}
-      <div className="flex flex-col p-2">
-        <div className="flex flex-row items-start justify-between shrink-0">
-          <div>
-            <h1 className="text-3xl font-bold text-text-primary">
-              {t("pages.gallery.title")}
-            </h1>
-          </div>
-          <div className="flex flex-row gap-2 shrink-0 mt-1">
+    <div className="h-full relative flex flex-col gap-3 pt-4 sm:pt-6 overflow-hidden">
+      <PageHeader
+        className={twMerge(pageGutter, "shrink-0")}
+        title={t("pages.gallery.title")}
+        actions={
+          <>
             {canUpload && (
-              <Button
-                variant="secondary"
-                onClick={() => navigate("/upload")}
-                className="flex flex-row gap-2 items-center"
-              >
+              <Button variant="secondary" onClick={() => navigate("/upload")}>
                 <AiOutlineUpload className="text-lg" />
                 {t("pages.gallery.upload")}
               </Button>
@@ -249,14 +244,13 @@ export const GalleryPage = () => {
             <Button
               variant={editMode ? "primary" : "secondary"}
               onClick={() => setEditMode((prev) => !prev)}
-              className="flex flex-row gap-2 items-center"
             >
               <MdEdit className="text-lg" />
               {t("pages.gallery.bulkEdit")}
             </Button>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       <GallerySearchBar
         value={tagInput}
@@ -267,7 +261,7 @@ export const GalleryPage = () => {
       />
 
       {collectionSearchParam && collection && (
-        <div className="flex flex-row gap-2 px-3 shrink-0">
+        <div className={twMerge(pageGutter, "flex flex-row gap-2 shrink-0")}>
           <CollectionBadge
             collection={collection}
             onDelete={() =>

@@ -6,6 +6,8 @@ import { ThumbnailContainer } from "../components/ThumbnailContainer";
 import { enhancedApi } from "../app/enhancedApi";
 import { useMemo } from "react";
 import { skipToken } from "@reduxjs/toolkit/query";
+import { twMerge } from "tailwind-merge";
+import { pageGutter } from "../components/styles";
 
 type Props = {
   items: Document[];
@@ -56,7 +58,12 @@ export const PaginatedThumbnailContainer = ({
 
   return (
     <>
-      <div className="p-2 max-w-full flex-grow overflow-auto">
+      <div
+        className={twMerge(
+          pageGutter,
+          "py-1 max-w-full flex-grow overflow-auto",
+        )}
+      >
         <ThumbnailContainer
           alignment="start"
           thumbnails={items}
@@ -68,7 +75,12 @@ export const PaginatedThumbnailContainer = ({
           popularTagKeys={popularTagKeys}
         />
       </div>
-      <div className="flex items-center justify-between px-3 py-2 shrink-0">
+      <div
+        className={twMerge(
+          pageGutter,
+          "flex items-center justify-between py-3 border-t border-border shrink-0",
+        )}
+      >
         <span className="text-sm text-text-muted">
           {t("pagination.range", {
             start: items.length > 0 ? startIndex + 1 : 0,

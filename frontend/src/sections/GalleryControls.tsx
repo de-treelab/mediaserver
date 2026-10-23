@@ -2,6 +2,8 @@ import { useTranslation } from "react-i18next";
 import { FiGrid, FiList, FiShuffle } from "react-icons/fi";
 import { MdBookmarkAdd } from "react-icons/md";
 import { twMerge } from "tailwind-merge";
+import { pageGutter } from "../components/styles";
+import { Select } from "../components/Input";
 
 type Props = {
   hasRandomSort: boolean;
@@ -31,7 +33,12 @@ export const GalleryControls = ({
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-row items-center justify-end gap-3 px-3 py-1">
+    <div
+      className={twMerge(
+        pageGutter,
+        "flex flex-row items-center justify-end gap-3",
+      )}
+    >
       {hasQuery && (
         <MdBookmarkAdd
           className="text-xl cursor-pointer text-text-muted hover:text-accent-subtle transition-colors"
@@ -43,14 +50,15 @@ export const GalleryControls = ({
         {t("pages.gallery.shownOfTotal", { shown: pageSize, total })}
       </span>
       <div className="flex items-center gap-1.5">
-        <select
+        <Select
+          inputSize="sm"
           value={sortMode}
           onChange={(e) => onSetSortMode(e.target.value as "newest" | "random")}
-          className="bg-surface-2 border border-border text-text-secondary text-sm rounded-md px-2 py-1 cursor-pointer appearance-none"
+          className="text-sm text-text-secondary appearance-none"
         >
           <option value="newest">{t("pages.gallery.sortNewest")}</option>
           <option value="random">{t("pages.gallery.sortRandom")}</option>
-        </select>
+        </Select>
         {hasRandomSort && (
           <FiShuffle
             className="text-lg cursor-pointer text-text-muted hover:text-accent-subtle transition-colors"

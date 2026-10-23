@@ -5,6 +5,10 @@ import { ProgressBar } from "../components/ProgressBar";
 import { twMerge } from "tailwind-merge";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { Duration } from "luxon";
+import { BiSolidServer } from "react-icons/bi";
+import { Card, CardHeader } from "../components/Card";
+import { Page, PageHeader } from "../components/Page";
+import { SectionLabel } from "../components/SectionLabel";
 
 const percentageToColor = (percentage: number) => {
   if (percentage < 0.7) return "bg-success-subtle";
@@ -94,13 +98,13 @@ export const StatePage = () => {
   const isHealthy = health?.status === "healthy";
 
   return (
-    <div className="p-6 max-w-4xl mx-auto flex flex-col gap-6">
+    <Page className="max-w-4xl mx-auto w-full">
+      <PageHeader icon={<BiSolidServer />} title={t("sidebar.serverState")} />
+
       {/* Stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="p-4 border border-border rounded-lg bg-surface-2 flex flex-col gap-1">
-          <p className="text-xs text-text-secondary uppercase tracking-wide">
-            {t("state.serviceState")}
-          </p>
+        <Card className="flex flex-col gap-1">
+          <SectionLabel>{t("state.serviceState")}</SectionLabel>
           <div className="flex items-center gap-2 mt-1">
             <div
               className={twMerge(
@@ -112,46 +116,40 @@ export const StatePage = () => {
               {t("state." + (health?.status ?? "unhealthy"))}
             </span>
           </div>
-        </div>
+        </Card>
 
-        <div className="p-4 border border-border rounded-lg bg-surface-2 flex flex-col gap-1">
-          <p className="text-xs text-text-secondary uppercase tracking-wide">
-            {t("state.version")}
-          </p>
+        <Card className="flex flex-col gap-1">
+          <SectionLabel>{t("state.version")}</SectionLabel>
           <p className="text-text-primary font-mono text-sm mt-1">
             {backendState?.version ?? "N/A"}
           </p>
           <p className="text-text-faint font-mono text-xs truncate">
             {backendState?.commit ?? ""}
           </p>
-        </div>
+        </Card>
 
-        <div className="p-4 border border-border rounded-lg bg-surface-2 flex flex-col gap-1">
-          <p className="text-xs text-text-secondary uppercase tracking-wide">
-            {t("state.uptime")}
-          </p>
+        <Card className="flex flex-col gap-1">
+          <SectionLabel>{t("state.uptime")}</SectionLabel>
           <p className="text-text-primary font-mono text-sm mt-1">
             {uptime.toFormat("hhhh:mm:ss")}
           </p>
-        </div>
+        </Card>
 
-        <div className="p-4 border border-border rounded-lg bg-surface-2 flex flex-col gap-1">
-          <p className="text-xs text-text-secondary uppercase tracking-wide">
-            {t("state.totalDocuments")}
-          </p>
+        <Card className="flex flex-col gap-1">
+          <SectionLabel>{t("state.totalDocuments")}</SectionLabel>
           <p className="text-text-primary font-semibold text-xl mt-1">
             {numberOfDocuments.toLocaleString()}
           </p>
-        </div>
+        </Card>
       </div>
 
       {/* Storage */}
-      <div className="border border-border rounded-lg overflow-hidden">
-        <div className="px-4 py-3 border-b border-border bg-surface-2">
+      <Card className="p-0 overflow-hidden">
+        <CardHeader>
           <h3 className="font-semibold text-text-primary text-sm">
             {t("state.storage")}
           </h3>
-        </div>
+        </CardHeader>
         <div className="p-4 flex flex-col gap-5">
           {backendState ? (
             <>
@@ -173,9 +171,9 @@ export const StatePage = () => {
                 <>
                   <hr className="border-border" />
                   <div>
-                    <p className="text-xs text-text-secondary mb-2 uppercase tracking-wide">
+                    <SectionLabel className="mb-2">
                       {t("state.totalStorage", "Total")}
-                    </p>
+                    </SectionLabel>
                     <StorageProgressBar
                       used={totalStorageUsed}
                       total={totalStorage}
@@ -189,7 +187,7 @@ export const StatePage = () => {
             <p className="text-text-secondary text-sm">N/A</p>
           )}
         </div>
-      </div>
-    </div>
+      </Card>
+    </Page>
   );
 };

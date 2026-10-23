@@ -293,6 +293,7 @@
   "document": {
     "addTagPlaceholder": "Tag hinzufügen...",
     "tabs": {
+      "info": "Info",
       "tags": "Tags",
       "collections": "Sammlungen",
       "access": "Zugriff"

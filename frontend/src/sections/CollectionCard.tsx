@@ -45,7 +45,8 @@ export const CollectionCard = ({
     <div
       className={twMerge(
         "bg-surface-1 rounded-lg p-4 border border-border cursor-pointer hover:border-border-strong transition-all flex flex-col flex-1 gap-2",
-        collection.isFavorite && "border-yellow-500/50 hover:border-yellow-500",
+        collection.isFavorite &&
+          "border-warning-strong/50 hover:border-warning-strong",
       )}
       onClick={() => {
         if (onClick === "navigate") {
@@ -57,7 +58,7 @@ export const CollectionCard = ({
     >
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-2 flex-1 min-w-0 mr-2">
-          <h3 className="text-text-primary font-semibold text-lg truncate">
+          <h3 className="text-text-primary font-semibold truncate">
             {collection.name}
           </h3>
           <span
@@ -98,7 +99,7 @@ export const CollectionCard = ({
           <IconButton
             className={twMerge(
               "text-lg text-text-muted hover:text-text-primary flex-shrink-0 w-6 h-6",
-              isSelected && "text-green-500 hover:text-green-600",
+              isSelected && "text-success hover:text-success-strong",
             )}
           >
             {isSelected ? (

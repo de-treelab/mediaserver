@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import type { Collection } from "../app/api";
-import { Modal } from "../components/Modal";
+import { Modal, ModalActions } from "../components/Modal";
 import { Button } from "../components/Button";
 
 type Props = {
@@ -39,17 +39,14 @@ export const DeleteCollectionModal = ({
             {t("collections.deleteModal.staticWarning")}
           </p>
         )}
-        <div className="flex justify-end gap-3">
+        <ModalActions>
           <Button variant="ghost" onClick={onClose}>
             {t("collections.form.cancel")}
           </Button>
-          <Button
-            className="bg-danger hover:bg-danger-hover"
-            onClick={onDelete}
-          >
+          <Button variant="danger" onClick={onDelete}>
             {t("collections.deleteModal.confirm")}
           </Button>
-        </div>
+        </ModalActions>
       </div>
     </Modal>
   );

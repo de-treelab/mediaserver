@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Modal } from "../components/Modal";
+import { Modal, ModalActions } from "../components/Modal";
 import { TagInput } from "./TagInput";
 import { enhancedApi } from "../app/enhancedApi";
 import { api } from "../app/api";
@@ -8,6 +8,8 @@ import { useTranslation } from "react-i18next";
 import { Button } from "../components/Button";
 import { FaGlobe, FaLock, FaTimes } from "react-icons/fa";
 import { usePermission, useIdentity } from "../hooks/usePermission";
+import { FormField, Input, Select, Textarea } from "../components/Input";
+import { ButtonSelector } from "../components/ButtonSelector";
 
 type SaveData = {
   name: string;
@@ -150,72 +152,53 @@ export const CollectionFormModal = ({
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
       <div className="flex flex-col gap-4">
         {showTypeSelector && (
-          <div>
-            <label className="block text-sm text-text-muted mb-1">
-              {t("collections.form.type")}
-            </label>
-            <div className="flex rounded overflow-hidden border border-border-subtle">
-              <button
-                type="button"
-                className={`flex-1 py-2 text-sm transition-colors ${
-                  type === "dynamic"
-                    ? "bg-accent text-text-primary"
-                    : "bg-surface-2 text-text-secondary hover:bg-surface-3"
-                }`}
-                onClick={() => setType("dynamic")}
-              >
-                {t("collections.form.typeDynamic")}
-              </button>
-              <button
-                type="button"
-                className={`flex-1 py-2 text-sm transition-colors ${
-                  type === "static"
-                    ? "bg-accent text-text-primary"
-                    : "bg-surface-2 text-text-secondary hover:bg-surface-3"
-                }`}
-                onClick={() => setType("static")}
-              >
-                {t("collections.form.typeStatic")}
-              </button>
-            </div>
-            <p className="text-xs text-text-faint mt-1">
-              {type === "dynamic"
+          <FormField
+            label={t("collections.form.type")}
+            hint={
+              type === "dynamic"
                 ? t("collections.form.typeDynamicHint")
-                : t("collections.form.typeStaticHint")}
-            </p>
-          </div>
+                : t("collections.form.typeStaticHint")
+            }
+          >
+            <ButtonSelector
+              multiChoice={false}
+              value={type}
+              onSelected={(v) => setType(v as "dynamic" | "static")}
+              options={[
+                { value: "dynamic", label: t("collections.form.typeDynamic") },
+                { value: "static", label: t("collections.form.typeStatic") },
+              ]}
+            />
+          </FormField>
         )}
 
-        <div>
-          <label className="block text-sm text-text-muted mb-1">
-            {t("collections.form.name")} *
-          </label>
-          <input
+        <FormField label={`${t("collections.form.name")} *`}>
+          <Input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full bg-surface-2 border border-border-subtle rounded p-2 text-text-primary outline-none focus:border-accent-hover"
             placeholder={t("collections.form.namePlaceholder")}
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label className="block text-sm text-text-muted mb-1">
-            {t("collections.form.description")}
-          </label>
-          <textarea
+        <FormField label={t("collections.form.description")}>
+          <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full bg-surface-2 border border-border-subtle rounded p-2 text-text-primary outline-none focus:border-accent-hover resize-none h-20"
+            className="h-20"
             placeholder={t("collections.form.descriptionPlaceholder")}
           />
-        </div>
+        </FormField>
 
         {effectiveType === "dynamic" && (
-          <div>
-            <label className="block text-sm text-text-muted mb-1">
-              {t("collections.form.filterExpression")} *
-            </label>
+          <FormField
+            label={`${t("collections.form.filterExpression")} *`}
+            hint={
+              isFilterValid &&
+              filterExpression !== "" &&
+              t("collections.docCount", { count: previewData?.total ?? 0 })
+            }
+          >
             <TagInput
               value={filterExpression}
               onChange={setFilterExpression}
@@ -223,72 +206,62 @@ export const CollectionFormModal = ({
               onValidChange={setIsFilterValid}
               placeholder={t("collections.form.filterPlaceholder")}
             />
-            {isFilterValid && filterExpression !== "" && (
-              <p className="text-sm text-text-muted mt-1">
-                {t("collections.docCount", { count: previewData?.total ?? 0 })}
-              </p>
-            )}
-          </div>
+          </FormField>
         )}
 
         {effectiveType === "static" && isEditing && (
-          <p className="text-xs text-text-faint">
+          <p className="text-xs text-text-muted">
             {t("collections.form.staticFilterNote")}
           </p>
         )}
 
-        <div>
-          <label className="block text-sm text-text-muted mb-1">
-            {t("collection.access.title")}
-          </label>
-          <div className="flex rounded overflow-hidden border border-border-subtle">
-            <button
-              type="button"
-              className={`flex-1 py-2 text-sm flex items-center justify-center gap-2 transition-colors ${
-                isPublic
-                  ? "bg-accent text-text-primary"
-                  : "bg-surface-2 text-text-secondary hover:bg-surface-3"
-              }`}
-              onClick={() => setIsPublic(true)}
-            >
-              <FaGlobe size={12} />
-              {t("collection.access.public")}
-            </button>
-            <button
-              type="button"
-              className={`flex-1 py-2 text-sm flex items-center justify-center gap-2 transition-colors ${
-                !isPublic
-                  ? "bg-accent text-text-primary"
-                  : "bg-surface-2 text-text-secondary hover:bg-surface-3"
-              }`}
-              onClick={() => setIsPublic(false)}
-            >
-              <FaLock size={12} />
-              {t("collection.access.private")}
-            </button>
-          </div>
-          <p className="text-xs text-text-faint mt-1">
-            {isPublic
+        <FormField
+          label={t("collection.access.title")}
+          hint={
+            isPublic
               ? t("collection.access.publicDescription")
-              : t("collection.access.privateDescription")}
-          </p>
-        </div>
+              : t("collection.access.privateDescription")
+          }
+        >
+          <ButtonSelector
+            multiChoice={false}
+            value={isPublic ? "public" : "private"}
+            onSelected={(v) => setIsPublic(v === "public")}
+            options={[
+              {
+                value: "public",
+                label: (
+                  <>
+                    <FaGlobe size={12} />
+                    {t("collection.access.public")}
+                  </>
+                ),
+              },
+              {
+                value: "private",
+                label: (
+                  <>
+                    <FaLock size={12} />
+                    {t("collection.access.private")}
+                  </>
+                ),
+              },
+            ]}
+          />
+        </FormField>
 
         {isEditing && !isAccessLoading && canManageAccess && !isPublic && (
-          <div>
-            <span className="block text-sm text-text-muted mb-1">
-              {t("collection.access.sharedWith")}
-            </span>
+          <FormField label={t("collection.access.sharedWith")}>
             <div className="flex flex-col gap-1">
               {(access?.shares.length ?? 0) === 0 && (
-                <div className="text-text-secondary italic text-sm">
+                <div className="text-text-muted italic text-sm">
                   {t("collection.access.noShares")}
                 </div>
               )}
               {access?.shares.map((share) => (
                 <div
                   key={share.userId}
-                  className="flex items-center justify-between p-2 rounded border border-border"
+                  className="flex items-center justify-between px-3 py-2 rounded-md border border-border"
                 >
                   <span className="text-sm">
                     {share.name ?? share.email ?? share.userId}
@@ -305,10 +278,10 @@ export const CollectionFormModal = ({
             </div>
             {isAdmin && availableToAdd.length > 0 && (
               <div className="mt-2 flex gap-2">
-                <select
+                <Select
                   value={selectedUserId}
                   onChange={(e) => setSelectedUserId(e.target.value)}
-                  className="flex-1 text-sm border border-border rounded p-1 bg-surface-1 text-text-primary"
+                  className="flex-1"
                 >
                   <option value="">{t("collection.access.addUser")}</option>
                   {availableToAdd.map((u) => (
@@ -316,14 +289,14 @@ export const CollectionFormModal = ({
                       {u.name ?? u.email ?? u.externalId}
                     </option>
                   ))}
-                </select>
-                <button
+                </Select>
+                <Button
+                  size="sm"
                   onClick={handleAddShare}
                   disabled={!selectedUserId}
-                  className="px-2 py-1 rounded bg-accent text-white text-xs disabled:opacity-50 hover:bg-accent/80 transition-colors"
                 >
                   +
-                </button>
+                </Button>
               </div>
             )}
             {isAdmin && access && (
@@ -332,17 +305,17 @@ export const CollectionFormModal = ({
                 <span className="text-text-primary">{ownerLabel}</span>
               </div>
             )}
-          </div>
+          </FormField>
         )}
 
-        <div className="flex justify-end gap-3 mt-2">
+        <ModalActions>
           <Button variant="ghost" onClick={onClose}>
             {t("collections.form.cancel")}
           </Button>
           <Button onClick={handleSave} disabled={!isValid}>
             {t("collections.form.save")}
           </Button>
-        </div>
+        </ModalActions>
       </div>
     </Modal>
   );

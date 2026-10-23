@@ -26,6 +26,7 @@ import { useTranslation } from "react-i18next";
 import { MdClose, MdCollections } from "react-icons/md";
 import { isCollectionNameValue } from "../util/tag";
 import { HiMagnifyingGlass } from "react-icons/hi2";
+import { inputBase } from "../components/styles";
 
 type Props = {
   value: string;
@@ -276,7 +277,7 @@ export const TagInput = ({
       <div className={twMerge("text-text-primary", className)}>
         <div
           className={twMerge(
-            "border border-border-subtle flex items-center gap-2 px-3 py-2 relative cursor-text",
+            "bg-bg-base border border-border focus-within:border-accent-hover transition-colors flex items-center gap-2 px-3 py-2 relative cursor-text",
             showSuggestions ? "rounded-t-md" : "rounded-md",
           )}
           onClick={() => easyInputRef.current?.focus()}
@@ -324,7 +325,7 @@ export const TagInput = ({
               onKeyDown={onEasyKeyDown}
               onFocus={() => setEasyFocused(true)}
               onBlur={() => setEasyFocused(false)}
-              className="flex-1 min-w-24 outline-none bg-transparent text-text-primary text-sm placeholder:text-text-muted"
+              className="flex-1 min-w-24 outline-none bg-transparent text-text-primary text-sm placeholder:text-text-faint"
               placeholder={
                 chips.length === 0
                   ? placeholder
@@ -375,9 +376,10 @@ export const TagInput = ({
         onChange={onAdvChange}
         onKeyDown={onAdvKeyDown}
         className={twMerge(
-          "p-2 outline-0 w-full border-1",
+          inputBase,
+          "px-3 py-2 text-sm w-full",
           !singleTag && "pr-[52px]",
-          !isValid[0] ? "border-danger-strong" : "border-border-subtle",
+          !isValid[0] && "border-danger-strong focus:border-danger-strong",
           advFocused
             ? direction === "up"
               ? "rounded-b-md"

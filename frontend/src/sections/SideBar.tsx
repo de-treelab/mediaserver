@@ -15,6 +15,7 @@ import { UserAvatar } from "../components/UserAvatar";
 import { AppIcon } from "../components/AppIcon";
 import { pluginRegistry } from "../plugins/pluginRegistry";
 import { reactIcons, type NavItem } from "../plugins/plugin";
+import { NavGroupLabel } from "../components/SectionLabel";
 
 const getUsername = (email?: string | null, name?: string | null): string => {
   if (email) return "@" + email.split("@")[0];
@@ -23,9 +24,7 @@ const getUsername = (email?: string | null, name?: string | null): string => {
 };
 
 const SectionLabel = ({ label }: { label: string }) => (
-  <p className="hidden sm:block px-3 pt-4 pb-1 text-xs font-semibold tracking-widest text-text-faint uppercase select-none">
-    {label}
-  </p>
+  <NavGroupLabel className="hidden sm:block pt-4">{label}</NavGroupLabel>
 );
 
 const MAX_MOBILE_NAV = 5;

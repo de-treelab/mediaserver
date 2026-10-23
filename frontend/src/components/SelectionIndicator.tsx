@@ -31,7 +31,7 @@ export const SelectionIndicator = ({
       className={twMerge(
         "text-lg text-text-muted hover:text-text-primary flex-shrink-0",
         sizes[size],
-        selected && "text-green-500 hover:text-green-600",
+        selected && "text-success hover:text-success-strong",
       )}
       onClick={() => onSelect?.(!selected)}
     >
