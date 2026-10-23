@@ -3,12 +3,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { PreviewContainer } from "../sections/PreviewContainer";
 import { useEasySearchParams } from "../hooks/useEasySearchParams";
 import {
-  clearPagePosition,
-  useCursorPageParams,
-} from "../hooks/useCursorPageParams";
-import { END_CURSOR } from "../app/api";
+  clearGalleryPosition,
+  GALLERY_WINDOW_SIZE,
+  useGalleryPosition,
+} from "../hooks/useGalleryPosition";
 import { CollectionFormModal } from "../sections/CollectionFormModal";
 import { useGallerySeed } from "../hooks/useGallerySeed";
+import { useDocumentSelection } from "../hooks/useDocumentSelection";
 import { BulkEditDocumentsModal } from "../sections/BulkEditDocumentsModal";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { CollectionBadge } from "../components/CollectionBadge";
@@ -17,7 +18,7 @@ import { usePreviewNavigation } from "../hooks/usePreviewNavigation";
 import { EditModePanel } from "../sections/EditModePanel";
 import { GallerySearchBar } from "../sections/GallerySearchBar";
 import { GalleryControls } from "../sections/GalleryControls";
-import { PaginatedThumbnailContainer } from "../sections/PaginatedThumbnailContainer";
+import { VirtualThumbnailGrid } from "../sections/VirtualThumbnailGrid";
 import { useNavigate } from "react-router";
 import { usePermission } from "../hooks/usePermission";
 import { AiOutlineUpload } from "react-icons/ai";
@@ -36,11 +37,8 @@ export const GalleryPage = () => {
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
   const [createCollection] = enhancedApi.useCreateCollectionMutation();
   const [editMode, setEditMode] = useState(false);
-  const [editDocuments, setEditDocuments] = useState<Set<string>>(new Set());
   const [editDocumentsModalOpen, setEditDocumentsModalOpen] = useState(false);
   const [tagInput, setTagInput] = useState("");
-
-  const { limit, position, setPosition, resetPosition } = useCursorPageParams();
 
   const {
     params: {
@@ -94,29 +92,34 @@ export const GalleryPage = () => {
     [finalQuery, seed],
   );
 
-  const { currentData: data } = enhancedApi.useListDocumentsQuery(
+  const {
+    byIndex,
+    byId,
+    total: loadedTotal,
+    pages,
+    visibleRange,
+    onVisibleRangeChange,
+    scrollRequest,
+    onScrollRequestDone,
+    scrollToIndex,
+  } = useGalleryPosition({
+    queryArgs,
     // Wait for the seed to be written to the URL before fetching random pages
-    hasRandomSort && !seed ? skipToken : { ...queryArgs, limit, ...position },
-    { refetchOnFocus: true, refetchOnReconnect: true },
-  );
+    enabled: !hasRandomSort || !!seed,
+  });
 
-  // Every document past / before the cursor is gone (e.g. deleted or no longer
-  // matching): fall back to the last / first page.
-  useEffect(() => {
-    if (!data || data.items.length > 0 || data.total === 0) return;
-    if (position.after) setPosition({ before: END_CURSOR });
-    else if (position.before && position.before !== END_CURSOR) resetPosition();
-  }, [data, position, setPosition, resetPosition]);
+  const total = loadedTotal ?? 0;
+
+  const selection = useDocumentSelection(finalQuery ?? "", total);
+  const clearSelection = selection.clear;
 
   useEffect(() => {
-    setEditDocuments(new Set());
-  }, [editMode]);
+    clearSelection();
+  }, [editMode, clearSelection]);
 
   useEffect(() => {
     setTagInput((prev) => query || prev);
   }, [query]);
-
-  const total = data?.total ?? 0;
 
   const {
     previewDocument,
@@ -130,20 +133,28 @@ export const GalleryPage = () => {
   } = usePreviewNavigation({
     previewDocumentSearchParam,
     queryArgs,
-    galleryPage: data,
-    limit,
+    galleryPages: pages,
     removeSearchParam,
     setSearchParams,
   });
 
-  // Changes the filter and starts over at the first page. Done in a single
+  // Closing the preview shows the gallery around the last previewed document
+  const [shownPreview, setShownPreview] = useState(previewDocumentSearchParam);
+  if (shownPreview !== previewDocumentSearchParam) {
+    setShownPreview(previewDocumentSearchParam);
+    if (shownPreview && !previewDocumentSearchParam) {
+      scrollToIndex(previewIndex, "nearest");
+    }
+  }
+
+  // Changes the filter and starts over at the top. Done in a single
   // update since consecutive setSearchParams calls would overwrite each other.
   const updateFilter = useCallback(
     (update: (params: URLSearchParams) => void) => {
       setSearchParams((prev) => {
         const next = new URLSearchParams(prev);
         update(next);
-        clearPagePosition(next);
+        clearGalleryPosition(next);
         return next;
       });
     },
@@ -179,54 +190,40 @@ export const GalleryPage = () => {
     [updateFilter],
   );
 
-  const entirePageSelected = useMemo(
-    () => !!data && data.items.every((item) => editDocuments.has(item.id)),
-    [data, editDocuments],
-  );
+  const visibleIds = useMemo(() => {
+    const ids: string[] = [];
+    for (let index = visibleRange[0]; index <= visibleRange[1]; index++) {
+      const document = byIndex.get(index);
+      if (document) ids.push(document.id);
+    }
+    return ids;
+  }, [visibleRange, byIndex]);
 
-  const onTogglePage = useCallback(() => {
-    setEditDocuments((old) => {
-      const newSet = new Set(old);
-      const ids = data?.items.map((d) => d.id) ?? [];
-      if (entirePageSelected) {
-        ids.forEach((id) => newSet.delete(id));
-      } else {
-        ids.forEach((id) => newSet.add(id));
-      }
-      return newSet;
-    });
-  }, [data, entirePageSelected]);
+  const { isSelected, setSelected, toggle } = selection;
+
+  const allVisibleSelected =
+    visibleIds.length > 0 && visibleIds.every(isSelected);
+
+  const onToggleVisible = useCallback(
+    () => setSelected(visibleIds, !allVisibleSelected),
+    [visibleIds, allVisibleSelected, setSelected],
+  );
 
   const onThumbnailClick = useCallback(
     (id: string) => {
       if (!editMode) {
         setPreviewDocument(id);
       } else {
-        setEditDocuments((documents) => {
-          const newSet = new Set(documents);
-          if (newSet.has(id)) {
-            newSet.delete(id);
-          } else {
-            newSet.add(id);
-          }
-          return newSet;
-        });
+        toggle(id);
       }
     },
-    [editMode, setPreviewDocument],
+    [editMode, setPreviewDocument, toggle],
   );
 
-  const onSelectDocument = useCallback((id: string, selected: boolean) => {
-    setEditDocuments((documents) => {
-      const newSet = new Set(documents);
-      if (selected) {
-        newSet.add(id);
-      } else {
-        newSet.delete(id);
-      }
-      return newSet;
-    });
-  }, []);
+  const onSelectDocument = useCallback(
+    (id: string, selected: boolean) => setSelected([id], selected),
+    [setSelected],
+  );
 
   return (
     <div className="h-full relative flex flex-col gap-3 pt-4 sm:pt-6 overflow-hidden">
@@ -273,10 +270,13 @@ export const GalleryPage = () => {
 
       {editMode && (
         <EditModePanel
-          editDocuments={editDocuments}
-          entirePageSelected={entirePageSelected}
-          onTogglePage={onTogglePage}
-          onClearSelection={() => setEditDocuments(new Set())}
+          selectedCount={selection.count}
+          total={total}
+          allSelected={selection.allSelected}
+          onSelectAll={selection.selectAll}
+          allVisibleSelected={allVisibleSelected}
+          onToggleVisible={onToggleVisible}
+          onClearSelection={clearSelection}
           onOpenBulkEdit={() => setEditDocumentsModalOpen(true)}
           onCancel={() => setEditMode(false)}
         />
@@ -292,18 +292,19 @@ export const GalleryPage = () => {
         sortMode={sortMode}
         onSetSortMode={onSetSortMode}
         total={total}
-        pageSize={data?.items.length ?? 0}
+        visibleRange={visibleRange}
       />
 
-      <PaginatedThumbnailContainer
-        items={data?.items ?? []}
-        total={total}
-        startIndex={data?.startIndex ?? 0}
-        prevCursor={data?.prevCursor}
-        nextCursor={data?.nextCursor}
-        onPositionChange={setPosition}
+      <VirtualThumbnailGrid
+        total={loadedTotal}
+        byIndex={byIndex}
+        byId={byId}
+        windowSize={GALLERY_WINDOW_SIZE}
+        onVisibleRangeChange={onVisibleRangeChange}
+        scrollRequest={scrollRequest}
+        onScrollRequestDone={onScrollRequestDone}
         layoutType={layoutType}
-        selectedDocuments={editDocuments}
+        isSelected={isSelected}
         onThumbnailClick={onThumbnailClick}
         onSelect={editMode ? onSelectDocument : undefined}
         popularTags={popularTags}
@@ -319,12 +320,13 @@ export const GalleryPage = () => {
         initialFilterExpression={query}
       />
       <BulkEditDocumentsModal
-        documentIds={Array.from(editDocuments)}
+        selection={selection.request}
+        count={selection.count}
         isOpen={editDocumentsModalOpen}
         onAbort={() => setEditDocumentsModalOpen(false)}
         onConfirm={() => {
           setEditDocumentsModalOpen(false);
-          setEditDocuments(new Set());
+          clearSelection();
           setEditMode(false);
         }}
       />

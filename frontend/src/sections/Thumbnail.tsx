@@ -8,7 +8,7 @@ import { SelectionIndicator } from "../components/SelectionIndicator";
 
 const layouts = {
   grid: "w-[120px] h-[120px] m-2 transition-all duration-200 object-contain border-transparent border-1 hover:border-accent-muted",
-  list: "flex flex-row gap-4 w-full p-2 border-b-border border-b-1 items-center cursor-pointer hover:bg-surface-3",
+  list: "flex flex-row gap-4 w-full h-16 p-2 border-b-border border-b-1 items-center cursor-pointer hover:bg-surface-3",
 };
 
 type Props = {
@@ -33,7 +33,9 @@ export const Thumbnail = ({
   const { t } = useTranslation();
   const { objectUrl, isLoading, error } = useThumbnail(document.id);
 
-  if (isLoading || error) {
+  const loaded = !isLoading && !error;
+
+  if (layout === "grid" && !loaded) {
     return (
       <div className="w-[60px] h-[60px] sm:w-[120px] sm:h-[120px] bg-surface-2 flex items-center justify-center" />
     );
@@ -79,7 +81,11 @@ export const Thumbnail = ({
         {document.id}
       </span>
       <span className="basis-1/5">{document.mime} </span>
-      <img src={objectUrl} className="w-12 h-12 object-contain" />
+      {loaded ? (
+        <img src={objectUrl} className="w-12 h-12 object-contain" />
+      ) : (
+        <div className="w-12 h-12 bg-surface-2" />
+      )}
     </div>
   );
 };

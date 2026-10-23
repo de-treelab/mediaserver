@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { type Document, type ListDocumentsArgs } from "../app/api";
 import type { CursorPaginatedResponse } from "../util/PaginatedResponse";
-import { setPagePosition, type PagePosition } from "./useCursorPageParams";
 import { useDocumentIndex } from "./useDocumentIndex";
 
 // Documents kept loaded on either side of the previewed one, so arrow
@@ -13,9 +12,8 @@ type Params = {
   previewDocumentSearchParam: string | undefined;
   // Filter / sort of the gallery the preview navigates through
   queryArgs: Pick<ListDocumentsArgs, "query" | "seed">;
-  // Currently displayed gallery page, kept in sync while navigating
-  galleryPage: CursorPaginatedResponse<Document> | undefined;
-  limit: number;
+  // Windows the gallery has loaded, reused instead of fetching them again
+  galleryPages: CursorPaginatedResponse<Document>[];
   removeSearchParam: (key: "preview") => void;
   setSearchParams: (
     updater: (prev: URLSearchParams) => URLSearchParams,
@@ -47,8 +45,7 @@ const windowSizeFor = (radius: number) =>
 export const usePreviewNavigation = ({
   previewDocumentSearchParam,
   queryArgs,
-  galleryPage,
-  limit,
+  galleryPages,
   removeSearchParam,
   setSearchParams,
 }: Params) => {
@@ -83,14 +80,14 @@ export const usePreviewNavigation = ({
   );
 
   // The preview loads the neighbourhood of the previewed document itself, so
-  // it works independently of which gallery page is loaded.
+  // it works independently of where the gallery is scrolled to.
   const {
     byIndex,
     byId: knownDocuments,
     total,
   } = useDocumentIndex({
     queryArgs,
-    extraPage: galleryPage,
+    extraPages: galleryPages,
     anchorId: previewDocumentSearchParam,
     ranges: loadRanges,
     windowSize: windowSizeFor(stripRadius),
@@ -143,53 +140,14 @@ export const usePreviewNavigation = ({
     setOffset,
   ]);
 
-  // Gallery page that contains `target`, or undefined if the current one does.
-  // Prefers the regular previous / next page so that following the preview
-  // across a page boundary is equivalent to using the gallery pagination.
-  const galleryPositionFor = useCallback(
-    (target: Document): PagePosition | undefined => {
-      if (!galleryPage || galleryPage.items.some((d) => d.id === target.id)) {
-        return undefined;
-      }
-      const first = galleryPage.startIndex;
-      const last = first + galleryPage.items.length - 1;
-      if (
-        galleryPage.nextCursor &&
-        target.queryIndex > last &&
-        target.queryIndex <= last + limit
-      ) {
-        return { after: galleryPage.nextCursor };
-      }
-      if (
-        galleryPage.prevCursor &&
-        target.queryIndex < first &&
-        target.queryIndex >= first - limit
-      ) {
-        return { before: galleryPage.prevCursor };
-      }
-      // Further away: start a page right at the target
-      const predecessor = target.previousId
-        ? knownDocuments.get(target.previousId)
-        : undefined;
-      if (predecessor?.cursor) return { after: predecessor.cursor };
-      if (!target.previousId) return {};
-      return undefined;
-    },
-    [galleryPage, knownDocuments, limit],
-  );
-
   const goToPreviewDocumentId = useCallback(
-    (documentId: string) => {
-      const target = knownDocuments.get(documentId);
-      const position = target ? galleryPositionFor(target) : undefined;
+    (documentId: string) =>
       setSearchParams((prev) => {
         const next = new URLSearchParams(prev);
-        if (position) setPagePosition(next, position);
         next.set("preview", documentId);
         return next;
-      });
-    },
-    [knownDocuments, galleryPositionFor, setSearchParams],
+      }),
+    [setSearchParams],
   );
 
   const setPreviewDocument = useCallback(

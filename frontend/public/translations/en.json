@@ -55,8 +55,8 @@
       "cancelEdit": "Cancel",
       "selected": "selected",
       "editDescription": "Click documents to select",
-      "selectPage": "Select page",
-      "deselectPage": "Deselect page",
+      "selectVisible": "Select visible",
+      "deselectVisible": "Deselect visible",
       "selectAll": "Select {{total}}",
       "clearSelection": "Clear",
       "bulkEditDocuments": "Bulk Edit {{count}} Documents",
@@ -74,7 +74,7 @@
       "upload": "Upload",
       "sortNewest": "Newest first",
       "sortRandom": "Random",
-      "shownOfTotal": "{{shown}} of {{total}}"
+      "visibleRange": "{{start}}–{{end}} of {{total}}"
     },
     "tags": {
       "title": "Tags",

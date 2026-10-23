@@ -142,6 +142,10 @@ const filteredEntitiesCte = (q: FilteredEntitiesQuery) =>
 export const buildFilteredEntitiesCountQuery = (q: FilteredEntitiesQuery) =>
   `WITH ${filteredEntitiesCte(q)} SELECT COUNT(*)::int AS total FROM filtered`;
 
+/** Ids of all filtered entities, unordered. */
+export const buildFilteredEntitiesIdsQuery = (q: FilteredEntitiesQuery) =>
+  `WITH ${filteredEntitiesCte(q)} SELECT ${q.idColumn}::text AS id FROM filtered`;
+
 export const buildFilteredEntitiesPageQuery = (
   q: FilteredEntitiesQuery,
   position: FilteredEntitiesPosition,

@@ -118,8 +118,19 @@ export type ApiTagWithCount = ApiTag & {
   usageCount: number;
 };
 
+/** Documents given by id, or all documents matching a query except some. */
+export type DocumentSelection =
+  | { type: "ids"; ids: string[] }
+  | { type: "query"; query: string; excludedIds: string[] };
+
+export type SelectionTags = {
+  // Number of selected documents
+  total: number;
+  tags: ApiTagWithCount[];
+};
+
 export type BulkEditDocumentsRequest = {
-  documentIds: string[];
+  selection: DocumentSelection;
   tagsToAdd: ApiTag[];
   tagsToRemove: ApiTag[];
 };
@@ -237,6 +248,15 @@ export const api = baseApi.injectEndpoints({
           (doc) => ({ type: "document", id: doc.id }) as const,
         ) || []),
       ],
+    }),
+
+    listSelectionTags: build.query<SelectionTags, DocumentSelection>({
+      query: (selection) => ({
+        url: `/documents/selection/tags`,
+        method: "POST",
+        body: { selection },
+      }),
+      providesTags: ["document", "tag"],
     }),
 
     bulkEditDocuments: build.mutation<void, BulkEditDocumentsRequest>({

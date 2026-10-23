@@ -55,8 +55,8 @@
       "cancelEdit": "Abbrechen",
       "selected": "ausgewählt",
       "editDescription": "Klicken Sie auf Dokumente, um sie auszuwählen",
-      "selectPage": "Seite auswählen",
-      "deselectPage": "Seite abwählen",
+      "selectVisible": "Sichtbare auswählen",
+      "deselectVisible": "Sichtbare abwählen",
       "selectAll": "Alle {{total}} auswählen",
       "clearSelection": "Auswahl löschen",
       "bulkEditDocuments": "Massenbearbeitung von {{count}} Dokumenten",
@@ -74,7 +74,7 @@
       "upload": "Hochladen",
       "sortNewest": "Neueste zuerst",
       "sortRandom": "Zufällig",
-      "shownOfTotal": "{{shown}} von {{total}}"
+      "visibleRange": "{{start}}–{{end}} von {{total}}"
     },
     "tags": {
       "title": "Tags",

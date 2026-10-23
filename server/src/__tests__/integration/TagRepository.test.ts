@@ -370,6 +370,81 @@ describe("TagRepository (integration)", () => {
     });
   });
 
+  describe("resolveSelection / countTagsOfDocuments", () => {
+    const viewerScope = {
+      type: "accessible-by" as const,
+      userId: VIEWER_USER_ID,
+    };
+    const selected = [DOC_PUBLIC, DOC_VIEWER_PRIVATE, DOC_FOREIGN_PRIVATE];
+
+    beforeAll(async () => {
+      await tagRepository.addTags([
+        { key: "selection-a", value: undefined, type: "default" },
+        { key: "selection-b", value: undefined, type: "default" },
+      ]);
+      for (const id of selected) {
+        await tagRepository.addTagToDocument(id, {
+          key: "selection-a",
+          value: undefined,
+          type: "default",
+        });
+      }
+      await tagRepository.addTagToDocument(DOC_PUBLIC, {
+        key: "selection-b",
+        value: undefined,
+        type: "default",
+      });
+    });
+
+    it("selects every document matching the query", async () => {
+      const ids = await tagRepository.resolveSelection({
+        type: "query",
+        query: "selection-a",
+        excludedIds: [],
+      });
+      expect(ids.sort()).toEqual([...selected].sort());
+    });
+
+    it("leaves out excluded documents", async () => {
+      const ids = await tagRepository.resolveSelection({
+        type: "query",
+        query: "selection-a",
+        excludedIds: [DOC_PUBLIC],
+      });
+      expect(ids.sort()).toEqual(
+        [DOC_VIEWER_PRIVATE, DOC_FOREIGN_PRIVATE].sort(),
+      );
+    });
+
+    it("selects only matching documents within the caller's scope", async () => {
+      const ids = await tagRepository.resolveSelection(
+        { type: "query", query: "selection-a", excludedIds: [] },
+        viewerScope,
+      );
+      expect(ids.sort()).toEqual([DOC_PUBLIC, DOC_VIEWER_PRIVATE].sort());
+    });
+
+    it("drops selected ids outside the caller's scope", async () => {
+      const ids = await tagRepository.resolveSelection(
+        { type: "ids", ids: selected },
+        viewerScope,
+      );
+      expect(ids.sort()).toEqual([DOC_PUBLIC, DOC_VIEWER_PRIVATE].sort());
+    });
+
+    it("counts the documents carrying each tag", async () => {
+      const tags = await tagRepository.countTagsOfDocuments(selected);
+      const count = (key: string) =>
+        tags.find((tag) => tag.key === key)?.usageCount;
+      expect(count("selection-a")).toBe(3);
+      expect(count("selection-b")).toBe(1);
+    });
+
+    it("counts nothing for an empty selection", async () => {
+      expect(await tagRepository.countTagsOfDocuments([])).toEqual([]);
+    });
+  });
+
   describe("deleteTag", () => {
     it("removes tag and its document associations", async () => {
       await tagRepository.addTags([
