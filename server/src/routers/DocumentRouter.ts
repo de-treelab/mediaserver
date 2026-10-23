@@ -5,7 +5,10 @@ import { services } from "../DefaultDiContainer.js";
 import type { EmptyObject } from "../common/EmptyObject.js";
 import type { DocumentService } from "../documents/DocumentService.js";
 import type { DocumentAccess } from "../documents/DocumentRepository.js";
-import type { CursorPaginatedResponse, PaginatedResponse } from "../util/PaginatedResponse.js";
+import type {
+  CursorPaginatedResponse,
+  PaginatedResponse,
+} from "../util/PaginatedResponse.js";
 import { decodeDocumentCursor } from "../documents/DocumentCursor.js";
 import type {
   Document,
