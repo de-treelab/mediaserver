@@ -8,12 +8,8 @@ import { FaCaretRight, FaEllipsis } from "react-icons/fa6";
 import { useState, useRef, useEffect } from "react";
 import { twMerge } from "tailwind-merge";
 import { useTranslation } from "react-i18next";
-<<<<<<< HEAD
-import { MdCollections, MdLogout } from "react-icons/md";
 import { HiOutlineDocumentDuplicate } from "react-icons/hi2";
-=======
 import { MdCollections, MdLogout, MdSettings } from "react-icons/md";
->>>>>>> d9e20d9 (fix: settings not available and preview right click)
 import { useIdentity, usePermission } from "../hooks/usePermission";
 import { UserAvatar } from "../components/UserAvatar";
 import { AppIcon } from "../components/AppIcon";

@@ -5,7 +5,7 @@ import {
   FaPlay,
 } from "react-icons/fa6";
 import { IconButton } from "./IconButton";
-import { useEffect, useState } from "react";
+import { AutoHideOverlay } from "./AutoHideOverlay";
 import { twMerge } from "tailwind-merge";
 import { MdInfoOutline } from "react-icons/md";
 
@@ -20,8 +20,6 @@ type Props = {
   showInfoPanel: boolean;
 };
 
-const MOUSE_MOVE_HIDE_DELAY = 250;
-
 export const DocumentDiashowControls = ({
   nextDocument,
   previousDocument,
@@ -32,40 +30,8 @@ export const DocumentDiashowControls = ({
   toggleInfoPanel,
   showInfoPanel,
 }: Props) => {
-  const [lastMouseMoveTimestamp, setLastMouseMoveTimestamp] = useState(
-    Date.now(),
-  );
-  const [visible, setVisible] = useState(true);
-  const [hovered, setHovered] = useState(false);
-
-  useEffect(() => {
-    const handleMouseMove = () => {
-      setLastMouseMoveTimestamp(Date.now());
-      setVisible(true);
-    };
-
-    const interval = setInterval(() => {
-      if (Date.now() - lastMouseMoveTimestamp > MOUSE_MOVE_HIDE_DELAY) {
-        setVisible(false);
-      }
-    }, 100);
-
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      clearInterval(interval);
-    };
-  }, [lastMouseMoveTimestamp]);
-
   return (
-    <div
-      className={twMerge(
-        "absolute bottom-0 left-0 flex justify-center gap-4 bg-surface-2 w-full p-2 transition-opacity duration-300",
-        visible || hovered ? "opacity-100" : "opacity-0",
-      )}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
+    <AutoHideOverlay className="bottom-0 flex justify-center gap-4 bg-surface-2 p-2">
       <IconButton
         onClick={previousDocument}
         className="bg-surface-1 rounded-full p-2 hover:bg-surface-3"
@@ -103,6 +69,6 @@ export const DocumentDiashowControls = ({
       >
         <MdInfoOutline size={16} />
       </IconButton>
-    </div>
+    </AutoHideOverlay>
   );
 };

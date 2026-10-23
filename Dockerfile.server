@@ -1,9 +1,9 @@
-FROM docker.io/library/node:20
+FROM node:24
 
 RUN apt-get update && apt-get install -y \
     imagemagick \
     ghostscript \
     ffmpeg
 
-RUN sed 's/<\/policymap>/  <policy domain="coder" rights="read | write" pattern="PDF" \/>\n<\/policymap>/' \ 
+RUN sed 's/<\/policymap>/  <policy domain="coder" rights="read | write" pattern="PDF" \/>\n<\/policymap>/' \
     -i /etc/ImageMagick-6/policy.xml

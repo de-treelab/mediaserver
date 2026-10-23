@@ -1,4 +1,4 @@
-FROM docker.io/library/node:20 AS builder
+FROM node:24 AS builder
 
 WORKDIR /usr/src/app
 
