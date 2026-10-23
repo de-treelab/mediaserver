@@ -278,6 +278,71 @@ describe("TagRepository (integration)", () => {
     });
   });
 
+  describe("listDocuments — boolean filters", () => {
+    const ALL_DOCS = [
+      DOC_ID_1,
+      DOC_ID_2,
+      DOC_PUBLIC,
+      DOC_VIEWER_PRIVATE,
+      DOC_FOREIGN_PRIVATE,
+      DOC_SHARED_WITH_VIEWER,
+    ];
+
+    const ids = async (query: string) => {
+      const result = await tagRepository.listDocuments({ limit: 100, query });
+      expect(result.total).toBe(result.items.length);
+      return result.items.map((d) => d.id).sort();
+    };
+
+    beforeAll(async () => {
+      const tags = [
+        { key: "bool-a", value: undefined, type: "default" },
+        { key: "bool-b", value: undefined, type: "default" },
+        { key: "bool-person", value: "alice", type: "default" },
+      ];
+      await tagRepository.addTags(tags);
+      await tagRepository.addTagToDocument(DOC_ID_1, tags[0]!);
+      await tagRepository.addTagToDocument(DOC_ID_1, tags[1]!);
+      await tagRepository.addTagToDocument(DOC_ID_2, tags[1]!);
+      await tagRepository.addTagToDocument(DOC_ID_2, tags[2]!);
+    });
+
+    it("matches documents without any tags under a negation", async () => {
+      expect(await ids("!bool-a")).toEqual(
+        ALL_DOCS.filter((id) => id !== DOC_ID_1).sort(),
+      );
+    });
+
+    it("combines conjunctions with negations", async () => {
+      expect(await ids("bool-b & !bool-a")).toEqual([DOC_ID_2]);
+    });
+
+    it("lists documents matching several alternatives once", async () => {
+      expect(await ids("bool-a | bool-b")).toEqual([DOC_ID_1, DOC_ID_2]);
+    });
+
+    it("matches a key regardless of its value", async () => {
+      expect(await ids("bool-person")).toEqual([DOC_ID_2]);
+    });
+
+    it("applies the access scope on top of the filter", async () => {
+      const result = await tagRepository.listDocuments({
+        limit: 100,
+        query: "!bool-a",
+        scope: { type: "accessible-by", userId: VIEWER_USER_ID },
+      });
+      expect(result.items.map((d) => d.id).sort()).toEqual(
+        [
+          DOC_ID_2,
+          DOC_PUBLIC,
+          DOC_VIEWER_PRIVATE,
+          DOC_SHARED_WITH_VIEWER,
+        ].sort(),
+      );
+      expect(result.total).toBe(4);
+    });
+  });
+
   describe("listDocuments — collection by name", () => {
     const STATIC_COLLECTION_ID = "00000000-0000-0000-0000-000000000030";
 

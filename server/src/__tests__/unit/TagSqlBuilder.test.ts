@@ -65,6 +65,20 @@ describe("TagSqlBuilder (SQL injection hardening)", () => {
     expect(Object.values(result.params ?? {})).toContain("42");
   });
 
+  it("looks up each tag by an EXISTS instead of grouping all tags", async () => {
+    const filter = new TagParser("nature & !unknownkey").parse();
+
+    const result = await builder.buildListFilteredEntitiesQuery(filter);
+    if (!result.success) throw new Error(result.message);
+
+    expect(result.stmt.filtered.where).toMatch(
+      /^\(EXISTS \(SELECT 1 FROM userdata_tags ut WHERE ut\.tag_id = \$p\d+ AND ut\.userdata_id = u\.id\) AND NOT \(EXISTS /,
+    );
+    expect(result.stmt.filtered.joins).toBeUndefined();
+    expect(result.stmt.filtered.groupBy).toBeUndefined();
+    expect(result.stmt.filtered.having).toBeUndefined();
+  });
+
   it("does not leak bind parameters between successive builds", async () => {
     const r1 = await builder.buildListFilteredEntitiesQuery(
       new TagParser("alpha'").parse(),
@@ -149,8 +163,21 @@ describe("buildFilteredEntitiesPageQuery", () => {
   it("selects the window at an index by query index", async () => {
     const sql = buildFilteredEntitiesPageQuery(await build(""), "at");
     expect(sql).toContain(
-      "WHERE query_index >= $at ORDER BY query_index ASC LIMIT $limit",
+      "WHERE query_index >= $at ORDER BY created_at DESC, id DESC LIMIT $limit",
     );
+  });
+
+  it("orders backward slices by the reversed sort key", async () => {
+    const sql = buildFilteredEntitiesPageQuery(await build(""), "before");
+    expect(sql).toContain("ORDER BY created_at ASC, id ASC LIMIT $limit");
+  });
+
+  it("counts the total separately instead of with a window", async () => {
+    const sql = buildFilteredEntitiesPageQuery(await build(""), "first");
+    expect(sql).toContain("(SELECT COUNT(*) FROM filtered)::int AS __total");
+    expect(sql).not.toContain("OVER()");
+    // Referenced twice, but must not be computed in full up front
+    expect(sql).toContain("filtered AS NOT MATERIALIZED");
   });
 });
 
@@ -216,7 +243,7 @@ describe("TagSqlBuilder (collection by name)", () => {
     if (!result.success) throw new Error(result.message);
 
     expect(resolveCollections).toHaveBeenCalledWith("Summer 2024");
-    expect(result.stmt.filtered.having).toMatch(/ut\.tag_id = \$p\d+/);
+    expect(result.stmt.filtered.where).toMatch(/ut\.tag_id = \$p\d+/);
     expect(Object.values(result.params ?? {})).toEqual(["7"]);
   });
 
@@ -232,7 +259,7 @@ describe("TagSqlBuilder (collection by name)", () => {
     const result = await build("collection:Mixed");
     if (!result.success) throw new Error(result.message);
 
-    expect(result.stmt.filtered.having).toContain(" OR ");
+    expect(result.stmt.filtered.where).toContain(" OR ");
     expect(Object.values(result.params ?? {})).toEqual(["7", "42"]);
   });
 
@@ -240,7 +267,7 @@ describe("TagSqlBuilder (collection by name)", () => {
     for (const query of ["collection:Unknown", "collection:Empty"]) {
       const result = await build(query);
       if (!result.success) throw new Error(result.message);
-      expect(result.stmt.filtered.having).toBe("1=0");
+      expect(result.stmt.filtered.where).toBe("1=0");
     }
   });
 
