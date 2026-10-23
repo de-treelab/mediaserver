@@ -7,6 +7,7 @@ import type { EmptyObject } from "./common/EmptyObject.js";
 import { LoggingService } from "./common/LoggingService.js";
 import { services } from "./DefaultDiContainer.js";
 import * as fs from "fs";
+import path from "path";
 import { pipeline } from "node:stream";
 import type { IncomingHttpHeaders } from "http";
 import type { Identity } from "./auth/Identity.js";
@@ -15,6 +16,8 @@ export class FileDownload {
   constructor(
     public readonly filepath: string,
     public readonly mimeType: string,
+    // Sent only along with the file, so that errors are never cached
+    public readonly cacheControl?: string,
   ) {}
 }
 
@@ -118,12 +121,20 @@ export const apiHandler = <
           // served from different origins). Without this, media elements making
           // no-cors requests are blocked with ERR_BLOCKED_BY_RESPONSE.NotSameSite.
           .header("Cross-Origin-Resource-Policy", "cross-origin")
-          .download(result.body.filepath, (err) => {
-            if (err && !res.headersSent) {
-              logger.error('Download error: %O', err);
-              res.status(500).end();
-            }
-          });
+          .download(
+            result.body.filepath,
+            // The default name, needed as options follow
+            path.basename(result.body.filepath),
+            result.body.cacheControl
+              ? { headers: { "Cache-Control": result.body.cacheControl } }
+              : {},
+            (err) => {
+              if (err && !res.headersSent) {
+                logger.error("Download error: %O", err);
+                res.status(500).end();
+              }
+            },
+          );
       } else if (result.body instanceof FileStream) {
         const disposition = isInlineSafeMime(result.body.mimeType)
           ? "inline"
