@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { twMerge } from "tailwind-merge";
 
 const MOUSE_MOVE_HIDE_DELAY = 250;
@@ -9,38 +9,52 @@ type Props = {
 };
 
 /**
- * An overlay that is only visible while the mouse is moving, hovering it, or
- * while it contains focus (e.g. an input being edited).
+ * An overlay that is only visible while the mouse is moving or hovering it.
+ * Leaving it starts the hide countdown again. It also stays visible while an
+ * input inside it is focused (e.g. the timeout field being edited).
  */
 export const AutoHideOverlay = ({ className, children }: Props) => {
   const [visible, setVisible] = useState(true);
-  const [hovered, setHovered] = useState(false);
+  const hovered = useRef(false);
+  const hideTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const scheduleHide = () => {
+    clearTimeout(hideTimeout.current);
+    hideTimeout.current = setTimeout(() => {
+      if (!hovered.current) setVisible(false);
+    }, MOUSE_MOVE_HIDE_DELAY);
+  };
 
   useEffect(() => {
-    let timeoutId = setTimeout(() => setVisible(false), MOUSE_MOVE_HIDE_DELAY);
+    scheduleHide();
 
     const handleMouseMove = () => {
       setVisible(true);
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => setVisible(false), MOUSE_MOVE_HIDE_DELAY);
+      scheduleHide();
     };
 
     window.addEventListener("mousemove", handleMouseMove);
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
-      clearTimeout(timeoutId);
+      clearTimeout(hideTimeout.current);
     };
   }, []);
 
   return (
     <div
       className={twMerge(
-        "absolute left-0 w-full z-10 transition-opacity duration-300 focus-within:opacity-100",
-        visible || hovered ? "opacity-100" : "opacity-0",
+        "absolute left-0 w-full z-10 transition-opacity duration-300 has-[input:focus]:opacity-100",
+        visible ? "opacity-100" : "opacity-0",
         className,
       )}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={() => {
+        hovered.current = true;
+        setVisible(true);
+      }}
+      onMouseLeave={() => {
+        hovered.current = false;
+        scheduleHide();
+      }}
     >
       {children}
     </div>

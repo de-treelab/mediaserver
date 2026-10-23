@@ -7,7 +7,7 @@ import {
 import { IconButton } from "./IconButton";
 import { AutoHideOverlay } from "./AutoHideOverlay";
 import { twMerge } from "tailwind-merge";
-import { MdInfoOutline } from "react-icons/md";
+import { MdFullscreenExit, MdInfoOutline } from "react-icons/md";
 
 type Props = {
   nextDocument: () => void;
@@ -18,6 +18,7 @@ type Props = {
   paused: boolean;
   toggleInfoPanel: () => void;
   showInfoPanel: boolean;
+  endPresentation: () => void;
 };
 
 export const DocumentDiashowControls = ({
@@ -29,6 +30,7 @@ export const DocumentDiashowControls = ({
   paused,
   toggleInfoPanel,
   showInfoPanel,
+  endPresentation,
 }: Props) => {
   return (
     <AutoHideOverlay className="bottom-0 flex justify-center gap-4 bg-surface-2 p-2">
@@ -68,6 +70,13 @@ export const DocumentDiashowControls = ({
         )}
       >
         <MdInfoOutline size={16} />
+      </IconButton>
+      <IconButton
+        onClick={endPresentation}
+        title="End presentation"
+        className="bg-surface-1 rounded-full p-2 hover:bg-surface-3"
+      >
+        <MdFullscreenExit size={16} />
       </IconButton>
     </AutoHideOverlay>
   );

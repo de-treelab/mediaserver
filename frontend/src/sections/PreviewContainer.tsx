@@ -9,7 +9,6 @@ import { useDocumentUrl } from "../hooks/useDocumentUrl";
 import { DocumentDiashow } from "../components/DocumentDiashow";
 import { preventInputHandling } from "../util/preventInputHandling";
 import { DocumentInfoPanel } from "./DocumentInfoPanel";
-import { AutoHideOverlay } from "../components/AutoHideOverlay";
 
 type Props = {
   previewImageId: string;
@@ -112,36 +111,32 @@ export const PreviewContainer = ({
       document.removeEventListener("fullscreenchange", onFullscreenChange);
   }, [diashowMode]);
 
-  const header = (
-    <DocumentPreviewControls
-      documentId={previewImageId}
-      friendlyName={currentDocument?.friendlyName}
-      previewImageIndex={previewImageIndex}
-      totalDocuments={totalDocuments}
-      mimeType={mimeType}
-      nextDocument={nextPreviewImage}
-      previousDocument={previousPreviewImage}
-      downloadDocument={() => {
-        const link = document.createElement("a");
-        link.href = documentDownloadUrl;
-        link.download = "";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }}
-      toggleDiashow={() => setDiashowMode((m) => !m)}
-      toggleInfoPanel={() => setShowInfoPanel((m) => !m)}
-      showInfoPanel={showInfoPanel}
-      onClose={onCloseImpl}
-    />
-  );
-
   return (
     <div className="flex flex-col h-full bg-bg-base">
-      {/* Header — in diashow mode it overlays the preview and auto-hides */}
+      {/* Header — hidden during presentation */}
       {!diashowMode && (
         <div className="flex-shrink-0 h-14 bg-surface-1 border-b border-border">
-          {header}
+          <DocumentPreviewControls
+            documentId={previewImageId}
+            friendlyName={currentDocument?.friendlyName}
+            previewImageIndex={previewImageIndex}
+            totalDocuments={totalDocuments}
+            mimeType={mimeType}
+            nextDocument={nextPreviewImage}
+            previousDocument={previousPreviewImage}
+            downloadDocument={() => {
+              const link = document.createElement("a");
+              link.href = documentDownloadUrl;
+              link.download = "";
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }}
+            toggleDiashow={() => setDiashowMode((m) => !m)}
+            toggleInfoPanel={() => setShowInfoPanel((m) => !m)}
+            showInfoPanel={showInfoPanel}
+            onClose={onCloseImpl}
+          />
         </div>
       )}
 
@@ -149,11 +144,6 @@ export const PreviewContainer = ({
       <div className="flex flex-1 overflow-hidden relative">
         {/* Preview */}
         <div className="flex-1 relative overflow-hidden bg-bg-base">
-          {diashowMode && (
-            <AutoHideOverlay className="top-0 h-14 bg-surface-1 border-b border-border">
-              {header}
-            </AutoHideOverlay>
-          )}
           {diashowMode ? (
             <DocumentDiashow
               documentId={previewImageId}
@@ -162,6 +152,7 @@ export const PreviewContainer = ({
               mimeType={mimeType}
               toggleInfoPanel={() => setShowInfoPanel((m) => !m)}
               showInfoPanel={showInfoPanel}
+              endPresentation={() => setDiashowMode(false)}
             />
           ) : (
             <DocumentPreview
