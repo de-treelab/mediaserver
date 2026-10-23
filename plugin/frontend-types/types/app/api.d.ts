@@ -177,6 +177,7 @@ export declare const api: import("@reduxjs/toolkit/query").Api<import("@reduxjs/
         limit?: number;
         offset?: number;
         type?: CollectionType;
+        name?: string;
     }, import("@reduxjs/toolkit/query").BaseQueryFn<string | import("@reduxjs/toolkit/query").FetchArgs, unknown, import("@reduxjs/toolkit/query").FetchBaseQueryError, {}, import("@reduxjs/toolkit/query").FetchBaseQueryMeta>, "document" | "tag" | "collection" | "identity" | "role" | "user" | "authConfig" | "session", PaginatedResponse<Collection>, "api", unknown>;
     createCollection: import("@reduxjs/toolkit/query").MutationDefinition<{
         name: string;

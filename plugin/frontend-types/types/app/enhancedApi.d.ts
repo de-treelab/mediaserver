@@ -35,6 +35,7 @@ export declare const enhancedApi: import("@reduxjs/toolkit/query").Api<import("@
         limit?: number;
         offset?: number;
         type?: import("./api").CollectionType;
+        name?: string;
     }, import("@reduxjs/toolkit/query").BaseQueryFn<string | import("@reduxjs/toolkit/query").FetchArgs, unknown, import("@reduxjs/toolkit/query").FetchBaseQueryError, {}, import("@reduxjs/toolkit/query").FetchBaseQueryMeta>, "document" | "tag" | "collection" | "identity" | "role" | "user" | "authConfig" | "session", import("../util/PaginatedResponse").PaginatedResponse<import("./api").Collection>, "api", unknown>;
     createCollection: import("@reduxjs/toolkit/query").MutationDefinition<{
         name: string;
