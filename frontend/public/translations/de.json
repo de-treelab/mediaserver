@@ -128,6 +128,7 @@
     "startIndexing": "Jetzt indexieren"
   },
   "sidebar": {
+    "home": "Start",
     "gallery": "Galerie",
     "upload": "Hochladen",
     "settings": "Einstellungen",
@@ -377,5 +378,29 @@
   },
   "plugins": {
     "renderFailed": "{{name}} konnte nicht dargestellt werden."
+  },
+  "home": {
+    "title": "Start",
+    "customize": "Anpassen",
+    "done": "Fertig",
+    "reset": "Zurücksetzen",
+    "moveUp": "Nach oben",
+    "moveDown": "Nach unten",
+    "show": "Einblenden",
+    "hide": "Ausblenden",
+    "seeAll_one": "Alle anzeigen",
+    "seeAll_other": "Alle {{count}} anzeigen",
+    "more_one": "+{{count}} weiteres",
+    "more_other": "+{{count}} weitere",
+    "empty": "Hier ist noch nichts.",
+    "loadFailed": "Dokumente konnten nicht geladen werden.",
+    "scrollLeft": "Nach links scrollen",
+    "scrollRight": "Nach rechts scrollen",
+    "widgets": {
+      "recent": "Zuletzt hinzugefügt",
+      "shared": "Mit mir geteilt",
+      "collections": "Sammlungen",
+      "rediscover": "Wiederentdecken"
+    }
   }
 }

@@ -59,6 +59,8 @@ export type ListDocumentsRequest = {
   scope?: DocumentAccessScope;
   // Resolves `collection:"<name>"` filters; only plain tags are matched without
   resolveCollections?: CollectionResolver;
+  // The user `shared:me` filters refer to
+  currentUserId?: string | undefined;
 };
 
 /**
@@ -131,6 +133,7 @@ export class TagRepository {
     position = { type: "first" },
     scope = { type: "all" },
     resolveCollections,
+    currentUserId,
   }: ListDocumentsRequest): Promise<CursorPaginatedResponse<Document>> {
     if (scope.type === "none") {
       return {
@@ -146,6 +149,7 @@ export class TagRepository {
       query,
       scope,
       resolveCollections,
+      currentUserId,
       seed,
     );
     const positionParams =
@@ -230,11 +234,13 @@ export class TagRepository {
     query: string,
     scope: DocumentAccessScope,
     resolveCollections: CollectionResolver | undefined,
+    currentUserId: string | undefined,
     seed?: string,
   ) {
     const filter = new TagParser(query).parse();
     const sql = await this.sqlBuilder.buildListFilteredEntitiesQuery(filter, {
       ...(resolveCollections && { resolveCollections }),
+      ...(currentUserId && { currentUserId }),
     });
 
     if (!sql.success) {
@@ -265,6 +271,7 @@ export class TagRepository {
     selection: DocumentSelection,
     scope: DocumentAccessScope = { type: "all" },
     resolveCollections?: CollectionResolver,
+    currentUserId?: string,
   ): Promise<string[]> {
     if (scope.type === "none") return [];
     if (selection.type === "ids") {
@@ -275,6 +282,7 @@ export class TagRepository {
       selection.query,
       scope,
       resolveCollections,
+      currentUserId,
     );
     const rows = await this.dbService.any(
       z.object({ id: z.string() }),

@@ -108,11 +108,13 @@ export class TagService {
     selection: DocumentSelection,
     scope: DocumentAccessScope = { type: "all" },
     collectionScope?: CollectionAccessScope,
+    currentUserId?: string,
   ): Promise<SelectionTags> {
     const ids = await this.tagRepository.resolveSelection(
       selection,
       scope,
       this.collectionResolver(collectionScope),
+      currentUserId,
     );
     return {
       total: ids.length,
@@ -168,11 +170,13 @@ export class TagService {
     tagsToRemove: ApiTag[],
     scope: DocumentAccessScope = { type: "all" },
     collectionScope?: CollectionAccessScope,
+    currentUserId?: string,
   ): Promise<void> {
     const ids = await this.tagRepository.resolveSelection(
       selection,
       scope,
       this.collectionResolver(collectionScope),
+      currentUserId,
     );
     await this.tagRepository.bulkEditDocuments(
       ids,

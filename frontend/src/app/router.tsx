@@ -3,7 +3,7 @@ import { Layout } from "../pages/Layout";
 import { GalleryPage } from "../pages/GalleryPage";
 import { UploadPage } from "../pages/UploadPage";
 import { TagsPage } from "../pages/TagsPage";
-import { NavigateToGalleryPage } from "../pages/NavigateToGalleryPage";
+import { HomePage } from "../pages/HomePage";
 import { StatePage } from "../pages/StatePage";
 import { SettingsPage } from "../pages/SettingsPage";
 import { CollectionsPage } from "../pages/CollectionsPage";
@@ -25,7 +25,7 @@ export function createAppRouter(pluginRoutes: PluginRoute[] = []) {
       children: [
         {
           index: true,
-          Component: NavigateToGalleryPage,
+          Component: HomePage,
         },
         {
           path: "account",

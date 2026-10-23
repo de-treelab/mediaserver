@@ -9,7 +9,7 @@ import { useState, useRef, useEffect } from "react";
 import { twMerge } from "tailwind-merge";
 import { useTranslation } from "react-i18next";
 import { HiOutlineDocumentDuplicate } from "react-icons/hi2";
-import { MdCollections, MdLogout, MdSettings } from "react-icons/md";
+import { MdCollections, MdHome, MdLogout, MdSettings } from "react-icons/md";
 import { useIdentity, usePermission } from "../hooks/usePermission";
 import { UserAvatar } from "../components/UserAvatar";
 import { AppIcon } from "../components/AppIcon";
@@ -157,6 +157,13 @@ export const SideBar = () => {
       {!collapsed && (
         <SectionLabel label={t("sidebar.workspace", "Workspace")} />
       )}
+      <SideBarButton
+        Icon={MdHome}
+        pathPrefix="/"
+        onClick={() => navigate("/")}
+        collapsed={collapsed}
+        text={t("sidebar.home")}
+      />
       <SideBarButton
         Icon={RiGalleryView2}
         pathPrefix="/gallery"

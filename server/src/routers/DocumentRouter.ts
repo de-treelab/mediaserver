@@ -226,6 +226,7 @@ documentRouter.get(
           position: parseListPosition({ after, before, around, at }),
           query: decodeURIComponent(query),
           seed: seed ?? "",
+          currentUserId: scopeResolver.currentUserId(identity),
         },
         scope,
         scopeResolver.collectionScope(identity),
@@ -279,6 +280,7 @@ documentRouter.post(
         body.tagsToRemove,
         scopeResolver.documentScope(identity),
         scopeResolver.collectionScope(identity),
+        scopeResolver.currentUserId(identity),
       );
       return {
         status: 204,
@@ -301,6 +303,7 @@ documentRouter.post(
         parseSelection(body.selection),
         scopeResolver.documentScope(identity),
         scopeResolver.collectionScope(identity),
+        scopeResolver.currentUserId(identity),
       );
       return {
         status: 200,

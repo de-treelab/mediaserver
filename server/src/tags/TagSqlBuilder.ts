@@ -294,6 +294,8 @@ export type CollectionResolver = (
 export type BuildListFilteredEntitiesOptions = {
   // Without a resolver, `collection:<value>` is only matched as a plain tag
   resolveCollections?: CollectionResolver;
+  // The user `shared:me` refers to; without it, `shared:me` matches nothing
+  currentUserId?: string;
 };
 
 const UUID_PATTERN =
@@ -311,6 +313,7 @@ type BuildContext = {
   sortBy: "created_at" | "random";
   sortDirection: "asc" | "desc";
   resolveCollections?: CollectionResolver;
+  currentUserId?: string;
   // Ids of the dynamic collections currently being expanded (cycle detection)
   expanding: string[];
 };
@@ -321,13 +324,17 @@ export class TagSqlBuilder {
     private readonly tagCache: TagCache,
   ) {}
 
-  private newContext(resolveCollections?: CollectionResolver): BuildContext {
+  private newContext({
+    resolveCollections,
+    currentUserId,
+  }: BuildListFilteredEntitiesOptions): BuildContext {
     return {
       params: {},
       next: 0,
       sortBy: "created_at",
       sortDirection: "desc",
       ...(resolveCollections && { resolveCollections }),
+      ...(currentUserId && { currentUserId }),
       expanding: [],
     };
   }
@@ -423,6 +430,11 @@ export class TagSqlBuilder {
       return `1=1`;
     }
 
+    if (tag.key === "shared" && tag.value === "me") {
+      if (!ctx.currentUserId) return `1=0`;
+      return `EXISTS (SELECT 1 FROM document_shares ds WHERE ds.document_id = u.id AND ds.shared_with_user_id = ${this.addParam(ctx, ctx.currentUserId)})`;
+    }
+
     if (
       tag.key === "collection" &&
       ctx.resolveCollections &&
@@ -485,9 +497,9 @@ export class TagSqlBuilder {
    */
   public async buildListFilteredEntitiesQuery(
     filter: Filter,
-    { resolveCollections }: BuildListFilteredEntitiesOptions = {},
+    options: BuildListFilteredEntitiesOptions = {},
   ): Promise<TagSqlBuilderResult<FilteredEntitiesQuery>> {
-    const ctx = this.newContext(resolveCollections);
+    const ctx = this.newContext(options);
 
     const idCol = this.builderConfig.userdataTableIdColumn;
     const tableName = this.builderConfig.userdataTableName;

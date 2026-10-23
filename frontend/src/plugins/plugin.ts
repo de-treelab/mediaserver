@@ -171,6 +171,28 @@ export type PluginComponents = {
     tagsMap?: Record<string, ApiTag[]>;
     popularTagKeys?: Set<string>;
   }>;
+  DocumentFilmstrip: React.FC<DocumentFilmstripProps>;
+};
+
+/**
+ * A titled, horizontally scrolling row of the documents matching `query`, as
+ * shown on the home page. Clicking a document opens it in the gallery.
+ */
+export type DocumentFilmstripProps = {
+  title: React.ReactNode;
+  // Tag filter query, e.g. `sort:random` or `collection:"Holidays"`
+  query: string;
+  // Seed of a `sort:random` query; fixes the order across reloads
+  seed?: string;
+  // Maximum number of documents shown (default 20)
+  limit?: number;
+  // Render nothing instead of an empty-state hint when nothing matches
+  hideWhenEmpty?: boolean;
+  /**
+   * Gallery search parameters for "See all" and for opening a document.
+   * Defaults to `{ q: query, seed }`.
+   */
+  gallerySearch?: Record<string, string>;
 };
 
 export type FileTypePlugin = {
@@ -245,6 +267,28 @@ export type NavItem = {
   priority?: number;
 };
 
+export type HomeWidgetContext = {
+  React: typeof React;
+  api: PluginApi;
+  components: PluginComponents;
+  dataApi: PluginDataApi;
+};
+
+/**
+ * A section of the home page. Widgets are ordered by `priority` (lower first,
+ * default 100; the built-in widgets use 10–40) and can be reordered or hidden
+ * by the user. A widget with nothing to show should render `null`.
+ */
+export type HomeWidget = {
+  // Unique across all plugins; used to persist the user's order/visibility
+  id: string;
+  // Shown when the user customizes the home page
+  label: string;
+  priority?: number;
+  permission?: string;
+  Component: React.FC<HomeWidgetContext>;
+};
+
 export type PluginRoute = {
   path: string;
   Component: React.FC<RouteContext>;
@@ -259,4 +303,5 @@ export type FrontendPlugin = {
   navItems?: NavItem[];
   routes?: PluginRoute[];
   documentInfo?: DocumentInfoPlugin;
+  homeWidgets?: HomeWidget[];
 };

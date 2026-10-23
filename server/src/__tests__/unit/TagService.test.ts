@@ -218,6 +218,7 @@ describe("TagService", () => {
         selection,
         scope,
         undefined,
+        undefined,
       );
       expect(tagRepository.bulkEditDocuments).toHaveBeenCalledWith(
         ["doc-1", "doc-2"],

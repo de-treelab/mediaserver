@@ -128,6 +128,7 @@
     "startIndexing": "Index now"
   },
   "sidebar": {
+    "home": "Home",
     "gallery": "Gallery",
     "upload": "Upload",
     "settings": "Settings",
@@ -377,5 +378,29 @@
   },
   "plugins": {
     "renderFailed": "{{name}} failed to render."
+  },
+  "home": {
+    "title": "Home",
+    "customize": "Customize",
+    "done": "Done",
+    "reset": "Reset to default",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "show": "Show",
+    "hide": "Hide",
+    "seeAll_one": "See all",
+    "seeAll_other": "See all {{count}}",
+    "more_one": "+{{count}} more",
+    "more_other": "+{{count}} more",
+    "empty": "Nothing here yet.",
+    "loadFailed": "Could not load documents.",
+    "scrollLeft": "Scroll left",
+    "scrollRight": "Scroll right",
+    "widgets": {
+      "recent": "Recently added",
+      "shared": "Shared with me",
+      "collections": "Collections",
+      "rediscover": "Rediscover"
+    }
   }
 }

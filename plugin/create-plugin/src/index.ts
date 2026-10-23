@@ -195,6 +195,21 @@ const plugin: FrontendPlugin = {
   //   },
   // ],
 
+  // Optional: Add sections to the home page
+  // homeWidgets: [
+  //   {
+  //     id: "my-plugin:favorites",
+  //     label: "My Plugin favorites",
+  //     priority: 50,
+  //     Component: ({ React, components }) =>
+  //       React.createElement(components.DocumentFilmstrip, {
+  //         title: "Favorites",
+  //         query: "favorite",
+  //         hideWhenEmpty: true,
+  //       }),
+  //   },
+  // ],
+
   // Optional: Add a file type renderer
   // fileType: {
   //   matcher: (fileType) => false,

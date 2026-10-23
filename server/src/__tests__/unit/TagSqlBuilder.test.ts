@@ -264,3 +264,40 @@ describe("TagSqlBuilder (collection by name)", () => {
     expect(result.success).toBe(false);
   });
 });
+
+describe("TagSqlBuilder (shared:me)", () => {
+  const userId = "11111111-1111-1111-1111-111111111111";
+  const build = async (query: string, currentUserId?: string) => {
+    const builder = new TagSqlBuilder(config, makeCache({ "shared:you": "7" }));
+    const result = await builder.buildListFilteredEntitiesQuery(
+      new TagParser(query).parse(),
+      currentUserId ? { currentUserId } : {},
+    );
+    if (!result.success) throw new Error(result.message);
+    return result;
+  };
+
+  it("matches documents shared with the current user", async () => {
+    const result = await build("shared:me", userId);
+    const sql = buildFilteredEntitiesPageQuery(result.stmt, "first");
+    expect(sql).toMatch(
+      /FROM document_shares ds WHERE ds\.document_id = u\.id AND ds\.shared_with_user_id = \$p\d+/,
+    );
+    expect(sql).not.toContain(userId);
+    expect(Object.values(result.params ?? {})).toContain(userId);
+  });
+
+  it("matches nothing without a current user", async () => {
+    const result = await build("shared:me");
+    const sql = buildFilteredEntitiesPageQuery(result.stmt, "first");
+    expect(sql).toContain("1=0");
+    expect(sql).not.toContain("document_shares");
+  });
+
+  it("treats other values of the shared key as a plain tag", async () => {
+    const result = await build("shared:you", userId);
+    const sql = buildFilteredEntitiesPageQuery(result.stmt, "first");
+    expect(sql).not.toContain("document_shares");
+    expect(Object.values(result.params ?? {})).toContain("7");
+  });
+});

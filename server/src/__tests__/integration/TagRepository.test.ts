@@ -550,4 +550,37 @@ describe("TagRepository (integration)", () => {
       expect(ids).toContain(DOC_SHARED_WITH_VIEWER);
     });
   });
+
+  describe("listDocuments — shared:me", () => {
+    it("lists only the documents shared with the current user", async () => {
+      const result = await tagRepository.listDocuments({
+        limit: 100,
+        query: "shared:me",
+        scope: { type: "accessible-by", userId: VIEWER_USER_ID },
+        currentUserId: VIEWER_USER_ID,
+      });
+      expect(result.items.map((d) => d.id)).toEqual([DOC_SHARED_WITH_VIEWER]);
+      expect(result.total).toBe(1);
+    });
+
+    it("combines with other filters", async () => {
+      const result = await tagRepository.listDocuments({
+        limit: 100,
+        query: "!shared:me",
+        scope: { type: "accessible-by", userId: VIEWER_USER_ID },
+        currentUserId: VIEWER_USER_ID,
+      });
+      const ids = result.items.map((d) => d.id);
+      expect(ids).not.toContain(DOC_SHARED_WITH_VIEWER);
+      expect(ids).toContain(DOC_VIEWER_PRIVATE);
+    });
+
+    it("matches nothing without a current user", async () => {
+      const result = await tagRepository.listDocuments({
+        limit: 100,
+        query: "shared:me",
+      });
+      expect(result.items).toEqual([]);
+    });
+  });
 });
