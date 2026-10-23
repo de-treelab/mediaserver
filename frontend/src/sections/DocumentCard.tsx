@@ -5,6 +5,7 @@ import { fileIconFromMimeType } from "../util/fileIconFromFile";
 import { SelectionIndicator } from "../components/SelectionIndicator";
 import { MdLock, MdPublic } from "react-icons/md";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
 const mimeToExtLabel = (mime: string): string => {
   const parts = mime.split("/");
@@ -49,6 +50,7 @@ export const DocumentCard = ({
   selected,
   onSelect,
 }: Props) => {
+  const { t } = useTranslation();
   const { objectUrl, isLoading, error } = useThumbnail(document.id);
   const { data: config } = api.useGetAppConfigQuery();
   const ext = mimeToExtLabel(document.mime);
@@ -103,9 +105,15 @@ export const DocumentCard = ({
         {config?.idpEnabled && (
           <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 flex items-center justify-center backdrop-blur-sm">
             {document.isPublic ? (
-              <MdPublic className="w-3.5 h-3.5 text-amber-400" title="Public" />
+              <MdPublic
+                className="w-3.5 h-3.5 text-amber-400"
+                title={t("document.access.public")}
+              />
             ) : (
-              <MdLock className="w-3.5 h-3.5 text-white/70" title="Private" />
+              <MdLock
+                className="w-3.5 h-3.5 text-white/70"
+                title={t("document.access.private")}
+              />
             )}
           </div>
         )}

@@ -85,7 +85,7 @@ export const UploadQueueRow = ({
             className={`text-sm font-medium truncate${status === "queued" && onFriendlyNameChange ? " cursor-text hover:text-text-secondary" : ""}`}
             title={
               status === "queued" && onFriendlyNameChange
-                ? "Click to rename"
+                ? t("pages.upload.clickToRename")
                 : undefined
             }
             onClick={() => {

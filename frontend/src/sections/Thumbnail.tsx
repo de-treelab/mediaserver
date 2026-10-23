@@ -1,4 +1,5 @@
 import { twMerge } from "tailwind-merge";
+import { useTranslation } from "react-i18next";
 import { useThumbnail } from "../hooks/useThumbnail";
 import type { Document } from "../app/api";
 import { Icon } from "../components/Icon";
@@ -29,6 +30,7 @@ export const Thumbnail = ({
   layout = "grid",
   onSelect,
 }: Props) => {
+  const { t } = useTranslation();
   const { objectUrl, isLoading, error } = useThumbnail(document.id);
 
   if (isLoading || error) {
@@ -52,7 +54,7 @@ export const Thumbnail = ({
             highlighted && "border-accent-muted",
           )}
           src={objectUrl}
-          alt="Document Thumbnail"
+          alt={t("document.preview.thumbnailAlt")}
           onClick={onClick}
         />
         {onSelect && (

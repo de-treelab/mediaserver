@@ -23,8 +23,10 @@ import { usePermission } from "../hooks/usePermission";
 import { AiOutlineUpload } from "react-icons/ai";
 import { MdEdit } from "react-icons/md";
 import { Button } from "../components/Button";
+import { useTranslation } from "react-i18next";
 
 export const GalleryPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const canUpload = usePermission("document:upload");
   const [layoutType, setLayoutType] = useState<"grid" | "list">("grid");
@@ -229,7 +231,9 @@ export const GalleryPage = () => {
       <div className="flex flex-col p-2">
         <div className="flex flex-row items-start justify-between shrink-0">
           <div>
-            <h1 className="text-3xl font-bold text-text-primary">Gallery</h1>
+            <h1 className="text-3xl font-bold text-text-primary">
+              {t("pages.gallery.title")}
+            </h1>
           </div>
           <div className="flex flex-row gap-2 shrink-0 mt-1">
             {canUpload && (
@@ -239,7 +243,7 @@ export const GalleryPage = () => {
                 className="flex flex-row gap-2 items-center"
               >
                 <AiOutlineUpload className="text-lg" />
-                Upload
+                {t("pages.gallery.upload")}
               </Button>
             )}
             <Button
@@ -248,7 +252,7 @@ export const GalleryPage = () => {
               className="flex flex-row gap-2 items-center"
             >
               <MdEdit className="text-lg" />
-              Edit
+              {t("pages.gallery.bulkEdit")}
             </Button>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { ZoomableImage } from "../components/ZoomableImage";
+import { UnsupportedFileType } from "../components/UnsupportedFileType";
 import type { FileTypePlugin } from "./plugin";
 
 export const pdfPlugin: FileTypePlugin = {
@@ -24,17 +25,12 @@ export const imagePlugin: FileTypePlugin = {
   icon: (icons) => icons.FaImage,
   description: "Plugin for rendering image files",
   Render: ({ objectUrl, onZoomedChange }) => (
-    <ZoomableImage
-      src={objectUrl}
-      alt="Image Preview"
-      onZoomedChange={onZoomedChange}
-    />
+    <ZoomableImage src={objectUrl} onZoomedChange={onZoomedChange} />
   ),
   Diashow: (context) => {
     return (
       <ZoomableImage
         src={context.objectUrl}
-        alt="Image Preview"
         // Zooming into a slide pauses auto-advance so it doesn't move on.
         onZoomedChange={(zoomed) => {
           if (zoomed) context.preventAutoAdvance();
@@ -99,12 +95,12 @@ export const unsupportedTypePlugin: FileTypePlugin = {
   matcher: () => true,
   icon: (icons) => icons.FaFile,
   description: "Plugin for unsupported file types",
-  Render: () => <div>Unsupported file type</div>,
+  Render: () => <UnsupportedFileType />,
   Diashow: (context) => {
     context.React.useEffect(() => {
       context.nextDocument();
     }, [context]);
 
-    return <div>Unsupported file type</div>;
+    return <UnsupportedFileType />;
   },
 };

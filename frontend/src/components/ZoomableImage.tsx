@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
+import { useTranslation } from "react-i18next";
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 6;
@@ -82,6 +83,7 @@ export const ZoomableImage = ({
   className,
   onZoomedChange,
 }: Props) => {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [transform, setTransform] = useState<Transform>(IDENTITY);
   const transformRef = useRef(transform);
@@ -312,7 +314,7 @@ export const ZoomableImage = ({
     >
       <img
         src={src}
-        alt={alt}
+        alt={alt ?? t("document.preview.imageAlt")}
         draggable={false}
         className="w-full h-full object-contain"
         style={{

@@ -40,7 +40,7 @@ export const GalleryControls = ({
         />
       )}
       <span className="text-sm text-text-muted whitespace-nowrap">
-        {pageSize} of {total}
+        {t("pages.gallery.shownOfTotal", { shown: pageSize, total })}
       </span>
       <div className="flex items-center gap-1.5">
         <select
@@ -48,8 +48,8 @@ export const GalleryControls = ({
           onChange={(e) => onSetSortMode(e.target.value as "newest" | "random")}
           className="bg-surface-2 border border-border text-text-secondary text-sm rounded-md px-2 py-1 cursor-pointer appearance-none"
         >
-          <option value="newest">Newest first</option>
-          <option value="random">Random</option>
+          <option value="newest">{t("pages.gallery.sortNewest")}</option>
+          <option value="random">{t("pages.gallery.sortRandom")}</option>
         </select>
         {hasRandomSort && (
           <FiShuffle

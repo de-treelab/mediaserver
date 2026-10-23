@@ -2,29 +2,11 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api, type AdminRole } from "../app/api";
 
-const NS_CONFIG: Record<
-  string,
-  { prefix: string; label: string; color: string }
-> = {
-  document: { prefix: "DC", label: "Documents", color: "bg-indigo-600" },
-  tag: { prefix: "TG", label: "Tags", color: "bg-teal-600" },
-  collection: { prefix: "CL", label: "Collections", color: "bg-emerald-600" },
-  admin: { prefix: "AD", label: "Administration", color: "bg-orange-500" },
-};
-
-const ACTION_DESCRIPTIONS: Record<string, string> = {
-  "document:read": "View documents and metadata.",
-  "document:upload": "Upload new documents.",
-  "document:delete": "Remove documents permanently.",
-  "tag:manage": "Create, edit, and remove tags.",
-  "collection:read": "View collections and their contents.",
-  "collection:create": "Create new collections.",
-  "collection:update": "Modify existing collections.",
-  "collection:delete": "Remove collections.",
-  "admin:users": "Manage user accounts.",
-  "admin:roles": "Manage roles and permissions.",
-  "admin:config": "Configure system settings.",
-  "admin:state": "Manage system state and application data.",
+const NS_CONFIG: Record<string, { prefix: string; color: string }> = {
+  document: { prefix: "DC", color: "bg-indigo-600" },
+  tag: { prefix: "TG", color: "bg-teal-600" },
+  collection: { prefix: "CL", color: "bg-emerald-600" },
+  admin: { prefix: "AD", color: "bg-orange-500" },
 };
 
 const groupActions = (actions: string[]): [string, string[]][] => {
@@ -131,9 +113,11 @@ const PermissionGroupCard = ({
   const { t } = useTranslation();
   const cfg = NS_CONFIG[namespace] ?? {
     prefix: namespace.slice(0, 2).toUpperCase(),
-    label: namespace,
     color: "bg-gray-500",
   };
+  const label = t(`admin.roles.namespaces.${namespace}`, {
+    defaultValue: namespace,
+  });
   const enabledCount = actions.filter((a) => enabledActions.includes(a)).length;
   const remaining = actions.length - enabledCount;
 
@@ -169,9 +153,12 @@ const PermissionGroupCard = ({
           {cfg.prefix}
         </span>
         <div className="flex-1 min-w-0">
-          <span className="font-medium text-sm">{cfg.label}</span>
+          <span className="font-medium text-sm">{label}</span>
           <span className="text-xs text-text-secondary ml-2">
-            {enabledCount} of {actions.length} actions allowed
+            {t("admin.roles.actionsAllowed", {
+              enabled: enabledCount,
+              total: actions.length,
+            })}
           </span>
         </div>
         {bulkButton}
@@ -179,7 +166,10 @@ const PermissionGroupCard = ({
       <div className="divide-y divide-border">
         {actions.map((action) => {
           const isEnabled = enabledActions.includes(action);
-          const desc = ACTION_DESCRIPTIONS[action];
+          // ":" is i18next's namespace separator, so map to a nested key
+          const desc = t(`admin.roles.actions.${action.replace(":", ".")}`, {
+            defaultValue: "",
+          });
           return (
             <div key={action} className="flex items-center gap-3 px-4 py-2.5">
               <Toggle
@@ -317,8 +307,10 @@ const RoleDetailPanel = ({
             </svg>
             {userCount} {t("admin.roles.assigned")}
             <span className="mx-1">·</span>
-            {role.policies.length} of {totalActions}{" "}
-            {t("admin.roles.permissionsGranted")}
+            {t("admin.roles.permissionsGrantedCount", {
+              granted: role.policies.length,
+              total: totalActions,
+            })}
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">

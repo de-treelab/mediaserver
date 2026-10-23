@@ -2,6 +2,7 @@ import type {
   CursorPaginatedResponse,
   PaginatedResponse,
 } from "../util/PaginatedResponse";
+import i18n from "i18next";
 import { tagToString } from "../util/tag";
 import { baseApi } from "./baseApi";
 
@@ -712,11 +713,15 @@ export function uploadDocumentWithProgress(
       else
         reject(
           new Error(
-            xhr.statusText || `Upload failed with status ${xhr.status}`,
+            xhr.statusText ||
+              i18n.t("fileUpload.errorReasons.uploadFailedWithStatus", {
+                status: xhr.status,
+              }),
           ),
         );
     };
-    xhr.onerror = () => reject(new Error("Network error during upload"));
+    xhr.onerror = () =>
+      reject(new Error(i18n.t("fileUpload.errorReasons.networkError")));
 
     xhr.send(formData);
   });

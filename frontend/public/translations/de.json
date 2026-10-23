@@ -5,7 +5,9 @@
     "uploadingFiles": "Diese Dateien werden gerade hochgeladen",
     "allFiles": "Alle Dateien",
     "errorReasons": {
-
+      "uploadFailed": "Upload fehlgeschlagen",
+      "uploadFailedWithStatus": "Upload fehlgeschlagen mit Status {{status}}",
+      "networkError": "Netzwerkfehler beim Upload"
     }
   },
   "pages": {
@@ -42,7 +44,8 @@
       "saveAsDraft": "Als Entwurf speichern",
       "uploadButton": "{{count}} hochladen",
       "batchTagCount_one": "{{count}} Batch-Tag",
-      "batchTagCount_other": "{{count}} Batch-Tags"
+      "batchTagCount_other": "{{count}} Batch-Tags",
+      "clickToRename": "Zum Umbenennen klicken"
     },
     "gallery": {
       "tagInputPlaceholder": "Nach Tag suchen...",
@@ -66,7 +69,12 @@
       "easyMode": "Einfach",
       "advancedMode": "Erweitert",
       "switchToEasyMode": "Zum einfachen Modus wechseln",
-      "switchToAdvancedMode": "Zum erweiterten Modus wechseln"
+      "switchToAdvancedMode": "Zum erweiterten Modus wechseln",
+      "title": "Galerie",
+      "upload": "Hochladen",
+      "sortNewest": "Neueste zuerst",
+      "sortRandom": "Zufällig",
+      "shownOfTotal": "{{shown}} von {{total}}"
     },
     "tags": {
       "title": "Tags",
@@ -197,8 +205,37 @@
       "grantAll": "Alle gewähren",
       "grantRemaining": "Verbleibende gewähren",
       "assigned": "zugewiesen",
-      "permissionsGranted": "Berechtigungen vergeben",
-      "selectRole": "Wählen Sie eine Rolle aus, um deren Berechtigungen anzuzeigen."
+      "selectRole": "Wählen Sie eine Rolle aus, um deren Berechtigungen anzuzeigen.",
+      "actionsAllowed": "{{enabled}} von {{total}} Aktionen erlaubt",
+      "permissionsGrantedCount": "{{granted}} von {{total}} Berechtigungen erteilt",
+      "namespaces": {
+        "document": "Dokumente",
+        "tag": "Tags",
+        "collection": "Sammlungen",
+        "admin": "Administration"
+      },
+      "actions": {
+        "document": {
+          "read": "Dokumente und Metadaten ansehen.",
+          "upload": "Neue Dokumente hochladen.",
+          "delete": "Dokumente dauerhaft entfernen."
+        },
+        "tag": {
+          "manage": "Tags erstellen, bearbeiten und entfernen."
+        },
+        "collection": {
+          "read": "Sammlungen und ihre Inhalte ansehen.",
+          "create": "Neue Sammlungen erstellen.",
+          "update": "Bestehende Sammlungen bearbeiten.",
+          "delete": "Sammlungen entfernen."
+        },
+        "admin": {
+          "users": "Benutzerkonten verwalten.",
+          "roles": "Rollen und Berechtigungen verwalten.",
+          "config": "Systemeinstellungen konfigurieren.",
+          "state": "Systemzustand und Anwendungsdaten verwalten."
+        }
+      }
     },
     "users": {
       "empty": "Noch keine Benutzer angemeldet."
@@ -272,6 +309,27 @@
       "noShares": "Nicht geteilt",
       "saveSuccess": "Zugriffseinstellungen gespeichert",
       "owner": "Eigentümer"
+    },
+    "preview": {
+      "rename": "Umbenennen",
+      "download": "Herunterladen",
+      "slideshow": "Diashow",
+      "info": "Info",
+      "close": "Schließen",
+      "position": "{{current}} von {{total}}",
+      "endPresentation": "Präsentation beenden",
+      "intervalUnit": "ms",
+      "imageAlt": "Bildvorschau",
+      "thumbnailAlt": "Dokumentvorschau",
+      "unsupportedFileType": "Nicht unterstützter Dateityp"
+    },
+    "info": {
+      "properties": "Eigenschaften",
+      "type": "Typ",
+      "name": "Name",
+      "visibility": "Sichtbarkeit",
+      "public": "Öffentlich",
+      "private": "Privat"
     }
   },
   "collection": {
@@ -311,5 +369,8 @@
   "tagInput": {
     "singleTagOnly": "Nur ein einzelner Tag ist erlaubt (z. B. \"key\" oder \"key:value\")",
     "collectionSuggestion": "Sammlung"
+  },
+  "plugins": {
+    "renderFailed": "{{name}} konnte nicht dargestellt werden."
   }
 }

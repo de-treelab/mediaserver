@@ -8,6 +8,7 @@ import { IconButton } from "./IconButton";
 import { AutoHideOverlay } from "./AutoHideOverlay";
 import { twMerge } from "tailwind-merge";
 import { MdFullscreenExit, MdInfoOutline } from "react-icons/md";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   nextDocument: () => void;
@@ -32,6 +33,8 @@ export const DocumentDiashowControls = ({
   showInfoPanel,
   endPresentation,
 }: Props) => {
+  const { t } = useTranslation();
+
   return (
     <AutoHideOverlay className="bottom-0 flex justify-center gap-4 bg-surface-2 p-2">
       <IconButton
@@ -60,7 +63,9 @@ export const DocumentDiashowControls = ({
           className="ml-4 w-16 bg-surface-1 rounded p-1 text-center"
           min={1}
         />
-        <span className="ml-1 text-sm text-text-secondary">ms</span>
+        <span className="ml-1 text-sm text-text-secondary">
+          {t("document.preview.intervalUnit")}
+        </span>
       </div>
       <IconButton
         onClick={toggleInfoPanel}
@@ -73,7 +78,7 @@ export const DocumentDiashowControls = ({
       </IconButton>
       <IconButton
         onClick={endPresentation}
-        title="End presentation"
+        title={t("document.preview.endPresentation")}
         className="bg-surface-1 rounded-full p-2 hover:bg-surface-3"
       >
         <MdFullscreenExit size={16} />
