@@ -145,6 +145,13 @@ describe("buildFilteredEntitiesPageQuery", () => {
     );
     expect(sql).not.toContain("$cursorTs");
   });
+
+  it("selects the window at an index by query index", async () => {
+    const sql = buildFilteredEntitiesPageQuery(await build(""), "at");
+    expect(sql).toContain(
+      "WHERE query_index >= $at ORDER BY query_index ASC LIMIT $limit",
+    );
+  });
 });
 
 describe("TagSqlBuilder (collection by name)", () => {

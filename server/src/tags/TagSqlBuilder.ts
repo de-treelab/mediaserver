@@ -122,6 +122,8 @@ export type FilteredEntitiesQuery = {
  * - around: up to `$limit` entities on either side of the anchor ($anchorId),
  *   the anchor itself included in the "after" half. Rows carry a
  *   `before_anchor` flag telling which half they belong to.
+ * - at: the `$limit` entities starting at query index `$at`, so callers can
+ *   fetch any part of the listing without knowing a document there.
  *
  * Rows of "before"/"last" come back in reverse order. All placeholders besides
  * the ones listed above are $limit and (when sorting randomly) $seed.
@@ -131,7 +133,8 @@ export type FilteredEntitiesPosition =
   | "last"
   | "after"
   | "before"
-  | "around";
+  | "around"
+  | "at";
 
 const filteredEntitiesCte = (q: FilteredEntitiesQuery) =>
   `filtered AS (${buildQueryFromSelectStatement(q.filtered)})`;
@@ -199,6 +202,9 @@ export const buildFilteredEntitiesPageQuery = (
         `(${slice(`${rowKey} ${backward} ${keyOf("$anchorId")}`, "DESC", "*, true AS before_anchor")}) ` +
         `UNION ALL ` +
         `(${slice(`${rowKey} ${forward}= ${keyOf("$anchorId")}`, "ASC", "*, false AS before_anchor")})`;
+      break;
+    case "at":
+      body = slice("query_index >= $at", "ASC");
       break;
   }
 
@@ -385,7 +391,7 @@ export class TagSqlBuilder {
    * Registers a dynamic value as a bind parameter and returns its `$name`
    * placeholder. The `p`-prefix avoids collisions with the caller-supplied
    * placeholders ($limit, $offset, $seed, $userId, $entityId, $cursorId,
-   * $cursorTs, $anchorId).
+   * $cursorTs, $anchorId, $at).
    */
   private addParam(ctx: BuildContext, value: string | number): string {
     const name = `p${ctx.next++}`;

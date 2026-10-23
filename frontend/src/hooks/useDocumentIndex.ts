@@ -5,10 +5,15 @@ import { enhancedApi } from "../app/enhancedApi";
 import { useAppDispatch, useAppSelector } from "../app/store";
 import type { CursorPaginatedResponse } from "../util/PaginatedResponse";
 
-// Windows kept subscribed at once; the least recently added one is dropped
+// Windows kept subscribed at once, unless all of them are still needed
 const MAX_WINDOWS = 6;
 
 type QueryArgs = Pick<ListDocumentsArgs, "query" | "seed">;
+
+// Fetched either around a document whose position is unknown, or at a
+// position. Positions are multiples of the window size, so that the windows
+// tile the listing and are reused while browsing.
+type Window = { around: string } | { at: number };
 
 type Params = {
   queryArgs: QueryArgs;
@@ -16,44 +21,50 @@ type Params = {
   extraPage: CursorPaginatedResponse<Document> | undefined;
   // Document that has to be known; a window around it is fetched if needed
   anchorId: string | undefined;
-  // Inclusive range of query indices that should be loaded
-  range: [number, number] | undefined;
+  // Inclusive ranges of query indices that should be loaded
+  ranges: [number, number][];
   windowSize: number;
 };
 
+const windowKey = (window: Window) =>
+  "around" in window ? `around:${window.around}` : `at:${window.at}`;
+
 const windowArgs = (
   queryArgs: QueryArgs,
-  around: string,
+  window: Window,
   limit: number,
-): ListDocumentsArgs => ({ ...queryArgs, around, limit });
+): ListDocumentsArgs => ({ ...queryArgs, ...window, limit });
+
+const overlaps = ([from, to]: [number, number], ranges: [number, number][]) =>
+  ranges.some(([rangeFrom, rangeTo]) => from <= rangeTo && to >= rangeFrom);
 
 /**
  * Index of the documents of a listing by their position, assembled from
- * windows fetched around individual documents. Fetches further windows
- * whenever part of `range` is unknown.
+ * windows of `windowSize` documents. Fetches further windows whenever part of
+ * `ranges` is unknown.
  */
 export const useDocumentIndex = ({
   queryArgs,
   extraPage,
   anchorId,
-  range,
+  ranges,
   windowSize,
 }: Params) => {
   const dispatch = useAppDispatch();
-  const [anchors, setAnchors] = useState<string[]>([]);
+  const [windows, setWindows] = useState<Window[]>([]);
 
   // Windows of a different filter / sort are useless, start over
-  const [anchorsQueryArgs, setAnchorsQueryArgs] = useState(queryArgs);
-  if (anchorsQueryArgs !== queryArgs) {
-    setAnchorsQueryArgs(queryArgs);
-    setAnchors([]);
+  const [windowsQueryArgs, setWindowsQueryArgs] = useState(queryArgs);
+  if (windowsQueryArgs !== queryArgs) {
+    setWindowsQueryArgs(queryArgs);
+    setWindows([]);
   }
 
   useEffect(() => {
-    const subscriptions = anchors.map((id) =>
+    const subscriptions = windows.map((window) =>
       dispatch(
         enhancedApi.endpoints.listDocuments.initiate(
-          windowArgs(queryArgs, id, windowSize),
+          windowArgs(queryArgs, window, windowSize),
           {
             subscriptionOptions: {
               refetchOnFocus: true,
@@ -64,43 +75,49 @@ export const useDocumentIndex = ({
       ),
     );
     return () => subscriptions.forEach((s) => s.unsubscribe());
-  }, [dispatch, anchors, queryArgs, windowSize]);
+  }, [dispatch, windows, queryArgs, windowSize]);
 
-  // Flattened [data, fulfilledTimeStamp, isLoading] per anchor so that
+  // Flattened [data, fulfilledTimeStamp, isLoading] per window so that
   // shallowEqual only re-renders on actual changes.
   const windowState = useAppSelector(
     (state) =>
-      anchors.flatMap((id) => {
+      windows.flatMap((window) => {
         const entry = enhancedApi.endpoints.listDocuments.select(
-          windowArgs(queryArgs, id, windowSize),
+          windowArgs(queryArgs, window, windowSize),
         )(state);
         return [entry.data, entry.fulfilledTimeStamp, entry.isLoading];
       }),
     shallowEqual,
   );
 
-  const { byIndex, byId, total, isLoading } = useMemo(() => {
-    const windows: {
+  const { byIndex, byId, total, isLoading, coverage } = useMemo(() => {
+    const loaded: {
       page: CursorPaginatedResponse<Document>;
       fulfilled: number;
     }[] = [];
+    // Inclusive range of query indices each loaded window holds, by key
+    const coverage = new Map<string, [number, number]>();
     let isLoading = false;
     for (let i = 0; i < windowState.length; i += 3) {
       const page = windowState[i] as
         | CursorPaginatedResponse<Document>
         | undefined;
       if (page) {
-        windows.push({ page, fulfilled: windowState[i + 1] as number });
+        loaded.push({ page, fulfilled: windowState[i + 1] as number });
+        coverage.set(windowKey(windows[i / 3]), [
+          page.startIndex,
+          page.startIndex + page.items.length - 1,
+        ]);
       }
       isLoading ||= windowState[i + 2] as boolean;
     }
-    windows.sort((a, b) => a.fulfilled - b.fulfilled);
+    loaded.sort((a, b) => a.fulfilled - b.fulfilled);
 
     // Positions shift when documents are added or removed. The most recently
     // fetched window decides the current total; pages disagreeing with it are
     // outdated and get ignored until they are refetched.
-    const total = windows.at(-1)?.page.total ?? extraPage?.total;
-    const pages = [extraPage, ...windows.map((w) => w.page)].filter(
+    const total = loaded.at(-1)?.page.total ?? extraPage?.total;
+    const pages = [extraPage, ...loaded.map((w) => w.page)].filter(
       (page): page is CursorPaginatedResponse<Document> =>
         page !== undefined && page.total === total,
     );
@@ -113,37 +130,50 @@ export const useDocumentIndex = ({
         byId.set(document.id, document);
       }
     }
-    return { byIndex, byId, total, isLoading };
-  }, [windowState, extraPage]);
+    return { byIndex, byId, total, isLoading, coverage };
+  }, [windowState, windows, extraPage]);
 
-  // Next window to fetch: around the anchor document if it is unknown, else
-  // around the known document closest to the first gap in `range`.
-  const missingAnchor = useMemo(() => {
-    if (anchorId && !byId.has(anchorId)) return anchorId;
-    if (!range || total === undefined) return undefined;
-    const from = Math.max(0, range[0]);
-    const to = Math.min(total - 1, range[1]);
-    for (let index = from; index <= to; index++) {
-      if (byIndex.has(index)) continue;
-      for (let distance = 1; distance < total; distance++) {
-        const nearest =
-          byIndex.get(index - distance) ?? byIndex.get(index + distance);
-        if (nearest) return nearest.id;
+  // Windows to fetch next: around the anchor document if it is unknown, as
+  // its position is needed first. Else the windows at the gaps in `ranges`.
+  const missingWindows = useMemo((): Window[] => {
+    if (anchorId && !byId.has(anchorId)) return [{ around: anchorId }];
+    if (total === undefined) return [];
+    const missing = new Map<string, Window>();
+    for (const [from, to] of ranges) {
+      for (
+        let index = Math.max(0, from);
+        index <= Math.min(total - 1, to);
+        index++
+      ) {
+        if (byIndex.has(index)) continue;
+        const window = { at: index - (index % windowSize) };
+        missing.set(windowKey(window), window);
       }
-      return undefined;
     }
-    return undefined;
-  }, [anchorId, byId, byIndex, range, total]);
+    return [...missing.values()];
+  }, [anchorId, byId, byIndex, ranges, total, windowSize]);
 
-  // Wait for pending windows, they might fill the gap already
+  // Wait for pending windows, they might fill the gaps already
   useEffect(() => {
-    if (!missingAnchor || isLoading) return;
-    setAnchors((prev) =>
-      prev.includes(missingAnchor)
-        ? prev
-        : [...prev, missingAnchor].slice(-MAX_WINDOWS),
-    );
-  }, [missingAnchor, isLoading]);
+    if (missingWindows.length === 0 || isLoading) return;
+    setWindows((prev) => {
+      const known = new Set(prev.map(windowKey));
+      const added = missingWindows.filter((w) => !known.has(windowKey(w)));
+      if (added.length === 0) return prev;
+      // Drop the least recently added windows that hold none of the requested
+      // positions. Windows still needed are kept, as dropping them would only
+      // cause them to be fetched again.
+      const next = [...prev, ...added];
+      let excess = next.length - MAX_WINDOWS;
+      return next.filter((window, i) => {
+        if (excess <= 0 || i >= prev.length) return true;
+        const covered = coverage.get(windowKey(window));
+        if (covered === undefined || overlaps(covered, ranges)) return true;
+        excess--;
+        return false;
+      });
+    });
+  }, [missingWindows, isLoading, coverage, ranges]);
 
   return { byIndex, byId, total };
 };

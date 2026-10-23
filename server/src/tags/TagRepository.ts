@@ -46,7 +46,9 @@ export type DocumentListPosition =
   | { type: "after"; cursor: DocumentCursor }
   | { type: "before"; cursor: DocumentCursor }
   // Window centered on a document, e.g. for the preview strip
-  | { type: "around"; documentId: string };
+  | { type: "around"; documentId: string }
+  // `limit` documents starting at a query index
+  | { type: "at"; index: number };
 
 export type ListDocumentsRequest = {
   limit: number;
@@ -162,7 +164,9 @@ export class TagRepository {
           : { cursorId: position.cursor.id, cursorTs: position.cursor.ts }
         : position.type === "around"
           ? { anchorId: position.documentId }
-          : {};
+          : position.type === "at"
+            ? { at: position.index }
+            : {};
 
     const rows = await this.dbService.any(
       paginated(documentListRowSchema),
@@ -217,7 +221,13 @@ export class TagRepository {
         isPublic: item.is_public,
       })),
       total,
-      startIndex: first?.query_index ?? (position.type === "after" ? total : 0),
+      startIndex:
+        first?.query_index ??
+        (position.type === "after"
+          ? total
+          : position.type === "at"
+            ? Math.min(position.index, total)
+            : 0),
       prevCursor: first && first.query_index > 0 ? toCursor(first) : undefined,
       nextCursor:
         last && last.query_index < total - 1 ? toCursor(last) : undefined,

@@ -132,16 +132,18 @@ const parseListPosition = ({
   after,
   before,
   around,
+  at,
 }: {
   after: string | undefined;
   before: string | undefined;
   around: string | undefined;
+  at: string | undefined;
 }): DocumentListPosition => {
-  if ([after, before, around].filter((p) => p !== undefined).length > 1) {
+  if ([after, before, around, at].filter((p) => p !== undefined).length > 1) {
     throw new ApiError(
       "InvalidCursor",
       400,
-      "Only one of after, before and around may be given",
+      "Only one of after, before, around and at may be given",
     );
   }
   if (after !== undefined) {
@@ -160,6 +162,13 @@ const parseListPosition = ({
     }
     return { type: "around", documentId: documentId.data.toLowerCase() };
   }
+  if (at !== undefined) {
+    const index = z.coerce.number().int().min(0).safeParse(at);
+    if (!index.success) {
+      throw new ApiError("InvalidCursor", 400, "Invalid index");
+    }
+    return { type: "at", index: index.data };
+  }
   return { type: "first" };
 };
 
@@ -175,11 +184,12 @@ documentRouter.get(
       after?: string;
       before?: string;
       around?: string;
+      at?: string;
     }
   >(
     async ({
       diContainer,
-      query: { limit = 100, query = "", seed, after, before, around },
+      query: { limit = 100, query = "", seed, after, before, around, at },
       identity,
     }) => {
       const scopeResolver = diContainer.get<AccessScopeResolver>(
@@ -190,7 +200,7 @@ documentRouter.get(
       const response = await tagService.listDocuments(
         {
           limit,
-          position: parseListPosition({ after, before, around }),
+          position: parseListPosition({ after, before, around, at }),
           query: decodeURIComponent(query),
           seed: seed ?? "",
         },

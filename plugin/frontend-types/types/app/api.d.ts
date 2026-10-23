@@ -26,6 +26,7 @@ export type ListDocumentsArgs = {
     after?: string;
     before?: string;
     around?: string;
+    at?: number;
 };
 export type DocumentShareEntry = {
     userId: string;

@@ -68,6 +68,20 @@ export const usePreviewNavigation = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const centerIndex = currentIndex + stripOffset;
 
+  // The neighbourhood of the previewed document and the part of the strip in
+  // view. Whatever lies between them isn't needed, however far the strip was
+  // scrolled.
+  const loadRanges = useMemo(
+    (): [number, number][] =>
+      previewDocumentSearchParam
+        ? [
+            [currentIndex - READ_AHEAD, currentIndex + READ_AHEAD],
+            [centerIndex - stripRadius - 1, centerIndex + stripRadius + 1],
+          ]
+        : [],
+    [previewDocumentSearchParam, currentIndex, centerIndex, stripRadius],
+  );
+
   // The preview loads the neighbourhood of the previewed document itself, so
   // it works independently of which gallery page is loaded.
   const {
@@ -78,12 +92,7 @@ export const usePreviewNavigation = ({
     queryArgs,
     extraPage: galleryPage,
     anchorId: previewDocumentSearchParam,
-    range: previewDocumentSearchParam
-      ? [
-          Math.min(currentIndex - READ_AHEAD, centerIndex - stripRadius - 1),
-          Math.max(currentIndex + READ_AHEAD, centerIndex + stripRadius + 1),
-        ]
-      : undefined,
+    ranges: loadRanges,
     windowSize: windowSizeFor(stripRadius),
   });
 
