@@ -4,6 +4,8 @@ import type { ApiTag } from "../app/api";
 import { Badge } from "../components/Badge";
 import { TagInput } from "../sections/TagInput";
 import { tagToString } from "../util/tag";
+import { Card } from "../components/Card";
+import { SectionLabel } from "../components/SectionLabel";
 
 type Props = {
   tags: ApiTag[];
@@ -22,12 +24,12 @@ export const BatchTagsControl = ({
 }: Props) => {
   const { t } = useTranslation();
   return (
-    <div className="bg-surface-1 rounded-lg p-4 border border-border">
+    <Card>
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
+        <SectionLabel>
           <MdOutlineLocalOffer size={14} />
           {t("pages.upload.batchTagsLabel")}
-        </div>
+        </SectionLabel>
         <span className="text-xs text-text-muted">
           {t("pages.upload.batchTagsHint")}
         </span>
@@ -41,6 +43,7 @@ export const BatchTagsControl = ({
         ))}
         <TagInput
           clearOnSubmit
+          singleTag
           value={inputValue}
           onChange={onInputChange}
           onSubmit={(tag) => {
@@ -50,6 +53,6 @@ export const BatchTagsControl = ({
           className="min-w-48 flex-1"
         />
       </div>
-    </div>
+    </Card>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import i18n from "i18next";
 import {
   UploadContext,
   type FileProxy,
@@ -174,7 +175,7 @@ export const UploadContextProvider: React.FC<{
         .catch((err) => {
           markFileAsFailedRef.current(
             file.name,
-            err.message || "Upload failed",
+            err.message || i18n.t("fileUpload.errorReasons.uploadFailed"),
           );
         });
     });

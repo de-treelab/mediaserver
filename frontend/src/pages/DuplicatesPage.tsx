@@ -10,6 +10,8 @@ import { usePermission } from "../hooks/usePermission";
 import { usePageOffsetAndLimitParams } from "../hooks/usePageOffsetAndLimitParams";
 import { DuplicateGroupCard } from "../sections/DuplicateGroupCard";
 import { bytesToHumanReadable } from "../util/bytesToHumanReadable";
+import { EmptyState, Page, PageHeader } from "../components/Page";
+import { Card } from "../components/Card";
 
 type ResolveRequest = {
   keepId: string;
@@ -95,34 +97,34 @@ export const DuplicatesPage = () => {
   const pendingIndexing = indexing?.pending ?? 0;
 
   return (
-    <div className="p-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-text-primary">
-          <HiOutlineDocumentDuplicate className="text-text-muted" />
-          {t("duplicates.title")}
-        </h1>
-        {groups.length > 0 && (
-          <div className="flex flex-row gap-2">
-            <Button
-              variant="secondary"
-              disabled={bulkRunning}
-              onClick={() => resolveAll(oldestOf)}
-            >
-              {t("duplicates.keepOldest")}
-            </Button>
-            <Button
-              variant="secondary"
-              disabled={bulkRunning}
-              onClick={() => resolveAll(newestOf)}
-            >
-              {t("duplicates.keepNewest")}
-            </Button>
-          </div>
-        )}
-      </div>
+    <Page>
+      <PageHeader
+        icon={<HiOutlineDocumentDuplicate />}
+        title={t("duplicates.title")}
+        actions={
+          groups.length > 0 && (
+            <>
+              <Button
+                variant="secondary"
+                disabled={bulkRunning}
+                onClick={() => resolveAll(oldestOf)}
+              >
+                {t("duplicates.keepOldest")}
+              </Button>
+              <Button
+                variant="secondary"
+                disabled={bulkRunning}
+                onClick={() => resolveAll(newestOf)}
+              >
+                {t("duplicates.keepNewest")}
+              </Button>
+            </>
+          )
+        }
+      />
 
       {pendingIndexing > 0 && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 p-4 rounded-lg border border-border bg-surface-1">
+        <Card className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-sm text-text-secondary">
             {indexing?.running && (
               <BiLoader className="animate-spin text-text-muted" />
@@ -141,39 +143,32 @@ export const DuplicatesPage = () => {
               {t("duplicates.startIndexing")}
             </Button>
           )}
-        </div>
+        </Card>
       )}
 
-      {isLoading && (
-        <div className="text-text-muted text-center py-12">
-          {t("common.loading")}
-        </div>
-      )}
+      {isLoading && <EmptyState>{t("common.loading")}</EmptyState>}
 
       {!isLoading && groups.length === 0 && (
-        <div className="text-text-muted text-center py-12">
-          {t("duplicates.empty")}
-        </div>
+        <EmptyState>{t("duplicates.empty")}</EmptyState>
       )}
 
       {groups.length > 0 && (
-        <p className="text-sm text-text-muted mb-4">
-          {t("duplicates.summary", {
-            count: total,
-            reclaimable: bytesToHumanReadable(reclaimableOnPage),
-          })}
-        </p>
+        <div className="flex flex-col gap-4">
+          <p className="text-sm text-text-muted">
+            {t("duplicates.summary", {
+              count: total,
+              reclaimable: bytesToHumanReadable(reclaimableOnPage),
+            })}
+          </p>
+          {groups.map((group) => (
+            <DuplicateGroupCard
+              key={group.contentHash}
+              group={group}
+              onResolve={(request) => onResolve(group.contentHash, request)}
+            />
+          ))}
+        </div>
       )}
-
-      <div className="flex flex-col gap-4">
-        {groups.map((group) => (
-          <DuplicateGroupCard
-            key={group.contentHash}
-            group={group}
-            onResolve={(request) => onResolve(group.contentHash, request)}
-          />
-        ))}
-      </div>
 
       {total > limit && (
         <Pagination
@@ -181,9 +176,8 @@ export const DuplicatesPage = () => {
           limit={limit}
           currentPage={page}
           onPageChange={setPage}
-          className="mt-6"
         />
       )}
-    </div>
+    </Page>
   );
 };

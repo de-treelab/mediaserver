@@ -1,5 +1,3 @@
-import type { SkipToken } from "@reduxjs/toolkit/query";
-import { enhancedApi } from "../app/enhancedApi";
 import { api, type Document } from "../app/api";
 import { ThumbnailContainer } from "../components/ThumbnailContainer";
 import { DocumentPreview } from "./DocumentPreview";
@@ -13,10 +11,9 @@ import { DocumentInfoPanel } from "./DocumentInfoPanel";
 type Props = {
   previewImageId: string;
   previewImageIndex: number;
-  queryParams: Omit<
-    Parameters<typeof enhancedApi.useListDocumentsQuery>[0],
-    SkipToken
-  >;
+  previewDocument: Document | undefined;
+  // Neighbourhood of the previewed document shown in the thumbnail strip
+  stripDocuments: Document[];
   totalDocuments: number;
   onThumbnailClicked: (document: Document) => void;
   nextPreviewImage: () => void;
@@ -27,32 +24,20 @@ type Props = {
 export const PreviewContainer = ({
   previewImageId,
   previewImageIndex,
+  previewDocument: currentDocument,
+  stripDocuments,
   totalDocuments,
-  queryParams,
   onThumbnailClicked,
   nextPreviewImage,
   previousPreviewImage,
   onClose,
 }: Props) => {
-  const { data } = enhancedApi.useListDocumentsQuery(
-    {
-      ...queryParams,
-      limit: 5,
-      offset: Math.min(
-        Math.max(previewImageIndex - 2, 0),
-        Math.max(totalDocuments - 5, 0),
-      ),
-    },
-    { refetchOnFocus: true, refetchOnReconnect: true },
-  );
-
   const [diashowMode, setDiashowMode] = useState(false);
   const [showInfoPanel, setShowInfoPanel] = useState(false);
   const [wasFullscreen, setWasFullscreen] = useState(false);
 
   const { data: identity } = api.useGetMeQuery();
   const { data: config } = api.useGetAppConfigQuery();
-  const currentDocument = data?.items.find((d) => d.id === previewImageId);
   const SYSTEM_USER_ID = "00000000-0000-0000-0000-000000000000";
   const canManageAccess =
     !!config?.idpEnabled &&
@@ -72,10 +57,10 @@ export const PreviewContainer = ({
 
   const onThumbnailClick = useCallback(
     (id: string) => {
-      const clicked = data?.items.find((d) => d.id === id);
+      const clicked = stripDocuments.find((d) => d.id === id);
       if (clicked) onThumbnailClicked(clicked);
     },
-    [data, onThumbnailClicked],
+    [stripDocuments, onThumbnailClicked],
   );
 
   useEffect(() => {
@@ -113,30 +98,32 @@ export const PreviewContainer = ({
 
   return (
     <div className="flex flex-col h-full bg-bg-base">
-      {/* Header */}
-      <div className="flex-shrink-0 h-14 bg-surface-1 border-b border-border">
-        <DocumentPreviewControls
-          documentId={previewImageId}
-          friendlyName={currentDocument?.friendlyName}
-          previewImageIndex={previewImageIndex}
-          totalDocuments={totalDocuments}
-          mimeType={mimeType}
-          nextDocument={nextPreviewImage}
-          previousDocument={previousPreviewImage}
-          downloadDocument={() => {
-            const link = document.createElement("a");
-            link.href = documentDownloadUrl;
-            link.download = "";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-          }}
-          toggleDiashow={() => setDiashowMode((m) => !m)}
-          toggleInfoPanel={() => setShowInfoPanel((m) => !m)}
-          showInfoPanel={showInfoPanel}
-          onClose={onCloseImpl}
-        />
-      </div>
+      {/* Header — hidden during presentation */}
+      {!diashowMode && (
+        <div className="flex-shrink-0 h-14 bg-surface-1 border-b border-border">
+          <DocumentPreviewControls
+            documentId={previewImageId}
+            friendlyName={currentDocument?.friendlyName}
+            previewImageIndex={previewImageIndex}
+            totalDocuments={totalDocuments}
+            mimeType={mimeType}
+            nextDocument={nextPreviewImage}
+            previousDocument={previousPreviewImage}
+            downloadDocument={() => {
+              const link = document.createElement("a");
+              link.href = documentDownloadUrl;
+              link.download = "";
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }}
+            toggleDiashow={() => setDiashowMode((m) => !m)}
+            toggleInfoPanel={() => setShowInfoPanel((m) => !m)}
+            showInfoPanel={showInfoPanel}
+            onClose={onCloseImpl}
+          />
+        </div>
+      )}
 
       {/* Main area */}
       <div className="flex flex-1 overflow-hidden relative">
@@ -150,6 +137,7 @@ export const PreviewContainer = ({
               mimeType={mimeType}
               toggleInfoPanel={() => setShowInfoPanel((m) => !m)}
               showInfoPanel={showInfoPanel}
+              endPresentation={() => setDiashowMode(false)}
             />
           ) : (
             <DocumentPreview
@@ -191,7 +179,7 @@ export const PreviewContainer = ({
         <div className="flex-shrink-0 h-36 border-t border-border bg-surface-1 p-2 overflow-hidden flex items-center justify-center">
           <ThumbnailContainer
             alignment="center"
-            thumbnails={data?.items || []}
+            thumbnails={stripDocuments}
             onClick={onThumbnailClick}
             wrap="nowrap"
             highlighted={new Set([previewImageId])}

@@ -1,6 +1,6 @@
 import { ApiError } from "../common/ApiError.js";
 import type { DocumentService } from "../documents/DocumentService.js";
-import { getFileTypePluginByType } from "../plugins/fileTypes.js";
+import { getFileTypePluginsByType } from "../plugins/fileTypes.js";
 import type { ApiTag } from "../tags/TagRepository.js";
 import type { TagService } from "../tags/TagService.js";
 import { tagToString } from "../util/tag.js";
@@ -66,10 +66,19 @@ export class UploadService {
       });
 
       const tags = upload.tags;
-      const plugin = getFileTypePluginByType(upload.mimeType);
-      if (plugin) {
-        const initialTags = await plugin.initialTags(upload.file);
-        tags.push(...initialTags);
+      // Collect initial tags from every plugin matching the MIME type, not just
+      // the first. Each plugin is isolated so one failing plugin can't block the
+      // upload (thumbnail creation still uses only the first matching plugin).
+      const plugins = getFileTypePluginsByType(upload.mimeType);
+      const initialTagResults = await Promise.allSettled(
+        plugins.map((plugin) => plugin.initialTags(upload.file)),
+      );
+      for (const result of initialTagResults) {
+        if (result.status === "fulfilled") {
+          tags.push(...result.value);
+        } else {
+          console.error("initialTags plugin failed:", result.reason);
+        }
       }
 
       await Promise.all(

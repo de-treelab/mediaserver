@@ -11,6 +11,7 @@ import { Button } from "../components/Button";
 import { CollectionCard } from "./CollectionCard";
 import { BiLoader } from "react-icons/bi";
 import { tagToString, stringToTag } from "../util/tag";
+import { Input } from "../components/Input";
 
 type Props = {
   documentIds: string[];
@@ -191,6 +192,7 @@ export const BulkEditDocumentsModal = ({
             <>
               <TagInput
                 className="z-100"
+                singleTag
                 onChange={setQuery}
                 placeholder={t("pages.gallery.searchTag")}
                 value={query}
@@ -200,12 +202,11 @@ export const BulkEditDocumentsModal = ({
             </>
           ) : (
             <div className="flex flex-col gap-2">
-              <input
+              <Input
                 type="text"
                 placeholder={t("collections.addForm.filterPlaceholder")}
                 value={collectionFilter}
                 onChange={(e) => setCollectionFilter(e.target.value)}
-                className="px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300 w-full"
               />
               {filteredCollections.map((collection) => (
                 <CollectionCard
@@ -230,7 +231,7 @@ export const BulkEditDocumentsModal = ({
         </div>
         <Button
           onClick={onBulkEditConfirm}
-          className="self-end flex flex-row items-center gap-2"
+          className="self-end"
           disabled={isLoading || (!tagsToAdd.length && !tagsToRemove.length)}
         >
           {isLoading ? <BiLoader className="animate-spin" /> : undefined}

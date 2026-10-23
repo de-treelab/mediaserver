@@ -24,6 +24,10 @@ import {
   selectMaxConcurrentUploads,
   setMaxConcurrentUploads,
 } from "../app/persistent.slice";
+import { Page, PageHeader } from "../components/Page";
+import { Card, CardHeader } from "../components/Card";
+import { SectionLabel } from "../components/SectionLabel";
+import { Select } from "../components/Input";
 
 type QueuedFile = {
   id: string;
@@ -107,8 +111,8 @@ export const UploadPage = () => {
     failedFiles.size;
 
   return (
-    <div
-      className="flex flex-col h-full p-6 gap-5 overflow-y-auto"
+    <Page
+      className="h-full overflow-y-auto"
       onDragOver={(e) => {
         e.preventDefault();
         setIsDragging(true);
@@ -124,43 +128,36 @@ export const UploadPage = () => {
         addFiles(Array.from(e.dataTransfer.files));
       }}
     >
-      {/* Header */}
-      <div className="flex flex-col items-start gap-1">
-        <div className="flex flex-row items-start justify-between gap-6 w-full">
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold">{t("pages.upload.title")}</h1>
-          </div>
-          {totalFiles > 0 && (
-            <div className="flex flex-row gap-6 text-right shrink-0">
+      <PageHeader
+        title={t("pages.upload.title")}
+        description={
+          <>
+            {t("pages.upload.headerDescriptionPre")}{" "}
+            <strong className="text-text-primary">
+              {t("pages.upload.everythingInBatch")}
+            </strong>
+            {t("pages.upload.headerDescriptionPost")}
+          </>
+        }
+        actions={
+          totalFiles > 0 && (
+            <div className="flex flex-row gap-6 sm:text-right">
               <div>
                 <div className="text-2xl font-bold">{queuedFiles.length}</div>
-                <div className="text-[10px] text-text-muted uppercase tracking-widest mt-0.5">
-                  {t("pages.upload.statQueued")}
-                </div>
+                <SectionLabel>{t("pages.upload.statQueued")}</SectionLabel>
               </div>
               {totalQueuedSize > 0 && (
                 <div>
                   <div className="text-2xl font-bold">
                     {bytesToHumanReadable(totalQueuedSize)}
                   </div>
-                  <div className="text-[10px] text-text-muted uppercase tracking-widest mt-0.5">
-                    {t("pages.upload.statTotalSize")}
-                  </div>
+                  <SectionLabel>{t("pages.upload.statTotalSize")}</SectionLabel>
                 </div>
               )}
             </div>
-          )}
-        </div>
-        <div>
-          <p className="text-text-secondary mt-1 max-w-xl">
-            {t("pages.upload.headerDescriptionPre")}{" "}
-            <strong className="text-text-primary">
-              {t("pages.upload.everythingInBatch")}
-            </strong>
-            {t("pages.upload.headerDescriptionPost")}
-          </p>
-        </div>
-      </div>
+          )
+        }
+      />
 
       {/* Controls row */}
       <div
@@ -192,8 +189,8 @@ export const UploadPage = () => {
 
       {/* Upload Queue */}
       {totalFiles > 0 && (
-        <div className="bg-surface-1 rounded-lg border border-border overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+        <Card className="p-0 overflow-hidden">
+          <CardHeader>
             <div className="flex items-center gap-2">
               <span className="font-semibold">
                 {t("pages.upload.queueTitle")}
@@ -205,23 +202,23 @@ export const UploadPage = () => {
             <div className="flex items-center gap-4">
               <label className="flex items-center gap-2 text-xs text-text-muted">
                 {t("pages.upload.parallelUploads")}
-                <select
+                <Select
+                  inputSize="sm"
                   value={maxConcurrentUploads}
                   onChange={(e) =>
                     dispatch(setMaxConcurrentUploads(Number(e.target.value)))
                   }
-                  className="bg-surface-2 border border-border rounded px-1.5 py-0.5 text-xs text-text-primary focus:outline-none focus:border-border-strong"
                 >
                   {[1, 2, 3, 4, 5].map((n) => (
                     <option key={n} value={n}>
                       {n}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
               <Button
                 variant="ghost"
-                className="flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary"
+                size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   fileInputRef.current?.click();
@@ -231,13 +228,14 @@ export const UploadPage = () => {
               </Button>
               <Button
                 variant="ghost"
-                className="flex items-center gap-1 text-sm hover:text-danger-subtle"
+                size="sm"
+                className="hover:enabled:text-danger-subtle"
                 onClick={() => setQueuedFiles([])}
               >
                 <MdDeleteOutline size={15} /> {t("pages.upload.clearAll")}
               </Button>
             </div>
-          </div>
+          </CardHeader>
           <div className="divide-y divide-border overflow-y-auto h-[calc(100%-3rem)]">
             {queuedFiles.map((qf) => (
               <UploadQueueRow
@@ -330,12 +328,12 @@ export const UploadPage = () => {
               />
             ))}
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Footer bar */}
       {totalFiles > 0 && (
-        <div className="sticky bottom-0 bg-surface-1 border border-border rounded-lg px-4 py-3 flex items-center justify-between gap-4">
+        <Card className="sticky bottom-0 px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 text-sm text-text-secondary flex-wrap">
             <span>
               <strong className="text-text-primary">
@@ -367,13 +365,12 @@ export const UploadPage = () => {
           <Button
             variant="primary"
             disabled={queuedFiles.length === 0}
-            className="flex items-center gap-2 text-sm font-medium"
             onClick={handleUpload}
           >
-            <MdCheck size={16} />{" "}
+            <MdCheck size={16} />
             {t("pages.upload.uploadButton", { count: queuedFiles.length })}
           </Button>
-        </div>
+        </Card>
       )}
 
       <input
@@ -388,6 +385,6 @@ export const UploadPage = () => {
           }
         }}
       />
-    </div>
+    </Page>
   );
 };

@@ -9,6 +9,7 @@ import { usePageOffsetAndLimitParams } from "../hooks/usePageOffsetAndLimitParam
 import { Pagination } from "../components/Pagination";
 import { Button } from "../components/Button";
 import { DeleteCollectionModal } from "../sections/DeleteCollectionModal";
+import { EmptyState, Page, PageHeader } from "../components/Page";
 
 export const CollectionsPage = () => {
   const { t } = useTranslation();
@@ -81,24 +82,22 @@ export const CollectionsPage = () => {
   };
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-text-primary">
-          {t("collections.title")}
-        </h1>
-        <Button onClick={handleOpenCreate}>
-          + {t("collections.newCollection")}
-        </Button>
-      </div>
+    <Page>
+      <PageHeader
+        title={t("collections.title")}
+        actions={
+          <Button onClick={handleOpenCreate}>
+            + {t("collections.newCollection")}
+          </Button>
+        }
+      />
 
       {data?.items.length === 0 && (
-        <div className="text-text-muted text-center py-12">
-          {t("collections.empty")}
-        </div>
+        <EmptyState>{t("collections.empty")}</EmptyState>
       )}
 
       {favorites.length > 0 && (
-        <div className="mb-6">
+        <div>
           <h2 className="flex items-center gap-2 text-lg font-semibold text-warning mb-3">
             <FaStar />
             {t("collections.favorites")}
@@ -143,7 +142,6 @@ export const CollectionsPage = () => {
         limit={limit}
         currentPage={page}
         onPageChange={setPage}
-        className="mt-6"
       />
 
       <CollectionFormModal
@@ -159,6 +157,6 @@ export const CollectionsPage = () => {
         onDelete={handleDeleteConfirm}
         deletingCollection={deletingCollection}
       />
-    </div>
+    </Page>
   );
 };

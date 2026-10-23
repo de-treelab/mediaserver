@@ -5,7 +5,9 @@
     "uploadingFiles": "These files are currently being uploaded",
     "allFiles": "All files",
     "errorReasons": {
-
+      "uploadFailed": "Upload failed",
+      "uploadFailedWithStatus": "Upload failed with status {{status}}",
+      "networkError": "Network error during upload"
     }
   },
   "pages": {
@@ -42,7 +44,8 @@
       "saveAsDraft": "Save as draft",
       "uploadButton": "Upload {{count}}",
       "batchTagCount_one": "{{count}} batch tag",
-      "batchTagCount_other": "{{count}} batch tags"
+      "batchTagCount_other": "{{count}} batch tags",
+      "clickToRename": "Click to rename"
     },
     "gallery": {
       "tagInputPlaceholder": "Search by tag...",
@@ -66,7 +69,12 @@
       "easyMode": "Easy",
       "advancedMode": "Advanced",
       "switchToEasyMode": "Switch to easy mode",
-      "switchToAdvancedMode": "Switch to advanced mode"
+      "switchToAdvancedMode": "Switch to advanced mode",
+      "title": "Gallery",
+      "upload": "Upload",
+      "sortNewest": "Newest first",
+      "sortRandom": "Random",
+      "shownOfTotal": "{{shown}} of {{total}}"
     },
     "tags": {
       "title": "Tags",
@@ -77,7 +85,9 @@
   "pagination": {
     "range": "Displaying {{start}} - {{end}} of {{total}}",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "first": "First",
+    "last": "Last"
   },
   "state": {
     "free": "Free",
@@ -195,8 +205,37 @@
       "grantAll": "Grant all",
       "grantRemaining": "Grant remaining",
       "assigned": "assigned",
-      "permissionsGranted": "permissions granted",
-      "selectRole": "Select a role to view its permissions."
+      "selectRole": "Select a role to view its permissions.",
+      "actionsAllowed": "{{enabled}} of {{total}} actions allowed",
+      "permissionsGrantedCount": "{{granted}} of {{total}} permissions granted",
+      "namespaces": {
+        "document": "Documents",
+        "tag": "Tags",
+        "collection": "Collections",
+        "admin": "Administration"
+      },
+      "actions": {
+        "document": {
+          "read": "View documents and metadata.",
+          "upload": "Upload new documents.",
+          "delete": "Remove documents permanently."
+        },
+        "tag": {
+          "manage": "Create, edit, and remove tags."
+        },
+        "collection": {
+          "read": "View collections and their contents.",
+          "create": "Create new collections.",
+          "update": "Modify existing collections.",
+          "delete": "Remove collections."
+        },
+        "admin": {
+          "users": "Manage user accounts.",
+          "roles": "Manage roles and permissions.",
+          "config": "Configure system settings.",
+          "state": "Manage system state and application data."
+        }
+      }
     },
     "users": {
       "empty": "No users have logged in yet."
@@ -254,6 +293,7 @@
   "document": {
     "addTagPlaceholder": "Add a tag...",
     "tabs": {
+      "info": "Info",
       "tags": "Tags",
       "collections": "Collections",
       "access": "Access"
@@ -270,6 +310,27 @@
       "noShares": "Not shared with anyone",
       "saveSuccess": "Access settings saved",
       "owner": "Owner"
+    },
+    "preview": {
+      "rename": "Rename",
+      "download": "Download",
+      "slideshow": "Slideshow",
+      "info": "Info",
+      "close": "Close",
+      "position": "{{current}} of {{total}}",
+      "endPresentation": "End presentation",
+      "intervalUnit": "ms",
+      "imageAlt": "Image preview",
+      "thumbnailAlt": "Document thumbnail",
+      "unsupportedFileType": "Unsupported file type"
+    },
+    "info": {
+      "properties": "Properties",
+      "type": "Type",
+      "name": "Name",
+      "visibility": "Visibility",
+      "public": "Public",
+      "private": "Private"
     }
   },
   "collection": {
@@ -305,5 +366,12 @@
       "no": "No",
       "untrusted": "Untrusted"
     }
+  },
+  "tagInput": {
+    "singleTagOnly": "Only a single tag is allowed (e.g. \"key\" or \"key:value\")",
+    "collectionSuggestion": "collection"
+  },
+  "plugins": {
+    "renderFailed": "{{name}} failed to render."
   }
 }

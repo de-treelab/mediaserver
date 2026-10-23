@@ -7,7 +7,7 @@ type Props = {
 export const WithNumberIndicator: React.FC<Props> = ({
   children,
   count,
-  color = "bg-red-500",
+  color = "bg-danger-strong",
 }) => {
   return (
     <div className="relative">

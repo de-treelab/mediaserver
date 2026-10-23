@@ -1,16 +1,21 @@
-import { MetaTag, Tag } from "@lars_hagemann/tags";
+import { MetaTag, Tag, TagParser } from "@lars_hagemann/tags";
 import type {
   ApiTag,
   ListDocumentsRequest,
   TagRepository,
 } from "./TagRepository.js";
-import type { PaginatedResponse } from "../util/PaginatedResponse.js";
+import type { CursorPaginatedResponse } from "../util/PaginatedResponse.js";
 import type {
   Document,
   DocumentWithTags,
 } from "../documents/DocumentRepository.js";
 import type { TagCache } from "./TagCache.js";
-import type { DocumentAccessScope } from "../auth/AccessScope.js";
+import type {
+  CollectionAccessScope,
+  DocumentAccessScope,
+} from "../auth/AccessScope.js";
+import type { CollectionRepository } from "../collections/CollectionRepository.js";
+import { TagParseError } from "./TagParseError.js";
 
 export type ListTagsRequest = {
   limit: number;
@@ -22,6 +27,7 @@ export class TagService {
   constructor(
     private tagRepository: TagRepository,
     private readonly tagCache: TagCache,
+    private readonly collectionRepository?: CollectionRepository,
   ) {}
 
   public static normalizeTag(tag: string, type: string = "default"): ApiTag {
@@ -30,6 +36,22 @@ export class TagService {
       return { key: parts[0]!.trim(), value: undefined, type };
     } else {
       return { key: parts[0]!.trim(), value: parts[1]!.trim(), type };
+    }
+  }
+
+  /**
+   * Throws unless `tag` is a single tag (`key` or `key:value`), i.e. not an
+   * expression like `a & b`. Use for tags coming from user input.
+   */
+  public static assertSingleTag(tag: string) {
+    let filter;
+    try {
+      filter = new TagParser(tag).parse();
+    } catch (err) {
+      throw new TagParseError(err instanceof Error ? err.message : "Unknown");
+    }
+    if (!(filter instanceof Tag || filter instanceof MetaTag)) {
+      throw new TagParseError(`Expected a single tag, got "${tag}"`);
     }
   }
 
@@ -49,11 +71,25 @@ export class TagService {
     });
   }
 
+  /**
+   * @param collectionScope collections that `collection:"<name>"` filters may
+   * refer to. Without it, such filters only match plain tags.
+   */
   public async listDocuments(
     request: ListDocumentsRequest,
     scope: DocumentAccessScope = { type: "all" },
-  ): Promise<PaginatedResponse<Document>> {
-    return this.tagRepository.listDocuments({ ...request, scope });
+    collectionScope?: CollectionAccessScope,
+  ): Promise<CursorPaginatedResponse<Document>> {
+    const collectionRepository = this.collectionRepository;
+    return this.tagRepository.listDocuments({
+      ...request,
+      scope,
+      ...(collectionRepository &&
+        collectionScope && {
+          resolveCollections: (name: string) =>
+            collectionRepository.findCollectionsByName(name, collectionScope),
+        }),
+    });
   }
 
   public async listDocumentsByIds(

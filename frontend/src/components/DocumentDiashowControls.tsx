@@ -5,9 +5,10 @@ import {
   FaPlay,
 } from "react-icons/fa6";
 import { IconButton } from "./IconButton";
-import { useEffect, useState } from "react";
+import { AutoHideOverlay } from "./AutoHideOverlay";
 import { twMerge } from "tailwind-merge";
-import { MdInfoOutline } from "react-icons/md";
+import { MdFullscreenExit, MdInfoOutline } from "react-icons/md";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   nextDocument: () => void;
@@ -18,9 +19,8 @@ type Props = {
   paused: boolean;
   toggleInfoPanel: () => void;
   showInfoPanel: boolean;
+  endPresentation: () => void;
 };
-
-const MOUSE_MOVE_HIDE_DELAY = 250;
 
 export const DocumentDiashowControls = ({
   nextDocument,
@@ -31,41 +31,12 @@ export const DocumentDiashowControls = ({
   paused,
   toggleInfoPanel,
   showInfoPanel,
+  endPresentation,
 }: Props) => {
-  const [lastMouseMoveTimestamp, setLastMouseMoveTimestamp] = useState(
-    Date.now(),
-  );
-  const [visible, setVisible] = useState(true);
-  const [hovered, setHovered] = useState(false);
-
-  useEffect(() => {
-    const handleMouseMove = () => {
-      setLastMouseMoveTimestamp(Date.now());
-      setVisible(true);
-    };
-
-    const interval = setInterval(() => {
-      if (Date.now() - lastMouseMoveTimestamp > MOUSE_MOVE_HIDE_DELAY) {
-        setVisible(false);
-      }
-    }, 100);
-
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      clearInterval(interval);
-    };
-  }, [lastMouseMoveTimestamp]);
+  const { t } = useTranslation();
 
   return (
-    <div
-      className={twMerge(
-        "absolute bottom-0 left-0 flex justify-center gap-4 bg-surface-2 w-full p-2 transition-opacity duration-300",
-        visible || hovered ? "opacity-100" : "opacity-0",
-      )}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
+    <AutoHideOverlay className="bottom-0 flex justify-center gap-4 bg-surface-2 p-2">
       <IconButton
         onClick={previousDocument}
         className="bg-surface-1 rounded-full p-2 hover:bg-surface-3"
@@ -92,7 +63,9 @@ export const DocumentDiashowControls = ({
           className="ml-4 w-16 bg-surface-1 rounded p-1 text-center"
           min={1}
         />
-        <span className="ml-1 text-sm text-text-secondary">ms</span>
+        <span className="ml-1 text-sm text-text-secondary">
+          {t("document.preview.intervalUnit")}
+        </span>
       </div>
       <IconButton
         onClick={toggleInfoPanel}
@@ -103,6 +76,13 @@ export const DocumentDiashowControls = ({
       >
         <MdInfoOutline size={16} />
       </IconButton>
-    </div>
+      <IconButton
+        onClick={endPresentation}
+        title={t("document.preview.endPresentation")}
+        className="bg-surface-1 rounded-full p-2 hover:bg-surface-3"
+      >
+        <MdFullscreenExit size={16} />
+      </IconButton>
+    </AutoHideOverlay>
   );
 };

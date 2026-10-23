@@ -1,6 +1,7 @@
 import { type ReactNode } from "react";
 import { MdClose } from "react-icons/md";
 import { twMerge } from "tailwind-merge";
+import { IconButton } from "./IconButton";
 
 type Props = {
   isOpen: boolean;
@@ -31,17 +32,24 @@ export const Modal = ({
         )}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-4 px-6 pt-6">
+        <div className="flex justify-between items-center gap-4 px-6 pt-6 pb-4">
           <h2 className="text-xl font-semibold text-text-primary">{title}</h2>
-          <MdClose
-            className="text-2xl cursor-pointer hover:text-danger-subtle transition-colors"
+          <IconButton
+            className="text-2xl text-text-muted hover:text-text-primary"
             onClick={onClose}
-          />
+          >
+            <MdClose />
+          </IconButton>
         </div>
         <div className="overflow-y-auto max-h-[70vh]">
-          <div className="p-6">{children}</div>
+          <div className="px-6 pb-6">{children}</div>
         </div>
       </div>
     </div>
   );
 };
+
+/** Right-aligned button row at the bottom of a modal body. */
+export const ModalActions = ({ children }: { children: ReactNode }) => (
+  <div className="flex justify-end gap-2 pt-2">{children}</div>
+);

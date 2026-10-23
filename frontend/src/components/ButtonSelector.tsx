@@ -1,8 +1,8 @@
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { twMerge } from "tailwind-merge";
 
 type Props = {
-  options: { label: string; value: string }[];
+  options: { label: ReactNode; value: string }[];
   className?: string;
 } & (
   | {
@@ -39,12 +39,17 @@ export const ButtonSelector = ({ options, className, ...rest }: Props) => {
   }, [rest]);
 
   return (
-    <div className={twMerge("flex flex-row", className)}>
+    <div
+      className={twMerge(
+        "flex flex-row rounded-md border border-border overflow-hidden",
+        className,
+      )}
+    >
       {options.map((option, idx) => (
         <button
           key={idx}
           type="button"
-          className={`flex-1 py-2 text-sm transition-colors cursor-pointer ${
+          className={`flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm transition-colors cursor-pointer ${
             internalValues.includes(option.value)
               ? "bg-accent text-text-primary"
               : "bg-surface-2 text-text-secondary hover:bg-surface-3"

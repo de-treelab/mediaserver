@@ -1,30 +1,17 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api, type AdminRole } from "../app/api";
+import { Button } from "../components/Button";
+import { Card, CardHeader } from "../components/Card";
+import { Input } from "../components/Input";
+import { EmptyState } from "../components/Page";
+import { NavGroupLabel } from "../components/SectionLabel";
 
-const NS_CONFIG: Record<
-  string,
-  { prefix: string; label: string; color: string }
-> = {
-  document: { prefix: "DC", label: "Documents", color: "bg-indigo-600" },
-  tag: { prefix: "TG", label: "Tags", color: "bg-teal-600" },
-  collection: { prefix: "CL", label: "Collections", color: "bg-emerald-600" },
-  admin: { prefix: "AD", label: "Administration", color: "bg-orange-500" },
-};
-
-const ACTION_DESCRIPTIONS: Record<string, string> = {
-  "document:read": "View documents and metadata.",
-  "document:upload": "Upload new documents.",
-  "document:delete": "Remove documents permanently.",
-  "tag:manage": "Create, edit, and remove tags.",
-  "collection:read": "View collections and their contents.",
-  "collection:create": "Create new collections.",
-  "collection:update": "Modify existing collections.",
-  "collection:delete": "Remove collections.",
-  "admin:users": "Manage user accounts.",
-  "admin:roles": "Manage roles and permissions.",
-  "admin:config": "Configure system settings.",
-  "admin:state": "Manage system state and application data.",
+const NS_CONFIG: Record<string, { prefix: string; color: string }> = {
+  document: { prefix: "DC", color: "bg-indigo-600" },
+  tag: { prefix: "TG", color: "bg-teal-600" },
+  collection: { prefix: "CL", color: "bg-emerald-600" },
+  admin: { prefix: "AD", color: "bg-orange-500" },
 };
 
 const groupActions = (actions: string[]): [string, string[]][] => {
@@ -54,7 +41,7 @@ const Toggle = ({
     aria-checked={checked}
     onClick={disabled ? undefined : onChange}
     className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${
-      checked ? "bg-blue-500" : "bg-gray-500/40"
+      checked ? "bg-accent" : "bg-surface-3"
     } ${disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer"}`}
   >
     <span
@@ -82,8 +69,8 @@ const RoleListItem = ({
     onClick={onClick}
     className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
       isSelected
-        ? "bg-accent/15 text-accent"
-        : "hover:bg-black/5 dark:hover:bg-white/5 text-text-primary"
+        ? "bg-surface-2 text-text-primary"
+        : "hover:bg-surface-2 text-text-secondary hover:text-text-primary"
     }`}
   >
     <div className="flex items-center gap-1.5 text-sm font-medium">
@@ -131,55 +118,54 @@ const PermissionGroupCard = ({
   const { t } = useTranslation();
   const cfg = NS_CONFIG[namespace] ?? {
     prefix: namespace.slice(0, 2).toUpperCase(),
-    label: namespace,
-    color: "bg-gray-500",
+    color: "bg-surface-3",
   };
+  const label = t(`admin.roles.namespaces.${namespace}`, {
+    defaultValue: namespace,
+  });
   const enabledCount = actions.filter((a) => enabledActions.includes(a)).length;
   const remaining = actions.length - enabledCount;
 
   const bulkButton = readonly ? null : enabledCount === actions.length ? (
-    <button
-      onClick={onClearAll}
-      className="text-xs px-2.5 py-1 rounded border border-border text-text-secondary hover:text-text-primary hover:border-border-strong transition-colors"
-    >
+    <Button variant="outline" size="sm" onClick={onClearAll}>
       {t("admin.roles.clearAll")}
-    </button>
+    </Button>
   ) : enabledCount === 0 ? (
-    <button
-      onClick={onGrantAll}
-      className="text-xs px-2.5 py-1 rounded border border-border text-text-secondary hover:text-text-primary hover:border-border-strong transition-colors"
-    >
+    <Button variant="outline" size="sm" onClick={onGrantAll}>
       {t("admin.roles.grantAll")}
-    </button>
+    </Button>
   ) : (
-    <button
-      onClick={onGrantAll}
-      className="text-xs px-2.5 py-1 rounded border border-border text-text-secondary hover:text-text-primary hover:border-border-strong transition-colors"
-    >
+    <Button variant="outline" size="sm" onClick={onGrantAll}>
       {t("admin.roles.grantRemaining")} ({remaining})
-    </button>
+    </Button>
   );
 
   return (
-    <div className="border border-border rounded-lg overflow-hidden">
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-black/[0.02] dark:bg-white/[0.02]">
+    <Card className="p-0 overflow-hidden">
+      <CardHeader className="justify-start">
         <span
           className={`${cfg.color} text-white text-xs font-bold px-1.5 py-0.5 rounded leading-none shrink-0`}
         >
           {cfg.prefix}
         </span>
         <div className="flex-1 min-w-0">
-          <span className="font-medium text-sm">{cfg.label}</span>
+          <span className="font-medium text-sm">{label}</span>
           <span className="text-xs text-text-secondary ml-2">
-            {enabledCount} of {actions.length} actions allowed
+            {t("admin.roles.actionsAllowed", {
+              enabled: enabledCount,
+              total: actions.length,
+            })}
           </span>
         </div>
         {bulkButton}
-      </div>
+      </CardHeader>
       <div className="divide-y divide-border">
         {actions.map((action) => {
           const isEnabled = enabledActions.includes(action);
-          const desc = ACTION_DESCRIPTIONS[action];
+          // ":" is i18next's namespace separator, so map to a nested key
+          const desc = t(`admin.roles.actions.${action.replace(":", ".")}`, {
+            defaultValue: "",
+          });
           return (
             <div key={action} className="flex items-center gap-3 px-4 py-2.5">
               <Toggle
@@ -201,7 +187,7 @@ const PermissionGroupCard = ({
           );
         })}
       </div>
-    </div>
+    </Card>
   );
 };
 
@@ -226,18 +212,16 @@ const NewRolePanel = ({
 
   return (
     <div className="flex flex-col gap-4 p-6">
-      <h2 className="text-base font-semibold">{t("admin.roles.newRole")}</h2>
+      <h2 className="text-xl font-semibold">{t("admin.roles.newRole")}</h2>
       <div className="flex flex-col gap-3 max-w-md">
-        <input
-          className="px-3 py-2 rounded border border-border bg-bg-base text-sm"
+        <Input
           placeholder={t("admin.roles.namePlaceholder")}
           value={name}
           onChange={(e) => setName(e.target.value)}
           autoFocus
           onKeyDown={(e) => e.key === "Enter" && void handleSubmit()}
         />
-        <input
-          className="px-3 py-2 rounded border border-border bg-bg-base text-sm"
+        <Input
           placeholder={t("admin.roles.descriptionPlaceholder")}
           value={desc}
           onChange={(e) => setDesc(e.target.value)}
@@ -245,19 +229,15 @@ const NewRolePanel = ({
         />
       </div>
       <div className="flex gap-2">
-        <button
+        <Button
           onClick={() => void handleSubmit()}
           disabled={!name.trim() || loading}
-          className="px-4 py-1.5 rounded bg-accent text-white text-sm hover:opacity-90 disabled:opacity-50"
         >
           {t("admin.roles.createRole")}
-        </button>
-        <button
-          onClick={onCancel}
-          className="px-4 py-1.5 rounded border border-border text-sm text-text-secondary hover:text-text-primary transition-colors"
-        >
+        </Button>
+        <Button variant="outline" onClick={onCancel}>
           {t("common.cancel")}
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -291,12 +271,12 @@ const RoleDetailPanel = ({
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="text-xl font-bold">{role.name}</h2>
+            <h2 className="text-xl font-semibold">{role.name}</h2>
             <span
               className={`text-xs font-semibold px-1.5 py-0.5 rounded border leading-none ${
                 role.isSystem
-                  ? "bg-purple-500/10 border-purple-400/40 text-purple-500"
-                  : "bg-blue-500/10 border-blue-400/40 text-blue-400"
+                  ? "bg-badge-static border-transparent text-badge-static-text"
+                  : "bg-accent-dim border-transparent text-accent-muted"
               }`}
             >
               {role.isSystem ? "SYSTEM" : "CUSTOM"}
@@ -317,15 +297,18 @@ const RoleDetailPanel = ({
             </svg>
             {userCount} {t("admin.roles.assigned")}
             <span className="mx-1">·</span>
-            {role.policies.length} of {totalActions}{" "}
-            {t("admin.roles.permissionsGranted")}
+            {t("admin.roles.permissionsGrantedCount", {
+              granted: role.policies.length,
+              total: totalActions,
+            })}
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {!role.isSystem && (
-            <button
+            <Button
+              variant="outline"
+              className="text-danger-subtle hover:enabled:text-danger-subtle hover:enabled:border-danger"
               onClick={onDelete}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-danger border border-danger/30 rounded hover:bg-danger/10 transition-colors"
             >
               <svg
                 className="h-3.5 w-3.5"
@@ -335,12 +318,9 @@ const RoleDetailPanel = ({
                 <path d="M6.5 1a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zM2 4.5A.5.5 0 0 1 2.5 4h11a.5.5 0 0 1 0 1h-.538l-.853 9.668A2 2 0 0 1 10.115 16h-4.23a2 2 0 0 1-1.994-1.832L3.038 5H2.5A.5.5 0 0 1 2 4.5z" />
               </svg>
               {t("common.delete")}
-            </button>
+            </Button>
           )}
-          <button
-            onClick={onClone}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-border rounded hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-          >
+          <Button variant="outline" onClick={onClone}>
             <svg
               className="h-3.5 w-3.5"
               viewBox="0 0 16 16"
@@ -350,7 +330,7 @@ const RoleDetailPanel = ({
               <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z" />
             </svg>
             {t("admin.roles.clone")}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -470,16 +450,17 @@ export const RolesEditor2 = () => {
   const filteredCustom = filterRoles(customRoles);
 
   return (
-    <div
-      className="flex border border-border rounded-lg overflow-hidden h-full"
+    <Card
+      className="flex p-0 overflow-hidden h-full"
       style={{ minHeight: 520 }}
     >
       {/* Sidebar */}
       <div className="w-56 shrink-0 border-r border-border flex flex-col overflow-y-auto">
         <div className="p-3 border-b border-border flex flex-col gap-2">
           <h3 className="font-semibold text-sm">{t("admin.tabs.roles")}</h3>
-          <input
-            className="w-full px-2.5 py-1.5 rounded border border-border bg-bg-base text-sm placeholder:text-text-secondary"
+          <Input
+            inputSize="sm"
+            className="w-full text-sm"
             placeholder={t("admin.roles.search")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -489,9 +470,7 @@ export const RolesEditor2 = () => {
         <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-3">
           {filteredSystem.length > 0 && (
             <div>
-              <p className="text-xs font-bold tracking-widest text-text-secondary uppercase px-1 mb-1">
-                {t("admin.roles.systemSection")}
-              </p>
+              <NavGroupLabel>{t("admin.roles.systemSection")}</NavGroupLabel>
               <div className="flex flex-col gap-0.5">
                 {filteredSystem.map((role) => (
                   <RoleListItem
@@ -509,9 +488,7 @@ export const RolesEditor2 = () => {
 
           {filteredCustom.length > 0 && (
             <div>
-              <p className="text-xs font-bold tracking-widest text-text-secondary uppercase px-1 mb-1">
-                {t("admin.roles.customSection")}
-              </p>
+              <NavGroupLabel>{t("admin.roles.customSection")}</NavGroupLabel>
               <div className="flex flex-col gap-0.5">
                 {filteredCustom.map((role) => (
                   <RoleListItem
@@ -528,23 +505,24 @@ export const RolesEditor2 = () => {
           )}
         </div>
 
-        <div className="p-2 border-t border-border flex flex-col gap-1.5">
-          <button
+        <div className="p-3 border-t border-border flex flex-col gap-2">
+          <Button
+            className="w-full"
             onClick={() => {
               setIsCreating(true);
               setSelectedRoleId(null);
             }}
-            className="w-full py-1.5 rounded bg-accent text-white text-sm hover:opacity-90 transition-opacity"
           >
             + {t("admin.roles.newRole")}
-          </button>
+          </Button>
           {selectedRole && (
-            <button
+            <Button
+              variant="outline"
+              className="w-full"
               onClick={() => void handleClone(selectedRole)}
-              className="w-full py-1.5 rounded border border-border text-sm text-text-secondary hover:text-text-primary transition-colors"
             >
               {t("admin.roles.cloneNamed", { name: selectedRole.name })}
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -569,11 +547,11 @@ export const RolesEditor2 = () => {
             onClone={() => void handleClone(selectedRole)}
           />
         ) : (
-          <div className="flex items-center justify-center h-full text-text-secondary text-sm p-8">
+          <EmptyState className="flex items-center justify-center h-full p-8">
             {t("admin.roles.selectRole")}
-          </div>
+          </EmptyState>
         )}
       </div>
-    </div>
+    </Card>
   );
 };

@@ -11,6 +11,8 @@ import { useThumbnail } from "../hooks/useThumbnail";
 import { bytesToHumanReadable } from "../util/bytesToHumanReadable";
 import { tagToString, stringToTag } from "../util/tag";
 import { TagInput } from "./TagInput";
+import { Card } from "../components/Card";
+import { SectionLabel } from "../components/SectionLabel";
 
 type Props = {
   group: DuplicateGroup;
@@ -173,7 +175,7 @@ export const DuplicateGroupCard = ({ group, onResolve }: Props) => {
   }, [onResolve, keepId, mergeIds, tagsToAdd, tagsToRemove]);
 
   return (
-    <div className="flex flex-col gap-4 p-4 rounded-lg border border-border bg-surface-1">
+    <Card className="flex flex-col gap-4">
       <div className="flex flex-row flex-wrap items-baseline justify-between gap-2">
         <h3 className="text-text-primary font-semibold">
           {t("duplicates.groupTitle", { count: group.documentCount })}
@@ -204,9 +206,7 @@ export const DuplicateGroupCard = ({ group, onResolve }: Props) => {
       </div>
 
       <div className="flex flex-col gap-2">
-        <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-          {t("duplicates.resultingTags")}
-        </p>
+        <SectionLabel>{t("duplicates.resultingTags")}</SectionLabel>
         <TagInput
           value={query}
           onChange={setQuery}
@@ -223,11 +223,11 @@ export const DuplicateGroupCard = ({ group, onResolve }: Props) => {
       <Button
         onClick={onConfirm}
         disabled={isResolving || mergeIds.length === 0}
-        className="self-end flex flex-row items-center gap-2"
+        className="self-end"
       >
         {isResolving && <BiLoader className="animate-spin" />}
         {t("duplicates.mergeConfirm", { count: mergeIds.length })}
       </Button>
-    </div>
+    </Card>
   );
 };

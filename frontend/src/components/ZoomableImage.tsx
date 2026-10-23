@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
+import { useTranslation } from "react-i18next";
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 6;
@@ -82,6 +83,7 @@ export const ZoomableImage = ({
   className,
   onZoomedChange,
 }: Props) => {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [transform, setTransform] = useState<Transform>(IDENTITY);
   const transformRef = useRef(transform);
@@ -136,6 +138,9 @@ export const ZoomableImage = ({
   const onMouseDown = (event: React.MouseEvent) => {
     // At 1× there is nothing to pan — let the event bubble to swipe navigation.
     if (transformRef.current.scale <= MIN_SCALE) return;
+    // Only pan with the primary button; a right-click opens the context menu,
+    // which swallows the mouseup and would leave the drag stuck.
+    if (event.button !== 0) return;
     event.preventDefault();
     event.stopPropagation();
 
@@ -144,6 +149,11 @@ export const ZoomableImage = ({
     const startY = event.clientY;
 
     const onMove = (move: MouseEvent) => {
+      // The mouseup was missed (e.g. released outside the window) — end the drag.
+      if ((move.buttons & 1) === 0) {
+        stopMouseDrag.current();
+        return;
+      }
       const bounds = rect();
       if (!bounds) return;
       setTransform(
@@ -304,7 +314,7 @@ export const ZoomableImage = ({
     >
       <img
         src={src}
-        alt={alt}
+        alt={alt ?? t("document.preview.imageAlt")}
         draggable={false}
         className="w-full h-full object-contain"
         style={{

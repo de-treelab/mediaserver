@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { MdLogin, MdInfo, MdPersonAdd } from "react-icons/md";
 import { AppIcon } from "../components/AppIcon";
 import { useIdentity } from "../hooks/usePermission";
+import { Button } from "../components/Button";
 
 export const LoginPage = () => {
   const { t } = useTranslation();
@@ -35,22 +36,20 @@ export const LoginPage = () => {
           {t("login.redirectNotice")}
         </p>
 
-        <button
-          onClick={handleLogin}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-accent text-white font-medium hover:opacity-90 transition-opacity mb-3"
-        >
+        <Button onClick={handleLogin} className="w-full py-3 mb-3">
           <MdLogin size={18} />
           {t("login.signIn")}
-        </button>
+        </Button>
 
         {registrationAllowed ? (
-          <button
+          <Button
+            variant="outline"
             onClick={handleRegister}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-border text-text-primary text-sm font-medium hover:bg-surface-3 transition-colors"
+            className="w-full py-3"
           >
             <MdPersonAdd size={16} />
             {t("login.register")}
-          </button>
+          </Button>
         ) : (
           <div className="flex items-start gap-2 p-3 rounded-lg bg-surface-3 border border-border">
             <MdInfo className="w-4 h-4 text-text-secondary flex-shrink-0 mt-0.5" />

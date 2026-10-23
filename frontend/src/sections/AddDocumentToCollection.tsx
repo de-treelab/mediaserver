@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { CollectionCard } from "./CollectionCard";
 import { enhancedApi } from "../app/enhancedApi";
 import { useTranslation } from "react-i18next";
+import { Input } from "../components/Input";
 
 type Props = {
   documentId: string;
@@ -71,12 +72,11 @@ export const AddDocumentToCollection: React.FC<Props> = ({ documentId }) => {
 
   return (
     <div className="flex flex-col gap-2 w-full overflow-y-auto">
-      <input
+      <Input
         type="text"
         placeholder={t("collections.addForm.filterPlaceholder")}
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
-        className="px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300 w-full"
       />
       {filteredCollections.map((collection) => (
         <div className="flex flex-row items-center gap-2" key={collection.id}>

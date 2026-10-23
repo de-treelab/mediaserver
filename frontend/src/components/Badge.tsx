@@ -20,7 +20,7 @@ export const Badge: React.FC<Props> = ({
         "flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded border border-border",
         "bg-accent-dim text-accent-muted",
         className,
-        onClick && "cursor-pointer hover:bg-opacity-80 hover:border-strong",
+        onClick && "cursor-pointer hover:border-border-strong",
       )}
       onClick={onClick}
     >

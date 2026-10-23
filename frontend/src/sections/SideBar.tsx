@@ -8,13 +8,14 @@ import { FaCaretRight, FaEllipsis } from "react-icons/fa6";
 import { useState, useRef, useEffect } from "react";
 import { twMerge } from "tailwind-merge";
 import { useTranslation } from "react-i18next";
-import { MdCollections, MdLogout } from "react-icons/md";
 import { HiOutlineDocumentDuplicate } from "react-icons/hi2";
+import { MdCollections, MdLogout, MdSettings } from "react-icons/md";
 import { useIdentity, usePermission } from "../hooks/usePermission";
 import { UserAvatar } from "../components/UserAvatar";
 import { AppIcon } from "../components/AppIcon";
 import { pluginRegistry } from "../plugins/pluginRegistry";
 import { reactIcons, type NavItem } from "../plugins/plugin";
+import { NavGroupLabel } from "../components/SectionLabel";
 
 const getUsername = (email?: string | null, name?: string | null): string => {
   if (email) return "@" + email.split("@")[0];
@@ -23,9 +24,7 @@ const getUsername = (email?: string | null, name?: string | null): string => {
 };
 
 const SectionLabel = ({ label }: { label: string }) => (
-  <p className="hidden sm:block px-3 pt-4 pb-1 text-xs font-semibold tracking-widest text-text-faint uppercase select-none">
-    {label}
-  </p>
+  <NavGroupLabel className="hidden sm:block pt-4">{label}</NavGroupLabel>
 );
 
 const MAX_MOBILE_NAV = 5;
@@ -122,6 +121,9 @@ export const SideBar = () => {
 
   const username = getUsername(identity?.email, identity?.name);
   const showAuth = identity?.userId !== "system";
+  // Settings are normally reached via the account avatar; without a signed-in
+  // account (e.g. IdP disabled) show a settings button instead.
+  const showAccount = showAuth && !!identity?.isAuthenticated;
 
   const pluginNavItems = pluginRegistry.getNavItems().filter((item) => {
     if (!item.permission) return true;
@@ -254,8 +256,21 @@ export const SideBar = () => {
         />
       )}
 
+      {/* Settings - shown when there is no account to open them from */}
+      {!showAccount && (
+        <div className="sm:mt-auto sm:border-t sm:border-border sm:pt-3">
+          <SideBarButton
+            Icon={MdSettings}
+            pathPrefix="/settings"
+            onClick={() => navigate("/settings")}
+            collapsed={collapsed}
+            text={t("sidebar.settings")}
+          />
+        </div>
+      )}
+
       {/* User section */}
-      {showAuth && identity?.isAuthenticated && (
+      {showAccount && identity && (
         <div className="hidden sm:block sm:mt-auto sm:border-t sm:border-border sm:pt-3">
           {collapsed ? (
             <div

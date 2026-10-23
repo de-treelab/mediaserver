@@ -1,8 +1,9 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { Tag, TagParser } from "@lars_hagemann/tags";
 import {
   TagSqlBuilder,
-  buildQueryFromSelectStatement,
+  type ResolvedCollection,
+  buildFilteredEntitiesPageQuery,
   buildQueryFromInsertStatement,
   buildQueryFromDeleteStatement,
 } from "../../tags/TagSqlBuilder.js";
@@ -11,6 +12,7 @@ import type { TagCache } from "../../tags/TagCache.js";
 const config = {
   userdataTableName: "documents",
   userdataTableIdColumn: "id",
+  userdataTableIdType: "uuid",
   userdataTableColumns: ["id", "mime"],
 };
 
@@ -42,7 +44,7 @@ describe("TagSqlBuilder (SQL injection hardening)", () => {
     expect(result.success).toBe(true);
     if (!result.success) return;
 
-    const sql = buildQueryFromSelectStatement(result.stmt);
+    const sql = buildFilteredEntitiesPageQuery(result.stmt, "first");
     // The raw payload must NOT appear in the SQL text...
     expect(sql).not.toContain(payload);
     // ...it must be a bound parameter instead.
@@ -57,7 +59,7 @@ describe("TagSqlBuilder (SQL injection hardening)", () => {
     expect(result.success).toBe(true);
     if (!result.success) return;
 
-    const sql = buildQueryFromSelectStatement(result.stmt);
+    const sql = buildFilteredEntitiesPageQuery(result.stmt, "first");
     expect(sql).toMatch(/ut\.tag_id = \$p\d+/);
     expect(sql).not.toMatch(/ut\.tag_id = '?42'?/);
     expect(Object.values(result.params ?? {})).toContain("42");
@@ -101,5 +103,157 @@ describe("TagSqlBuilder (SQL injection hardening)", () => {
     expect(sql).toContain("tag_id = $tagId");
     expect(sql).not.toContain("'42'");
     expect(result.params).toEqual({ tagId: "42" });
+  });
+});
+
+describe("buildFilteredEntitiesPageQuery", () => {
+  const build = async (query: string) => {
+    const builder = new TagSqlBuilder(config, makeCache());
+    const result = await builder.buildListFilteredEntitiesQuery(
+      new TagParser(query).parse(),
+    );
+    if (!result.success) throw new Error(result.message);
+    return result.stmt;
+  };
+
+  it("breaks ties between equal timestamps by id", async () => {
+    const sql = buildFilteredEntitiesPageQuery(await build(""), "first");
+    expect(sql).toContain("ORDER BY created_at DESC, id DESC");
+  });
+
+  it("compares the full sort key against the cursor", async () => {
+    const desc = buildFilteredEntitiesPageQuery(await build(""), "after");
+    expect(desc).toContain(
+      "(created_at, id) < ($cursorTs::timestamp, $cursorId::uuid)",
+    );
+    const asc = buildFilteredEntitiesPageQuery(
+      await build("sort:oldest"),
+      "after",
+    );
+    expect(asc).toContain(
+      "(created_at, id) > ($cursorTs::timestamp, $cursorId::uuid)",
+    );
+  });
+
+  it("derives the random sort key of a cursor from its id and the seed", async () => {
+    const sql = buildFilteredEntitiesPageQuery(
+      await build("sort:random"),
+      "before",
+    );
+    expect(sql).toContain(
+      "(_rand, id) < (HASHTEXT($cursorId::uuid::text || $seed::text), $cursorId::uuid)",
+    );
+    expect(sql).not.toContain("$cursorTs");
+  });
+});
+
+describe("TagSqlBuilder (collection by name)", () => {
+  const STATIC_ID = "11111111-1111-1111-1111-111111111111";
+  const DYNAMIC_ID = "22222222-2222-2222-2222-222222222222";
+  const EMPTY_ID = "33333333-3333-3333-3333-333333333333";
+
+  const collections: Record<string, ResolvedCollection[]> = {
+    "Summer 2024": [
+      {
+        id: STATIC_ID,
+        type: "static",
+        filterExpression: `collection:${STATIC_ID}`,
+      },
+    ],
+    Landscapes: [
+      {
+        id: DYNAMIC_ID,
+        type: "dynamic",
+        filterExpression: "nature & sort:random",
+      },
+    ],
+    Empty: [
+      {
+        id: EMPTY_ID,
+        type: "static",
+        filterExpression: `collection:${EMPTY_ID}`,
+      },
+    ],
+    Mixed: [
+      {
+        id: STATIC_ID,
+        type: "static",
+        filterExpression: `collection:${STATIC_ID}`,
+      },
+      { id: DYNAMIC_ID, type: "dynamic", filterExpression: "nature" },
+    ],
+    Loop: [
+      { id: "loop", type: "dynamic", filterExpression: 'collection:"Loop"' },
+    ],
+  };
+
+  const resolveCollections = vi.fn(
+    async (name: string) => collections[name] ?? [],
+  );
+
+  const build = async (query: string, withResolver = true) => {
+    const builder = new TagSqlBuilder(
+      config,
+      makeCache({ nature: "42", [`collection:${STATIC_ID}`]: "7" }),
+    );
+    return builder.buildListFilteredEntitiesQuery(
+      new TagParser(query).parse(),
+      withResolver ? { resolveCollections } : {},
+    );
+  };
+
+  beforeEach(() => resolveCollections.mockClear());
+
+  it("matches a static collection by its membership tag", async () => {
+    const result = await build('collection:"Summer 2024"');
+    if (!result.success) throw new Error(result.message);
+
+    expect(resolveCollections).toHaveBeenCalledWith("Summer 2024");
+    expect(result.stmt.filtered.having).toMatch(/ut\.tag_id = \$p\d+/);
+    expect(Object.values(result.params ?? {})).toEqual(["7"]);
+  });
+
+  it("expands a dynamic collection without taking over its sort", async () => {
+    const result = await build("collection:Landscapes");
+    if (!result.success) throw new Error(result.message);
+
+    expect(Object.values(result.params ?? {})).toEqual(["42"]);
+    expect(result.stmt.sortBy).toBe("created_at");
+  });
+
+  it("ORs all collections sharing a name", async () => {
+    const result = await build("collection:Mixed");
+    if (!result.success) throw new Error(result.message);
+
+    expect(result.stmt.filtered.having).toContain(" OR ");
+    expect(Object.values(result.params ?? {})).toEqual(["7", "42"]);
+  });
+
+  it("matches nothing for unknown or empty collections", async () => {
+    for (const query of ["collection:Unknown", "collection:Empty"]) {
+      const result = await build(query);
+      if (!result.success) throw new Error(result.message);
+      expect(result.stmt.filtered.having).toBe("1=0");
+    }
+  });
+
+  it("rejects collections that reference themselves", async () => {
+    const result = await build("collection:Loop");
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(result.message).toContain("references itself");
+  });
+
+  it("keeps treating UUID values as membership tags", async () => {
+    const result = await build(`collection:${STATIC_ID}`);
+    if (!result.success) throw new Error(result.message);
+
+    expect(resolveCollections).not.toHaveBeenCalled();
+    expect(Object.values(result.params ?? {})).toEqual(["7"]);
+  });
+
+  it("does not resolve names without a resolver", async () => {
+    const result = await build('collection:"Summer 2024"', false);
+    expect(result.success).toBe(false);
   });
 });

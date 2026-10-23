@@ -14,6 +14,8 @@ type Props<Tabs extends string, AllowNoSelection extends boolean> = {
     tab: NoInfer<Tabs> | (AllowNoSelection extends true ? undefined : never),
   ) => void;
   tabs: TabSpec<Tabs>[];
+  /** Stretch the tabs to share the full width equally */
+  fill?: boolean;
   className?: string;
 };
 
@@ -25,6 +27,7 @@ export const Tabs = <
   currentTab,
   onTabChange,
   tabs,
+  fill,
   className,
 }: Props<Tabs, AllowNoSelection>) => {
   const handleClick = (tabId: Tabs) => {
@@ -44,6 +47,7 @@ export const Tabs = <
           onClick={() => handleClick(tab.tabId)}
           className={twMerge(
             "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors cursor-pointer",
+            fill && "flex-1",
             tab.tabId === currentTab
               ? "border-accent text-accent"
               : "border-transparent text-text-secondary hover:text-text-primary",

@@ -1,4 +1,4 @@
-import { TagParser } from "@lars_hagemann/tags";
+import { MetaTag, Tag, TagParser } from "@lars_hagemann/tags";
 import React, {
   useCallback,
   useEffect,
@@ -9,7 +9,10 @@ import React, {
   type KeyboardEvent,
 } from "react";
 import { twMerge } from "tailwind-merge";
-import { useTagCompletion } from "../hooks/useTagCompletion";
+import {
+  useTagCompletion,
+  type TagCompletionItem,
+} from "../hooks/useTagCompletion";
 import { Dropdown } from "../components/Dropdown";
 import { getWordFromCursor } from "../util/getWordFromCursor";
 import { useCursorPos } from "../hooks/useCursorPos";
@@ -20,8 +23,10 @@ import {
   setTagInputEasyMode,
 } from "../app/persistent.slice";
 import { useTranslation } from "react-i18next";
-import { MdClose } from "react-icons/md";
+import { MdClose, MdCollections } from "react-icons/md";
+import { isCollectionNameValue } from "../util/tag";
 import { HiMagnifyingGlass } from "react-icons/hi2";
+import { inputBase } from "../components/styles";
 
 type Props = {
   value: string;
@@ -31,6 +36,8 @@ type Props = {
   blurOnSubmit?: boolean;
   placeholder?: string;
   showSearchIcon?: boolean;
+  /** Only accept a single tag (e.g. `key` or `key:value`), no expressions */
+  singleTag?: boolean;
   onChange: (newValue: string) => void;
   onSubmit: (newValue: string) => void;
   onValidChange?: (isValid: boolean) => void;
@@ -49,6 +56,48 @@ const parseQueryToChips = (query: string): string[] => {
     .filter((s) => s.length > 0);
 };
 
+// Name of the collection a chip filters by, if it is a `collection:"<name>"` chip
+const chipCollectionName = (chip: string): string | undefined => {
+  try {
+    const filter = new TagParser(chip).parse();
+    if (
+      filter instanceof MetaTag &&
+      filter.key === "collection" &&
+      isCollectionNameValue(filter.value)
+    ) {
+      return filter.value;
+    }
+  } catch {
+    // Not a single tag
+  }
+  return undefined;
+};
+
+const SuggestionLabel = ({ suggestion }: { suggestion: TagCompletionItem }) => {
+  const { t } = useTranslation();
+
+  if (suggestion.kind === "collection") {
+    return (
+      <span className="inline-flex items-center gap-1.5">
+        <MdCollections className="text-text-muted shrink-0" size={14} />
+        {suggestion.name}
+        <span className="text-text-muted text-xs">
+          {t("tagInput.collectionSuggestion")}
+        </span>
+      </span>
+    );
+  }
+
+  return (
+    <>
+      {suggestion.tag}
+      <span className="ml-1.5 text-text-muted text-xs">
+        ({suggestion.usageCount})
+      </span>
+    </>
+  );
+};
+
 export const TagInput = ({
   value,
   className,
@@ -57,13 +106,15 @@ export const TagInput = ({
   blurOnSubmit = false,
   placeholder,
   showSearchIcon = false,
+  singleTag = false,
   onChange,
   onValidChange,
   onSubmit,
 }: Props) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const easyMode = useSelector(selectTagInputEasyMode);
+  // Easy mode builds an expression out of chips, so it is not offered for single tags
+  const easyMode = useSelector(selectTagInputEasyMode) && !singleTag;
 
   // --- Advanced mode ---
   const advInputRef = useRef<HTMLInputElement>(null);
@@ -72,13 +123,20 @@ export const TagInput = ({
 
   const isValid = useMemo(() => {
     try {
-      new TagParser(value).parse();
+      const filter = new TagParser(value).parse();
+      if (
+        singleTag &&
+        value.trim() !== "" &&
+        !(filter instanceof Tag || filter instanceof MetaTag)
+      ) {
+        return [false, t("tagInput.singleTagOnly")] as const;
+      }
       return [true] as const;
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown";
       return [false, message] as const;
     }
-  }, [value]);
+  }, [value, singleTag, t]);
 
   useEffect(() => {
     onValidChange?.(isValid[0]);
@@ -94,12 +152,21 @@ export const TagInput = ({
   const onAdvKeyDown = useCallback(
     (event: KeyboardEvent) => {
       if (event.key === "Enter" && isValid[0]) {
+        if (singleTag && value.trim() === "") return;
         onSubmit(value);
         if (clearOnSubmit) onChange("");
         if (blurOnSubmit) advInputRef.current?.blur();
       }
     },
-    [value, onSubmit, isValid, clearOnSubmit, onChange, blurOnSubmit],
+    [
+      value,
+      onSubmit,
+      isValid,
+      singleTag,
+      clearOnSubmit,
+      onChange,
+      blurOnSubmit,
+    ],
   );
 
   const onAdvChange = useCallback(
@@ -210,7 +277,7 @@ export const TagInput = ({
       <div className={twMerge("text-text-primary", className)}>
         <div
           className={twMerge(
-            "border border-border-subtle flex items-center gap-2 px-3 py-2 relative cursor-text",
+            "bg-bg-base border border-border focus-within:border-accent-hover transition-colors flex items-center gap-2 px-3 py-2 relative cursor-text",
             showSuggestions ? "rounded-t-md" : "rounded-md",
           )}
           onClick={() => easyInputRef.current?.focus()}
@@ -219,23 +286,38 @@ export const TagInput = ({
             <HiMagnifyingGlass className="text-text-muted shrink-0" size={16} />
           )}
           <div className="flex flex-wrap gap-1.5 flex-1 items-center min-w-0">
-            {chips.map((chip, i) => (
-              <span
-                key={`${chip}-${i}`}
-                className="flex items-center gap-1 pl-2.5 pr-1.5 py-0.5 rounded-md bg-chip-bg text-chip-text text-xs font-medium shrink-0"
-              >
-                {chip}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeChip(i);
-                  }}
-                  className="text-text-muted hover:text-text-primary cursor-pointer flex items-center"
+            {chips.map((chip, i) => {
+              const collectionName = chipCollectionName(chip);
+              return (
+                <span
+                  key={`${chip}-${i}`}
+                  className={twMerge(
+                    "flex items-center gap-1 pl-2.5 pr-1.5 py-0.5 rounded-md bg-chip-bg text-chip-text text-xs font-medium shrink-0",
+                    collectionName !== undefined &&
+                      "bg-accent-dim text-accent-muted",
+                  )}
+                  title={collectionName !== undefined ? chip : undefined}
                 >
-                  <MdClose size={13} />
-                </button>
-              </span>
-            ))}
+                  {collectionName !== undefined ? (
+                    <>
+                      <MdCollections size={13} className="shrink-0" />
+                      {collectionName}
+                    </>
+                  ) : (
+                    chip
+                  )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeChip(i);
+                    }}
+                    className="text-text-muted hover:text-text-primary cursor-pointer flex items-center"
+                  >
+                    <MdClose size={13} />
+                  </button>
+                </span>
+              );
+            })}
             <input
               ref={easyInputRef}
               value={easyInput}
@@ -243,7 +325,7 @@ export const TagInput = ({
               onKeyDown={onEasyKeyDown}
               onFocus={() => setEasyFocused(true)}
               onBlur={() => setEasyFocused(false)}
-              className="flex-1 min-w-24 outline-none bg-transparent text-text-primary text-sm placeholder:text-text-muted"
+              className="flex-1 min-w-24 outline-none bg-transparent text-text-primary text-sm placeholder:text-text-faint"
               placeholder={
                 chips.length === 0
                   ? placeholder
@@ -271,10 +353,7 @@ export const TagInput = ({
                     addChip(s.tag);
                   }}
                 >
-                  {s.tag}
-                  <span className="ml-1.5 text-text-muted text-xs">
-                    ({s.usageCount})
-                  </span>
+                  <SuggestionLabel suggestion={s} />
                 </div>
               ))}
             </div>
@@ -297,8 +376,10 @@ export const TagInput = ({
         onChange={onAdvChange}
         onKeyDown={onAdvKeyDown}
         className={twMerge(
-          "p-2 pr-[52px] outline-0 w-full border-1",
-          !isValid[0] ? "border-danger-strong" : "border-border-subtle",
+          inputBase,
+          "px-3 py-2 text-sm w-full",
+          !singleTag && "pr-[52px]",
+          !isValid[0] && "border-danger-strong focus:border-danger-strong",
           advFocused
             ? direction === "up"
               ? "rounded-b-md"
@@ -313,15 +394,17 @@ export const TagInput = ({
         spellCheck="false"
         placeholder={placeholder}
       />
-      <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10">
-        {toggleButton}
-      </div>
+      {!singleTag && (
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10">
+          {toggleButton}
+        </div>
+      )}
       {advFocused && advSuggestions.length > 0 && (
         <Dropdown
           values={advSuggestions.map((s, index) => ({
             value: s.tag,
             key: index.toString(),
-            node: `${s.tag} (${s.usageCount})`,
+            node: <SuggestionLabel suggestion={s} />,
           }))}
           onSelect={(val) => {
             const { newText, newCursorPos } = replaceWordAtCursor(

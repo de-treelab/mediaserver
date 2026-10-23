@@ -5,17 +5,21 @@ import { services } from "../DefaultDiContainer.js";
 import type { EmptyObject } from "../common/EmptyObject.js";
 import type { DocumentService } from "../documents/DocumentService.js";
 import type { DocumentAccess } from "../documents/DocumentRepository.js";
-import type { PaginatedResponse } from "../util/PaginatedResponse.js";
+import type {
+  CursorPaginatedResponse,
+  PaginatedResponse,
+} from "../util/PaginatedResponse.js";
+import { decodeDocumentCursor } from "../documents/DocumentCursor.js";
 import type {
   Document,
   DocumentWithTags,
 } from "../documents/DocumentRepository.js";
-import type { TagService } from "../tags/TagService.js";
+import { TagService } from "../tags/TagService.js";
 import type { AccessScopeResolver } from "../auth/AccessScopeResolver.js";
 import z from "zod";
 import type { UploadService } from "../files/UploadService.js";
 import { isValidExtension } from "../files/FileService.js";
-import type { ApiTag } from "../tags/TagRepository.js";
+import type { ApiTag, DocumentListPosition } from "../tags/TagRepository.js";
 import { requirePermission } from "../auth/requirePermission.js";
 import { SYSTEM_USER_ID } from "../auth/Identity.js";
 import type { DuplicateGroup } from "../duplicates/DuplicateRepository.js";
@@ -81,6 +85,19 @@ documentRouter.post(
         throw new ApiError("BadRequest", 400, "Invalid extension");
       }
 
+      const parsedTags = z
+        .array(
+          z.object({
+            key: z.string(),
+            value: z.string().or(z.undefined()),
+            type: z.string(),
+          }),
+        )
+        .parse(JSON.parse(tags));
+      for (const tag of parsedTags) {
+        TagService.assertSingleTag(TagService.toString(tag));
+      }
+
       const ownerId =
         identity.userId === "system" || identity.userId === null
           ? SYSTEM_USER_ID
@@ -97,15 +114,7 @@ documentRouter.post(
         ownerId,
         isPublic: isPublic === "true",
         friendlyName: friendlyName ?? file.name,
-        tags: z
-          .array(
-            z.object({
-              key: z.string(),
-              value: z.string().or(z.undefined()),
-              type: z.string(),
-            }),
-          )
-          .parse(JSON.parse(tags)),
+        tags: parsedTags,
       });
 
       return {
@@ -116,16 +125,61 @@ documentRouter.post(
   ),
 );
 
+// `before=end` requests the last page of the listing.
+const END_CURSOR = "end";
+
+const parseListPosition = ({
+  after,
+  before,
+  around,
+}: {
+  after: string | undefined;
+  before: string | undefined;
+  around: string | undefined;
+}): DocumentListPosition => {
+  if ([after, before, around].filter((p) => p !== undefined).length > 1) {
+    throw new ApiError(
+      "InvalidCursor",
+      400,
+      "Only one of after, before and around may be given",
+    );
+  }
+  if (after !== undefined) {
+    return { type: "after", cursor: decodeDocumentCursor(after) };
+  }
+  if (before === END_CURSOR) {
+    return { type: "last" };
+  }
+  if (before !== undefined) {
+    return { type: "before", cursor: decodeDocumentCursor(before) };
+  }
+  if (around !== undefined) {
+    const documentId = z.guid().safeParse(around);
+    if (!documentId.success) {
+      throw new ApiError("InvalidCursor", 400, "Invalid document id");
+    }
+    return { type: "around", documentId: documentId.data.toLowerCase() };
+  }
+  return { type: "first" };
+};
+
 documentRouter.get(
   "/",
   requirePermission("document:read"),
   apiHandler<
-    PaginatedResponse<Document>,
-    { limit?: number; offset?: number; query?: string; seed?: string }
+    CursorPaginatedResponse<Document>,
+    {
+      limit?: number;
+      query?: string;
+      seed?: string;
+      after?: string;
+      before?: string;
+      around?: string;
+    }
   >(
     async ({
       diContainer,
-      query: { limit = 100, offset = 0, query = "", seed },
+      query: { limit = 100, query = "", seed, after, before, around },
       identity,
     }) => {
       const scopeResolver = diContainer.get<AccessScopeResolver>(
@@ -136,11 +190,12 @@ documentRouter.get(
       const response = await tagService.listDocuments(
         {
           limit,
-          offset,
+          position: parseListPosition({ after, before, around }),
           query: decodeURIComponent(query),
           seed: seed ?? "",
         },
         scope,
+        scopeResolver.collectionScope(identity),
       );
       return {
         status: 200,
@@ -178,6 +233,9 @@ documentRouter.post(
       const scopeResolver = diContainer.get<AccessScopeResolver>(
         services.accessScopeResolver,
       );
+      for (const tag of body.tagsToAdd) {
+        TagService.assertSingleTag(TagService.toString(tag));
+      }
       const scope = scopeResolver.documentScope(identity);
       const tagService = diContainer.get<TagService>(services.tag);
       await tagService.bulkEditDocuments(

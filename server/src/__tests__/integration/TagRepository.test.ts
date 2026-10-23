@@ -238,7 +238,6 @@ describe("TagRepository (integration)", () => {
     it("returns documents matching a tag query", async () => {
       const result = await tagRepository.listDocuments({
         limit: 100,
-        offset: 0,
         query: "landscape",
       });
 
@@ -248,7 +247,6 @@ describe("TagRepository (integration)", () => {
     it("returns empty result for unmatched query", async () => {
       const result = await tagRepository.listDocuments({
         limit: 100,
-        offset: 0,
         query: "nonexistent-tag-xyz",
       });
 
@@ -259,7 +257,6 @@ describe("TagRepository (integration)", () => {
     it("returns all documents when query is empty", async () => {
       const result = await tagRepository.listDocuments({
         limit: 100,
-        offset: 0,
         query: "",
       });
 
@@ -273,12 +270,72 @@ describe("TagRepository (integration)", () => {
       // literal key that matches nothing.
       const result = await tagRepository.listDocuments({
         limit: 100,
-        offset: 0,
         query: "x'/**/OR/**/'1'='1",
       });
 
       expect(result.items).toHaveLength(0);
       expect(result.total).toBe(0);
+    });
+  });
+
+  describe("listDocuments — collection by name", () => {
+    const STATIC_COLLECTION_ID = "00000000-0000-0000-0000-000000000030";
+
+    const resolveCollections = async (name: string) =>
+      ({
+        "Summer 2024": [
+          {
+            id: STATIC_COLLECTION_ID,
+            type: "static" as const,
+            filterExpression: `collection:${STATIC_COLLECTION_ID}`,
+          },
+        ],
+        "Not Summer": [
+          {
+            id: "dynamic",
+            type: "dynamic" as const,
+            filterExpression: 'landscape & !collection:"Summer 2024"',
+          },
+        ],
+      })[name] ?? [];
+
+    beforeAll(async () => {
+      const membership = {
+        key: "collection",
+        value: STATIC_COLLECTION_ID,
+        type: "collection",
+      };
+      await tagRepository.addTags([
+        membership,
+        { key: "landscape", value: undefined, type: "default" },
+      ]);
+      await tagRepository.addTagToDocument(DOC_ID_2, membership);
+      await tagRepository.addTagToDocument(DOC_ID_1, {
+        key: "landscape",
+        value: undefined,
+        type: "default",
+      });
+    });
+
+    const ids = async (query: string) =>
+      (
+        await tagRepository.listDocuments({
+          limit: 100,
+          query,
+          resolveCollections,
+        })
+      ).items.map((d) => d.id);
+
+    it("matches the members of a static collection", async () => {
+      expect(await ids('collection:"Summer 2024"')).toEqual([DOC_ID_2]);
+    });
+
+    it("expands dynamic collections, including nested names", async () => {
+      expect(await ids('collection:"Not Summer"')).toEqual([DOC_ID_1]);
+    });
+
+    it("matches nothing for an unknown collection", async () => {
+      expect(await ids("collection:Unknown")).toEqual([]);
     });
   });
 
@@ -353,7 +410,6 @@ describe("TagRepository (integration)", () => {
     it("viewer can see public documents", async () => {
       const result = await tagRepository.listDocuments({
         limit: 100,
-        offset: 0,
         query: "",
         scope: scope(VIEWER_USER_ID),
       });
@@ -364,7 +420,6 @@ describe("TagRepository (integration)", () => {
     it("viewer can see their own private documents", async () => {
       const result = await tagRepository.listDocuments({
         limit: 100,
-        offset: 0,
         query: "",
         scope: scope(VIEWER_USER_ID),
       });
@@ -375,7 +430,6 @@ describe("TagRepository (integration)", () => {
     it("viewer cannot see foreign private documents", async () => {
       const result = await tagRepository.listDocuments({
         limit: 100,
-        offset: 0,
         query: "",
         scope: scope(VIEWER_USER_ID),
       });
@@ -386,7 +440,6 @@ describe("TagRepository (integration)", () => {
     it("viewer can see documents shared with them", async () => {
       const result = await tagRepository.listDocuments({
         limit: 100,
-        offset: 0,
         query: "",
         scope: scope(VIEWER_USER_ID),
       });

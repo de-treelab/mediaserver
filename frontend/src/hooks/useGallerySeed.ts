@@ -1,26 +1,41 @@
 import { useCallback, useEffect } from "react";
-import { selectGallerySeed, setGallerySeed } from "../app/persistent.slice";
-import { useAppDispatch, useAppSelector } from "../app/store";
+import { useSearchParams } from "react-router";
+import { clearPagePosition } from "./useCursorPageParams";
 
 const generateSeed = () => Math.random().toString(36).slice(2);
 
 /**
- * Returns the current gallery random seed, generating and storing one on first
- * call. Also exposes `reseedGallery()` to replace the seed with a fresh value.
+ * Keeps the random sort seed in the `seed` search parameter so that gallery
+ * URLs reproduce the same random order. While `enabled`, a seed is generated
+ * if the URL has none; otherwise any seed is dropped from the URL. Also exposes
+ * `reseedGallery()` to replace the seed with a fresh value.
  */
-export const useGallerySeed = () => {
-  const dispatch = useAppDispatch();
-  const seed = useAppSelector(selectGallerySeed);
+export const useGallerySeed = (enabled: boolean) => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const seed = searchParams.get("seed") ?? undefined;
 
   useEffect(() => {
-    if (!seed) {
-      dispatch(setGallerySeed(generateSeed()));
-    }
-  }, [seed, dispatch]);
+    if (enabled === !!seed) return;
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (enabled) next.set("seed", generateSeed());
+        else next.delete("seed");
+        return next;
+      },
+      { replace: true },
+    );
+  }, [enabled, seed, setSearchParams]);
 
   const reseedGallery = useCallback(() => {
-    dispatch(setGallerySeed(generateSeed()));
-  }, [dispatch]);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set("seed", generateSeed());
+      // Cursors of the previous order are meaningless in the new one
+      clearPagePosition(next);
+      return next;
+    });
+  }, [setSearchParams]);
 
-  return { seed: seed ?? "", reseedGallery };
+  return { seed: enabled ? seed : undefined, reseedGallery };
 };

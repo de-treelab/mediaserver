@@ -7,6 +7,7 @@ import { DocumentDiashowControls } from "./DocumentDiashowControls";
 import React from "react";
 import { pluginComponents } from "../plugins/pluginComponents";
 import { enhancedApi } from "../app/enhancedApi";
+import { preventInputHandling } from "../util/preventInputHandling";
 
 type Props = {
   documentId: string;
@@ -16,6 +17,7 @@ type Props = {
   mimeType?: string;
   toggleInfoPanel: () => void;
   showInfoPanel: boolean;
+  endPresentation: () => void;
 };
 
 export const DocumentDiashow = ({
@@ -26,6 +28,7 @@ export const DocumentDiashow = ({
   mimeType,
   toggleInfoPanel,
   showInfoPanel,
+  endPresentation,
 }: Props) => {
   const pluginFromProp = useDocumentPlugin(mimeType);
   const isStream = pluginFromProp.fetchMode === "stream";
@@ -49,6 +52,20 @@ export const DocumentDiashow = ({
     preventScrollOnSwipe: true,
     trackTouch: true,
   });
+
+  useEffect(() => {
+    const keyDownHandler = (event: KeyboardEvent) => {
+      if (event.key !== " " || preventInputHandling()) return;
+      // A focused video/audio element handles Space itself (play/pause).
+      const active = document.activeElement;
+      if (active instanceof HTMLMediaElement) return;
+      // Stop Space from also activating a focused control button.
+      event.preventDefault();
+      setPaused((p) => !p);
+    };
+    window.addEventListener("keydown", keyDownHandler);
+    return () => window.removeEventListener("keydown", keyDownHandler);
+  }, []);
 
   useEffect(() => {
     setAutoAdvance(!paused);
@@ -79,6 +96,7 @@ export const DocumentDiashow = ({
         paused={paused}
         toggleInfoPanel={toggleInfoPanel}
         showInfoPanel={showInfoPanel}
+        endPresentation={endPresentation}
       />
       <plugin.Diashow
         objectUrl={objectUrl}

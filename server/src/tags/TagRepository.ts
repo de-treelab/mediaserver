@@ -5,15 +5,23 @@ import type { DbService } from "../sql/DbService.js";
 import {
   paginated,
   toPaginatedResponse,
+  type CursorPaginatedResponse,
   type PaginatedResponse,
 } from "../util/PaginatedResponse.js";
 import { TagParseError } from "./TagParseError.js";
 import {
   buildQueryFromDeleteStatement,
   buildQueryFromInsertStatement,
+  buildFilteredEntitiesCountQuery,
+  buildFilteredEntitiesPageQuery,
   buildQueryFromSelectStatement,
   TagSqlBuilder,
+  type CollectionResolver,
 } from "./TagSqlBuilder.js";
+import {
+  encodeDocumentCursor,
+  type DocumentCursor,
+} from "../documents/DocumentCursor.js";
 import z from "zod";
 import type {
   Document,
@@ -32,12 +40,22 @@ export interface ListTagsRequest {
   tag: ApiTag;
 }
 
+export type DocumentListPosition =
+  | { type: "first" }
+  | { type: "last" }
+  | { type: "after"; cursor: DocumentCursor }
+  | { type: "before"; cursor: DocumentCursor }
+  // Window centered on a document, e.g. for the preview strip
+  | { type: "around"; documentId: string };
+
 export type ListDocumentsRequest = {
-  offset: number;
   limit: number;
+  position?: DocumentListPosition;
   query: string;
   seed?: string;
   scope?: DocumentAccessScope;
+  // Resolves `collection:"<name>"` filters; only plain tags are matched without
+  resolveCollections?: CollectionResolver;
 };
 
 const documentRowSchema = z.object({
@@ -49,6 +67,11 @@ const documentRowSchema = z.object({
   query_index: z.coerce.number().int().min(0),
   owner_id: z.string(),
   is_public: z.boolean(),
+});
+
+const documentListRowSchema = documentRowSchema.extend({
+  cursor_ts: z.string(),
+  before_anchor: z.boolean().optional(),
 });
 
 const tagRowSchema = z.object({
@@ -84,75 +107,121 @@ export class TagRepository {
           "is_public",
         ],
         userdataTableIdColumn: "id",
+        userdataTableIdType: "uuid",
       },
       tagCache,
     );
   }
 
   public async listDocuments({
-    offset,
     limit,
     query,
     seed,
+    position = { type: "first" },
     scope = { type: "all" },
-  }: ListDocumentsRequest): Promise<PaginatedResponse<Document>> {
+    resolveCollections,
+  }: ListDocumentsRequest): Promise<CursorPaginatedResponse<Document>> {
     if (scope.type === "none") {
-      return { items: [], total: 0 };
+      return {
+        items: [],
+        total: 0,
+        startIndex: 0,
+        prevCursor: undefined,
+        nextCursor: undefined,
+      };
     }
 
     const filter = new TagParser(query).parse();
-    const sql = await this.sqlBuilder.buildListFilteredEntitiesQuery(filter);
+    const sql = await this.sqlBuilder.buildListFilteredEntitiesQuery(filter, {
+      ...(resolveCollections && { resolveCollections }),
+    });
 
-    if (sql.success) {
-      const isRandom =
-        sql.stmt.sort?.find((s) => s.field === "_rand") !== undefined;
-
-      const scopeHaving = buildScopeHaving(scope, "u");
-      if (scopeHaving) {
-        if (isRandom && sql.stmt.with?.[0]) {
-          sql.stmt.with[0].body += scopeHaving;
-        } else {
-          sql.stmt.having = sql.stmt.having
-            ? `(${sql.stmt.having})${scopeHaving}`
-            : scopeHaving.replace(/^ AND /, "");
-        }
-      }
-
-      const baseParams = isRandom
-        ? { limit, offset, seed: seed ?? null }
-        : { limit, offset };
-      const scopeParams =
-        scope.type === "accessible-by" ? { userId: scope.userId } : {};
-      const params = {
-        ...baseParams,
-        ...scopeParams,
-        // Bind parameters for the dynamic tag-filter values (tag ids and
-        // user-supplied tag keys) collected by the SQL builder.
-        ...(sql.params ?? {}),
-      };
-
-      const items = await this.dbService.any(
-        paginated(documentRowSchema),
-        buildQueryFromSelectStatement(sql.stmt),
-        params,
-      );
-
-      return toPaginatedResponse(
-        items.map((item) => ({
-          id: item.id,
-          mime: item.mime,
-          friendlyName: item.friendly_name,
-          previousId: item.previous_id ?? undefined,
-          nextId: item.next_id ?? undefined,
-          queryIndex: item.query_index,
-          ownerId: item.owner_id,
-          isPublic: item.is_public,
-          __total: item.__total,
-        })),
-      );
-    } else {
+    if (!sql.success) {
       throw new TagParseError(sql.message);
     }
+
+    const scopeHaving = buildScopeHaving(scope, "u");
+    if (scopeHaving) {
+      sql.stmt.filtered.having = `(${sql.stmt.filtered.having})${scopeHaving}`;
+    }
+
+    const isRandom = sql.stmt.sortBy === "random";
+    // Only pass parameters the query references: unreferenced bind parameters
+    // have no inferable type and make Postgres reject the query.
+    const filterParams = {
+      ...(isRandom ? { seed: seed ?? "" } : {}),
+      ...(scope.type === "accessible-by" ? { userId: scope.userId } : {}),
+      // Bind parameters for the dynamic tag-filter values (tag ids and
+      // user-supplied tag keys) collected by the SQL builder.
+      ...(sql.params ?? {}),
+    };
+    const positionParams =
+      position.type === "after" || position.type === "before"
+        ? isRandom
+          ? { cursorId: position.cursor.id }
+          : { cursorId: position.cursor.id, cursorTs: position.cursor.ts }
+        : position.type === "around"
+          ? { anchorId: position.documentId }
+          : {};
+
+    const rows = await this.dbService.any(
+      paginated(documentListRowSchema),
+      buildFilteredEntitiesPageQuery(sql.stmt, position.type),
+      { ...filterParams, ...positionParams, limit },
+    );
+
+    let ordered = [...rows].sort((a, b) => a.query_index - b.query_index);
+    if (position.type === "around") {
+      // Both halves were fetched with `limit` rows each; keep a window of
+      // `limit` rows centered on the anchor, shifted inwards at either end.
+      const afterStart = ordered.filter((row) => row.before_anchor).length;
+      const available = {
+        before: afterStart,
+        after: ordered.length - afterStart,
+      };
+      const takeBefore = Math.min(
+        available.before,
+        Math.max(Math.floor((limit - 1) / 2), limit - available.after),
+      );
+      const takeAfter = Math.min(available.after, limit - takeBefore);
+      ordered = ordered.slice(afterStart - takeBefore, afterStart + takeAfter);
+    }
+
+    const first = ordered[0];
+    const last = ordered[ordered.length - 1];
+    const total =
+      first?.__total ??
+      (position.type === "first"
+        ? 0
+        : (
+            await this.dbService.one(
+              z.object({ total: z.number().int() }),
+              buildFilteredEntitiesCountQuery(sql.stmt),
+              filterParams,
+            )
+          ).total);
+
+    const toCursor = (row: (typeof rows)[number]) =>
+      encodeDocumentCursor({ ts: row.cursor_ts, id: row.id });
+
+    return {
+      items: ordered.map((item) => ({
+        id: item.id,
+        mime: item.mime,
+        friendlyName: item.friendly_name,
+        previousId: item.previous_id ?? undefined,
+        nextId: item.next_id ?? undefined,
+        queryIndex: item.query_index,
+        cursor: toCursor(item),
+        ownerId: item.owner_id,
+        isPublic: item.is_public,
+      })),
+      total,
+      startIndex: first?.query_index ?? (position.type === "after" ? total : 0),
+      prevCursor: first && first.query_index > 0 ? toCursor(first) : undefined,
+      nextCursor:
+        last && last.query_index < total - 1 ? toCursor(last) : undefined,
+    };
   }
 
   public async listDocumentsByIds(

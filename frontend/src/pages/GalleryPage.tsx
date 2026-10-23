@@ -2,7 +2,11 @@ import { enhancedApi } from "../app/enhancedApi";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { PreviewContainer } from "../sections/PreviewContainer";
 import { useEasySearchParams } from "../hooks/useEasySearchParams";
-import { usePageOffsetAndLimitParams } from "../hooks/usePageOffsetAndLimitParams";
+import {
+  clearPagePosition,
+  useCursorPageParams,
+} from "../hooks/useCursorPageParams";
+import { END_CURSOR } from "../app/api";
 import { CollectionFormModal } from "../sections/CollectionFormModal";
 import { useGallerySeed } from "../hooks/useGallerySeed";
 import { BulkEditDocumentsModal } from "../sections/BulkEditDocumentsModal";
@@ -12,15 +16,20 @@ import { useFinalGalleryQuery } from "../hooks/useFinalGalleryQuery";
 import { usePreviewNavigation } from "../hooks/usePreviewNavigation";
 import { EditModePanel } from "../sections/EditModePanel";
 import { GallerySearchBar } from "../sections/GallerySearchBar";
-import { GalleryControls, type TypeFilter } from "../sections/GalleryControls";
+import { GalleryControls } from "../sections/GalleryControls";
 import { PaginatedThumbnailContainer } from "../sections/PaginatedThumbnailContainer";
 import { useNavigate } from "react-router";
 import { usePermission } from "../hooks/usePermission";
 import { AiOutlineUpload } from "react-icons/ai";
 import { MdEdit } from "react-icons/md";
 import { Button } from "../components/Button";
+import { useTranslation } from "react-i18next";
+import { twMerge } from "tailwind-merge";
+import { PageHeader } from "../components/Page";
+import { pageGutter } from "../components/styles";
 
 export const GalleryPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const canUpload = usePermission("document:upload");
   const [layoutType, setLayoutType] = useState<"grid" | "list">("grid");
@@ -30,9 +39,8 @@ export const GalleryPage = () => {
   const [editDocuments, setEditDocuments] = useState<Set<string>>(new Set());
   const [editDocumentsModalOpen, setEditDocumentsModalOpen] = useState(false);
   const [tagInput, setTagInput] = useState("");
-  const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
 
-  const { limit, offset, page, setPage } = usePageOffsetAndLimitParams();
+  const { limit, position, setPosition, resetPosition } = useCursorPageParams();
 
   const {
     params: {
@@ -42,7 +50,6 @@ export const GalleryPage = () => {
       sort: sortParam,
     },
     setSearchParams,
-    addSearchParam,
     removeSearchParam,
   } = useEasySearchParams(["preview", "q", "collection", "sort"]);
 
@@ -52,8 +59,6 @@ export const GalleryPage = () => {
   const { data: collection } = enhancedApi.useGetCollectionByIdQuery(
     collectionSearchParam ?? skipToken,
   );
-
-  const { seed, reseedGallery } = useGallerySeed();
 
   const { data: allTagsData } = enhancedApi.useListTagsQuery({
     limit: 20,
@@ -68,20 +73,13 @@ export const GalleryPage = () => {
   }, [allTagsData]);
 
   const effectiveQuery = useMemo(() => {
-    const parts: string[] = [];
-    if (typeFilter !== "all") parts.push(typeFilter);
-    if (query?.trim()) parts.push(query.trim());
-
-    const combined =
-      parts.length > 1
-        ? parts.map((p) => `(${p})`).join(" & ")
-        : (parts[0] ?? "");
+    const combined = query?.trim() ?? "";
 
     if (sortMode === "random" && !combined.includes("sort:random")) {
       return combined ? `(sort:random) & (${combined})` : "(sort:random)";
     }
     return combined || undefined;
-  }, [typeFilter, query, sortMode]);
+  }, [query, sortMode]);
 
   const { finalQuery, hasRandomSort } = useFinalGalleryQuery(
     effectiveQuery,
@@ -89,21 +87,26 @@ export const GalleryPage = () => {
     collection,
   );
 
+  const { seed, reseedGallery } = useGallerySeed(hasRandomSort);
+
+  const queryArgs = useMemo(
+    () => ({ query: finalQuery, seed }),
+    [finalQuery, seed],
+  );
+
   const { currentData: data } = enhancedApi.useListDocumentsQuery(
-    {
-      limit,
-      offset,
-      query: finalQuery,
-      seed: hasRandomSort ? seed : undefined,
-    },
+    // Wait for the seed to be written to the URL before fetching random pages
+    hasRandomSort && !seed ? skipToken : { ...queryArgs, limit, ...position },
     { refetchOnFocus: true, refetchOnReconnect: true },
   );
 
+  // Every document past / before the cursor is gone (e.g. deleted or no longer
+  // matching): fall back to the last / first page.
   useEffect(() => {
-    if (data && data.items.length === 0 && page > 0) {
-      setPage(page - 1);
-    }
-  }, [data, page, setPage]);
+    if (!data || data.items.length > 0 || data.total === 0) return;
+    if (position.after) setPosition({ before: END_CURSOR });
+    else if (position.before && position.before !== END_CURSOR) resetPosition();
+  }, [data, position, setPosition, resetPosition]);
 
   useEffect(() => {
     setEditDocuments(new Set());
@@ -113,15 +116,12 @@ export const GalleryPage = () => {
     setTagInput((prev) => query || prev);
   }, [query]);
 
-  const idToDocument = useMemo(
-    () => Object.fromEntries((data?.items ?? []).map((d) => [d.id, d])),
-    [data],
-  );
-
   const total = data?.total ?? 0;
 
   const {
     previewDocument,
+    stripDocuments,
+    totalDocuments,
     setPreviewDocument,
     goToPreviewDocument,
     nextPreviewImage,
@@ -129,20 +129,30 @@ export const GalleryPage = () => {
     lastKnownPreviewIndexRef,
   } = usePreviewNavigation({
     previewDocumentSearchParam,
-    idToDocument,
+    queryArgs,
+    galleryPage: data,
     limit,
-    page,
-    addSearchParam,
     removeSearchParam,
     setSearchParams,
   });
 
-  const onInputSubmit = useCallback(
-    (value: string) => {
-      setPage(0);
-      addSearchParam("q", value);
+  // Changes the filter and starts over at the first page. Done in a single
+  // update since consecutive setSearchParams calls would overwrite each other.
+  const updateFilter = useCallback(
+    (update: (params: URLSearchParams) => void) => {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        update(next);
+        clearPagePosition(next);
+        return next;
+      });
     },
-    [addSearchParam, setPage],
+    [setSearchParams],
+  );
+
+  const onInputSubmit = useCallback(
+    (value: string) => updateFilter((params) => params.set("q", value)),
+    [updateFilter],
   );
 
   const onTagClick = useCallback(
@@ -155,31 +165,18 @@ export const GalleryPage = () => {
     [tagInput, onInputSubmit],
   );
 
+  // Switching to random sort picks up a fresh seed, as useGallerySeed drops
+  // the seed from the URL whenever random sort is off.
   const onSetSortMode = useCallback(
-    (mode: "newest" | "random") => {
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev);
+    (mode: "newest" | "random") =>
+      updateFilter((params) => {
         if (mode === "random") {
-          next.set("sort", "random");
+          params.set("sort", "random");
         } else {
-          next.delete("sort");
+          params.delete("sort");
         }
-        next.set("page", "1");
-        return next;
-      });
-      if (mode === "random") {
-        reseedGallery();
-      }
-    },
-    [setSearchParams, reseedGallery],
-  );
-
-  const onSetTypeFilter = useCallback(
-    (type: TypeFilter) => {
-      setTypeFilter(type);
-      setPage(0);
-    },
-    [setPage],
+      }),
+    [updateFilter],
   );
 
   const entirePageSelected = useMemo(
@@ -232,41 +229,28 @@ export const GalleryPage = () => {
   }, []);
 
   return (
-    <div className="h-full relative flex flex-col gap-2 overflow-hidden">
-      {/* Page header */}
-      <div className="flex flex-col p-2">
-        <div className="flex flex-row items-start justify-between shrink-0">
-          <div>
-            <h1 className="text-3xl font-bold text-text-primary">Gallery</h1>
-          </div>
-          <div className="flex flex-row gap-2 shrink-0 mt-1">
+    <div className="h-full relative flex flex-col gap-3 pt-4 sm:pt-6 overflow-hidden">
+      <PageHeader
+        className={twMerge(pageGutter, "shrink-0")}
+        title={t("pages.gallery.title")}
+        actions={
+          <>
             {canUpload && (
-              <Button
-                variant="secondary"
-                onClick={() => navigate("/upload")}
-                className="flex flex-row gap-2 items-center"
-              >
+              <Button variant="secondary" onClick={() => navigate("/upload")}>
                 <AiOutlineUpload className="text-lg" />
-                Upload
+                {t("pages.gallery.upload")}
               </Button>
             )}
             <Button
               variant={editMode ? "primary" : "secondary"}
               onClick={() => setEditMode((prev) => !prev)}
-              className="flex flex-row gap-2 items-center"
             >
               <MdEdit className="text-lg" />
-              Edit
+              {t("pages.gallery.bulkEdit")}
             </Button>
-          </div>
-        </div>
-        <div className="hidden sm:block">
-          <p className="text-text-muted text-sm mt-1">
-            Everything you&apos;ve uploaded — searchable by tag, browsable by
-            type, organized into collections.
-          </p>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       <GallerySearchBar
         value={tagInput}
@@ -277,10 +261,12 @@ export const GalleryPage = () => {
       />
 
       {collectionSearchParam && collection && (
-        <div className="flex flex-row gap-2 px-3 shrink-0">
+        <div className={twMerge(pageGutter, "flex flex-row gap-2 shrink-0")}>
           <CollectionBadge
             collection={collection}
-            onDelete={() => removeSearchParam("collection")}
+            onDelete={() =>
+              updateFilter((params) => params.delete("collection"))
+            }
           />
         </div>
       )}
@@ -305,8 +291,6 @@ export const GalleryPage = () => {
         onSetLayoutType={setLayoutType}
         sortMode={sortMode}
         onSetSortMode={onSetSortMode}
-        typeFilter={typeFilter}
-        onSetTypeFilter={onSetTypeFilter}
         total={total}
         pageSize={data?.items.length ?? 0}
       />
@@ -314,10 +298,10 @@ export const GalleryPage = () => {
       <PaginatedThumbnailContainer
         items={data?.items ?? []}
         total={total}
-        limit={limit}
-        offset={offset}
-        page={page}
-        onPageChange={setPage}
+        startIndex={data?.startIndex ?? 0}
+        prevCursor={data?.prevCursor}
+        nextCursor={data?.nextCursor}
+        onPositionChange={setPosition}
         layoutType={layoutType}
         selectedDocuments={editDocuments}
         onThumbnailClick={onThumbnailClick}
@@ -347,20 +331,16 @@ export const GalleryPage = () => {
       {previewDocumentSearchParam && (
         <div className="fixed top-0 left-0 w-screen h-screen bg-black z-100">
           <PreviewContainer
-            totalDocuments={total}
+            totalDocuments={totalDocuments}
             previewImageId={previewDocumentSearchParam}
+            previewDocument={previewDocument}
+            stripDocuments={stripDocuments}
             onThumbnailClicked={goToPreviewDocument}
             nextPreviewImage={nextPreviewImage}
             previousPreviewImage={prevPreviewImage}
             previewImageIndex={
               previewDocument?.queryIndex ?? lastKnownPreviewIndexRef.current
             }
-            queryParams={{
-              limit,
-              offset,
-              query: finalQuery,
-              seed: hasRandomSort ? seed : undefined,
-            }}
             onClose={() => setPreviewDocument(undefined)}
           />
         </div>

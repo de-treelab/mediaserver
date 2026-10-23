@@ -1,6 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { TagInput } from "./TagInput";
 import type { ApiTag } from "../app/api";
+import { twMerge } from "tailwind-merge";
+import { pageGutter } from "../components/styles";
 
 type Props = {
   value: string;
@@ -20,7 +22,7 @@ export const GallerySearchBar = ({
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-col gap-2 px-2">
+    <div className={twMerge(pageGutter, "flex flex-col gap-2")}>
       <TagInput
         value={value}
         onChange={onChange}
@@ -32,7 +34,7 @@ export const GallerySearchBar = ({
         blurOnSubmit
       />
       {popularTags.length > 0 && (
-        <div className="flex flex-row flex-wrap gap-1.5 px-1">
+        <div className="flex flex-row flex-wrap gap-1.5">
           {popularTags.map((tag) => {
             const label = tag.value ? `${tag.key}:${tag.value}` : tag.key;
             return (

@@ -1,33 +1,75 @@
-import { useCallback, useMemo, useRef } from "react";
-import { type Document } from "../app/api";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { skipToken } from "@reduxjs/toolkit/query";
+import { type Document, type ListDocumentsArgs } from "../app/api";
+import { enhancedApi } from "../app/enhancedApi";
+import type { CursorPaginatedResponse } from "../util/PaginatedResponse";
+import { setPagePosition, type PagePosition } from "./useCursorPageParams";
+
+// Documents shown in the preview strip: the previewed one plus two on either side
+const STRIP_SIZE = 5;
 
 type Params = {
   previewDocumentSearchParam: string | undefined;
-  idToDocument: Record<string, Document>;
+  // Filter / sort of the gallery the preview navigates through
+  queryArgs: Pick<ListDocumentsArgs, "query" | "seed">;
+  // Currently displayed gallery page, kept in sync while navigating
+  galleryPage: CursorPaginatedResponse<Document> | undefined;
   limit: number;
-  page: number;
-  addSearchParam: (key: "preview", value: string) => void;
   removeSearchParam: (key: "preview") => void;
   setSearchParams: (
     updater: (prev: URLSearchParams) => URLSearchParams,
   ) => void;
 };
 
+const stripArgs = (
+  queryArgs: Params["queryArgs"],
+  documentId: string,
+): ListDocumentsArgs => ({
+  ...queryArgs,
+  around: documentId,
+  limit: STRIP_SIZE,
+});
+
 export const usePreviewNavigation = ({
   previewDocumentSearchParam,
-  idToDocument,
+  queryArgs,
+  galleryPage,
   limit,
-  page,
-  addSearchParam,
   removeSearchParam,
   setSearchParams,
 }: Params) => {
-  const previewDocument = useMemo(
+  // The preview fetches its own window around the previewed document, so it
+  // works independently of which gallery page is loaded.
+  const { data: strip } = enhancedApi.useListDocumentsQuery(
+    previewDocumentSearchParam
+      ? stripArgs(queryArgs, previewDocumentSearchParam)
+      : skipToken,
+    { refetchOnFocus: true, refetchOnReconnect: true },
+  );
+
+  const knownDocuments = useMemo(
     () =>
-      previewDocumentSearchParam
-        ? idToDocument[previewDocumentSearchParam]
-        : undefined,
-    [idToDocument, previewDocumentSearchParam],
+      new Map(
+        [...(galleryPage?.items ?? []), ...(strip?.items ?? [])].map((d) => [
+          d.id,
+          d,
+        ]),
+      ),
+    [galleryPage, strip],
+  );
+
+  const previewDocument = previewDocumentSearchParam
+    ? knownDocuments.get(previewDocumentSearchParam)
+    : undefined;
+
+  // `strip` keeps the previous window while the next one loads; only show it
+  // once it contains the previewed document.
+  const stripDocuments = useMemo(
+    () =>
+      strip?.items.some((d) => d.id === previewDocumentSearchParam)
+        ? strip.items
+        : [],
+    [strip, previewDocumentSearchParam],
   );
 
   const lastKnownPreviewIndexRef = useRef<number>(0);
@@ -35,73 +77,98 @@ export const usePreviewNavigation = ({
     lastKnownPreviewIndexRef.current = previewDocument.queryIndex;
   }
 
+  // Read ahead in both directions so arrow navigation and the diashow don't
+  // wait for the next strip.
+  const prefetch = enhancedApi.usePrefetch("listDocuments");
+  useEffect(() => {
+    for (const id of [previewDocument?.nextId, previewDocument?.previousId]) {
+      if (id) prefetch(stripArgs(queryArgs, id));
+    }
+  }, [
+    prefetch,
+    queryArgs,
+    previewDocument?.nextId,
+    previewDocument?.previousId,
+  ]);
+
+  // Gallery page that contains `target`, or undefined if the current one does.
+  // Prefers the regular previous / next page so that following the preview
+  // across a page boundary is equivalent to using the gallery pagination.
+  const galleryPositionFor = useCallback(
+    (target: Document): PagePosition | undefined => {
+      if (!galleryPage || galleryPage.items.some((d) => d.id === target.id)) {
+        return undefined;
+      }
+      const first = galleryPage.startIndex;
+      const last = first + galleryPage.items.length - 1;
+      if (
+        galleryPage.nextCursor &&
+        target.queryIndex > last &&
+        target.queryIndex <= last + limit
+      ) {
+        return { after: galleryPage.nextCursor };
+      }
+      if (
+        galleryPage.prevCursor &&
+        target.queryIndex < first &&
+        target.queryIndex >= first - limit
+      ) {
+        return { before: galleryPage.prevCursor };
+      }
+      // Further away: start a page right at the target
+      const predecessor = target.previousId
+        ? knownDocuments.get(target.previousId)
+        : undefined;
+      if (predecessor?.cursor) return { after: predecessor.cursor };
+      if (!target.previousId) return {};
+      return undefined;
+    },
+    [galleryPage, knownDocuments, limit],
+  );
+
+  const goToPreviewDocumentId = useCallback(
+    (documentId: string) => {
+      const target = knownDocuments.get(documentId);
+      const position = target ? galleryPositionFor(target) : undefined;
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        if (position) setPagePosition(next, position);
+        next.set("preview", documentId);
+        return next;
+      });
+    },
+    [knownDocuments, galleryPositionFor, setSearchParams],
+  );
+
   const setPreviewDocument = useCallback(
     (previewDocumentId: string | undefined) => {
       if (previewDocumentId) {
-        addSearchParam("preview", previewDocumentId);
+        goToPreviewDocumentId(previewDocumentId);
       } else {
         removeSearchParam("preview");
       }
     },
-    [addSearchParam, removeSearchParam],
+    [goToPreviewDocumentId, removeSearchParam],
   );
 
-  // Navigates the preview to a specific document, also switching to the page
-  // that contains it. This keeps the document present in `idToDocument` so the
-  // next/prev handlers resolve correctly even when the document lives outside
-  // the currently loaded gallery page (e.g. when clicking a thumbnail near a
-  // page boundary in the preview strip).
   const goToPreviewDocument = useCallback(
-    (document: Document) => {
-      const targetPage = Math.floor(document.queryIndex / limit);
-      setSearchParams((prev) => {
-        const newParams = new URLSearchParams(prev);
-        newParams.set("page", String(targetPage + 1));
-        newParams.set("preview", document.id);
-        return newParams;
-      });
-    },
-    [setSearchParams, limit],
+    (document: Document) => goToPreviewDocumentId(document.id),
+    [goToPreviewDocumentId],
   );
 
   const nextPreviewImage = useCallback(() => {
-    if (previewDocument?.nextId) {
-      const nextId = previewDocument.nextId;
-      const indexOnPage = previewDocument.queryIndex % limit;
-      if (indexOnPage === limit - 1) {
-        const newPage = page + 1;
-        setSearchParams((prev) => {
-          const newParams = new URLSearchParams(prev);
-          newParams.set("page", String(newPage + 1));
-          newParams.set("preview", nextId);
-          return newParams;
-        });
-      } else {
-        setPreviewDocument(nextId);
-      }
-    }
-  }, [setPreviewDocument, previewDocument, setSearchParams, page, limit]);
+    if (previewDocument?.nextId) goToPreviewDocumentId(previewDocument.nextId);
+  }, [previewDocument, goToPreviewDocumentId]);
 
   const prevPreviewImage = useCallback(() => {
-    if (previewDocument?.previousId) {
-      const previousId = previewDocument.previousId;
-      const indexOnPage = previewDocument.queryIndex % limit;
-      if (indexOnPage === 0) {
-        const newPage = Math.max(page - 1, 0);
-        setSearchParams((prev) => {
-          const newParams = new URLSearchParams(prev);
-          newParams.set("page", String(newPage + 1));
-          newParams.set("preview", previousId);
-          return newParams;
-        });
-      } else {
-        setPreviewDocument(previewDocument.previousId);
-      }
-    }
-  }, [setPreviewDocument, previewDocument, setSearchParams, page, limit]);
+    if (previewDocument?.previousId)
+      goToPreviewDocumentId(previewDocument.previousId);
+  }, [previewDocument, goToPreviewDocumentId]);
 
   return {
     previewDocument,
+    stripDocuments,
+    totalDocuments: strip?.total ?? galleryPage?.total ?? 0,
     setPreviewDocument,
     goToPreviewDocument,
     nextPreviewImage,

@@ -1,11 +1,13 @@
 import type React from "react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FaCaretLeft, FaCaretRight, FaDownload, FaFile } from "react-icons/fa";
 import { LuPresentation } from "react-icons/lu";
 import { MdClose, MdEdit, MdInfoOutline } from "react-icons/md";
 import { updateDocumentFriendlyName } from "../app/api";
 import { enhancedApi } from "../app/enhancedApi";
 import { useAppDispatch } from "../app/store";
+import { Input } from "./Input";
 
 type Props = {
   documentId: string;
@@ -40,6 +42,7 @@ export const DocumentPreviewControls: React.FC<Props> = ({
   const displayName =
     friendlyName || (ext ? `document.${ext}` : documentId.slice(0, 8));
   const current = previewImageIndex + 1;
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const [editing, setEditing] = useState(false);
   const [nameValue, setNameValue] = useState(displayName);
@@ -64,9 +67,10 @@ export const DocumentPreviewControls: React.FC<Props> = ({
         <div className="min-w-0">
           <div className="flex items-center gap-1">
             {editing ? (
-              <input
+              <Input
                 autoFocus
-                className="text-sm font-semibold bg-surface-2 border border-border rounded px-1.5 py-0.5 outline-none focus:border-border-strong"
+                inputSize="sm"
+                className="text-sm font-semibold"
                 value={nameValue}
                 onChange={(e) => setNameValue(e.target.value)}
                 onBlur={commitRename}
@@ -89,7 +93,7 @@ export const DocumentPreviewControls: React.FC<Props> = ({
                     setEditing(true);
                   }}
                   className="p-1 rounded hover:bg-surface-2 text-text-faint hover:text-text-muted transition-colors shrink-0"
-                  title="Rename"
+                  title={t("document.preview.rename")}
                 >
                   <MdEdit size="0.75rem" />
                 </button>
@@ -97,7 +101,10 @@ export const DocumentPreviewControls: React.FC<Props> = ({
             )}
           </div>
           <div className="text-xs text-text-muted">
-            {current} of {totalDocuments}
+            {t("document.preview.position", {
+              current,
+              total: totalDocuments,
+            })}
             {mimeType ? ` · ${mimeType}` : ""}
           </div>
         </div>
@@ -122,28 +129,28 @@ export const DocumentPreviewControls: React.FC<Props> = ({
         <div className="w-px h-5 bg-border mx-1" />
         <button
           onClick={downloadDocument}
-          title="Download"
+          title={t("document.preview.download")}
           className="p-2 rounded-md hover:bg-surface-2 text-text-muted hover:text-text-primary transition-colors"
         >
           <FaDownload size="0.875rem" />
         </button>
         <button
           onClick={toggleDiashow}
-          title="Slideshow"
+          title={t("document.preview.slideshow")}
           className="p-2 rounded-md hover:bg-surface-2 text-text-muted hover:text-text-primary transition-colors"
         >
           <LuPresentation size="1rem" />
         </button>
         <button
           onClick={toggleInfoPanel}
-          title="Info"
+          title={t("document.preview.info")}
           className={`p-2 rounded-md hover:bg-surface-2 transition-colors ${showInfoPanel ? "text-accent-subtle" : "text-text-muted hover:text-text-primary"}`}
         >
           <MdInfoOutline size="1.25rem" />
         </button>
         <button
           onClick={onClose}
-          title="Close"
+          title={t("document.preview.close")}
           className="p-2 rounded-md hover:bg-surface-2 text-text-muted hover:text-danger-subtle transition-colors"
         >
           <MdClose size="1.25rem" />

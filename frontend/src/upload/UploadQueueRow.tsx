@@ -10,6 +10,7 @@ import { TagInput } from "../sections/TagInput";
 import { tagToString } from "../util/tag";
 import { bytesToHumanReadable } from "../util/bytesToHumanReadable";
 import { FileTypeBadge } from "./FileTypeBadge";
+import { Input } from "../components/Input";
 
 export type UploadStatus = "queued" | "uploading" | "done" | "failed";
 
@@ -66,9 +67,10 @@ export const UploadQueueRow = ({
 
       <div className="flex flex-col gap-1 min-w-0 flex-1">
         {editingName && status === "queued" ? (
-          <input
+          <Input
             autoFocus
-            className="text-sm font-medium bg-surface-2 border border-border rounded px-1.5 py-0.5 outline-none focus:border-border-strong w-full"
+            inputSize="sm"
+            className="w-full text-sm font-medium"
             value={nameValue}
             onChange={(e) => setNameValue(e.target.value)}
             onBlur={commitName}
@@ -85,7 +87,7 @@ export const UploadQueueRow = ({
             className={`text-sm font-medium truncate${status === "queued" && onFriendlyNameChange ? " cursor-text hover:text-text-secondary" : ""}`}
             title={
               status === "queued" && onFriendlyNameChange
-                ? "Click to rename"
+                ? t("pages.upload.clickToRename")
                 : undefined
             }
             onClick={() => {
@@ -125,6 +127,7 @@ export const UploadQueueRow = ({
             (addingTag ? (
               <TagInput
                 clearOnSubmit
+                singleTag
                 value={tagValue}
                 onChange={setTagValue}
                 onSubmit={(tag) => {
@@ -137,11 +140,13 @@ export const UploadQueueRow = ({
               />
             ) : (
               <Button
-                variant="ghost"
-                className="flex items-center gap-0.5 px-2 py-0.5 rounded-full border border-border text-xs hover:border-border-strong hover:text-text-secondary"
+                variant="outline"
+                size="sm"
+                className="py-0.5 rounded-full"
                 onClick={() => setAddingTag(true)}
               >
-                <MdAdd size={11} /> {t("pages.upload.addTag")}
+                <MdAdd size={11} />
+                {t("pages.upload.addTag")}
               </Button>
             ))}
         </div>
@@ -188,11 +193,12 @@ export const UploadQueueRow = ({
             {onRetry && (
               <Button
                 variant="ghost"
-                className="flex items-center gap-0.5 ml-1 text-xs hover:text-text-primary"
+                size="sm"
                 onClick={onRetry}
                 title={t("pages.upload.statusRetry")}
               >
-                <MdRefresh size={14} /> {t("pages.upload.statusRetry")}
+                <MdRefresh size={14} />
+                {t("pages.upload.statusRetry")}
               </Button>
             )}
           </span>

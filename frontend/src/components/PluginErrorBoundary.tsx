@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from "react";
+import { Translation } from "react-i18next";
 
 type Props = {
   /** Identifies the failing plugin in the fallback message and console. */
@@ -29,7 +30,9 @@ export class PluginErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="text-xs text-text-muted italic">
-          {this.props.pluginName} failed to render.
+          <Translation>
+            {(t) => t("plugins.renderFailed", { name: this.props.pluginName })}
+          </Translation>
         </div>
       );
     }

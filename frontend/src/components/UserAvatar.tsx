@@ -26,7 +26,7 @@ export const UserAvatar = ({ name, email, size = "md" }: Props) => {
   return (
     <div
       className={twMerge(
-        "rounded-full bg-green-600 flex items-center justify-center text-white font-bold flex-shrink-0",
+        "rounded-full bg-success-strong flex items-center justify-center text-white font-bold flex-shrink-0",
         sizeClasses,
       )}
     >

@@ -37,15 +37,14 @@ export const Dropdown = <T,>({
       } else if (
         event.key === "Enter" &&
         !event.ctrlKey &&
-        highlightedIndex >= 0
+        values[highlightedIndex]
       ) {
         event.preventDefault();
         event.stopPropagation();
 
-        const item = values[highlightedIndex];
-        if (item) {
-          onSelect?.(item.value);
-        }
+        // Reset so the next Enter reaches the input (e.g. to submit)
+        setHighlightedIndex(-1);
+        onSelect?.(values[highlightedIndex].value);
       }
     },
     [highlightedIndex, onSelect, values],
@@ -80,6 +79,7 @@ export const Dropdown = <T,>({
           onMouseDown={(e) => {
             // Prevent input from losing focus
             e.preventDefault();
+            setHighlightedIndex(-1);
             onSelect?.(values[index].value);
           }}
         >
