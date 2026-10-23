@@ -16,7 +16,7 @@ import { useFinalGalleryQuery } from "../hooks/useFinalGalleryQuery";
 import { usePreviewNavigation } from "../hooks/usePreviewNavigation";
 import { EditModePanel } from "../sections/EditModePanel";
 import { GallerySearchBar } from "../sections/GallerySearchBar";
-import { GalleryControls, type TypeFilter } from "../sections/GalleryControls";
+import { GalleryControls } from "../sections/GalleryControls";
 import { PaginatedThumbnailContainer } from "../sections/PaginatedThumbnailContainer";
 import { useNavigate } from "react-router";
 import { usePermission } from "../hooks/usePermission";
@@ -34,7 +34,6 @@ export const GalleryPage = () => {
   const [editDocuments, setEditDocuments] = useState<Set<string>>(new Set());
   const [editDocumentsModalOpen, setEditDocumentsModalOpen] = useState(false);
   const [tagInput, setTagInput] = useState("");
-  const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
 
   const { limit, position, setPosition, resetPosition } = useCursorPageParams();
 
@@ -69,20 +68,13 @@ export const GalleryPage = () => {
   }, [allTagsData]);
 
   const effectiveQuery = useMemo(() => {
-    const parts: string[] = [];
-    if (typeFilter !== "all") parts.push(typeFilter);
-    if (query?.trim()) parts.push(query.trim());
-
-    const combined =
-      parts.length > 1
-        ? parts.map((p) => `(${p})`).join(" & ")
-        : (parts[0] ?? "");
+    const combined = query?.trim() ?? "";
 
     if (sortMode === "random" && !combined.includes("sort:random")) {
       return combined ? `(sort:random) & (${combined})` : "(sort:random)";
     }
     return combined || undefined;
-  }, [typeFilter, query, sortMode]);
+  }, [query, sortMode]);
 
   const { finalQuery, hasRandomSort } = useFinalGalleryQuery(
     effectiveQuery,
@@ -182,14 +174,6 @@ export const GalleryPage = () => {
     [updateFilter],
   );
 
-  const onSetTypeFilter = useCallback(
-    (type: TypeFilter) => {
-      setTypeFilter(type);
-      resetPosition();
-    },
-    [resetPosition],
-  );
-
   const entirePageSelected = useMemo(
     () => !!data && data.items.every((item) => editDocuments.has(item.id)),
     [data, editDocuments],
@@ -268,12 +252,6 @@ export const GalleryPage = () => {
             </Button>
           </div>
         </div>
-        <div className="hidden sm:block">
-          <p className="text-text-muted text-sm mt-1">
-            Everything you&apos;ve uploaded — searchable by tag, browsable by
-            type, organized into collections.
-          </p>
-        </div>
       </div>
 
       <GallerySearchBar
@@ -315,8 +293,6 @@ export const GalleryPage = () => {
         onSetLayoutType={setLayoutType}
         sortMode={sortMode}
         onSetSortMode={onSetSortMode}
-        typeFilter={typeFilter}
-        onSetTypeFilter={onSetTypeFilter}
         total={total}
         pageSize={data?.items.length ?? 0}
       />
