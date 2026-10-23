@@ -2,7 +2,7 @@ import { Router } from "express";
 import { apiHandler } from "../ApiHandler.js";
 import { services } from "../DefaultDiContainer.js";
 import type { PaginatedResponse } from "../util/PaginatedResponse.js";
-import type { TagService } from "../tags/TagService.js";
+import { TagService } from "../tags/TagService.js";
 import type { ApiTag } from "../tags/TagRepository.js";
 import type { EmptyObject } from "../common/EmptyObject.js";
 import { requirePermission } from "../auth/requirePermission.js";
@@ -48,6 +48,7 @@ tagRouter.post(
   requirePermission("tag:manage"),
   apiHandler<EmptyObject, EmptyObject, { tag: string }, { documentId: string }>(
     async ({ diContainer, params: { documentId }, body: { tag } }) => {
+      TagService.assertSingleTag(tag);
       const tagService = diContainer.get<TagService>(services.tag);
       await tagService.addTagToDocument(documentId, tag);
       return {

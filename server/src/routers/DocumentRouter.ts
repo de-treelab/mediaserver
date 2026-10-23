@@ -10,7 +10,7 @@ import type {
   Document,
   DocumentWithTags,
 } from "../documents/DocumentRepository.js";
-import type { TagService } from "../tags/TagService.js";
+import { TagService } from "../tags/TagService.js";
 import type { AccessScopeResolver } from "../auth/AccessScopeResolver.js";
 import z from "zod";
 import type { UploadService } from "../files/UploadService.js";
@@ -81,6 +81,19 @@ documentRouter.post(
         throw new ApiError("BadRequest", 400, "Invalid extension");
       }
 
+      const parsedTags = z
+        .array(
+          z.object({
+            key: z.string(),
+            value: z.string().or(z.undefined()),
+            type: z.string(),
+          }),
+        )
+        .parse(JSON.parse(tags));
+      for (const tag of parsedTags) {
+        TagService.assertSingleTag(TagService.toString(tag));
+      }
+
       const ownerId =
         identity.userId === "system" || identity.userId === null
           ? SYSTEM_USER_ID
@@ -97,15 +110,7 @@ documentRouter.post(
         ownerId,
         isPublic: isPublic === "true",
         friendlyName: friendlyName ?? file.name,
-        tags: z
-          .array(
-            z.object({
-              key: z.string(),
-              value: z.string().or(z.undefined()),
-              type: z.string(),
-            }),
-          )
-          .parse(JSON.parse(tags)),
+        tags: parsedTags,
       });
 
       return {
@@ -178,6 +183,9 @@ documentRouter.post(
       const scopeResolver = diContainer.get<AccessScopeResolver>(
         services.accessScopeResolver,
       );
+      for (const tag of body.tagsToAdd) {
+        TagService.assertSingleTag(TagService.toString(tag));
+      }
       const scope = scopeResolver.documentScope(identity);
       const tagService = diContainer.get<TagService>(services.tag);
       await tagService.bulkEditDocuments(

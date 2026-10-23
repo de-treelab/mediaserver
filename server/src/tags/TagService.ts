@@ -1,4 +1,4 @@
-import { MetaTag, Tag } from "@lars_hagemann/tags";
+import { MetaTag, Tag, TagParser } from "@lars_hagemann/tags";
 import type {
   ApiTag,
   ListDocumentsRequest,
@@ -11,6 +11,7 @@ import type {
 } from "../documents/DocumentRepository.js";
 import type { TagCache } from "./TagCache.js";
 import type { DocumentAccessScope } from "../auth/AccessScope.js";
+import { TagParseError } from "./TagParseError.js";
 
 export type ListTagsRequest = {
   limit: number;
@@ -30,6 +31,22 @@ export class TagService {
       return { key: parts[0]!.trim(), value: undefined, type };
     } else {
       return { key: parts[0]!.trim(), value: parts[1]!.trim(), type };
+    }
+  }
+
+  /**
+   * Throws unless `tag` is a single tag (`key` or `key:value`), i.e. not an
+   * expression like `a & b`. Use for tags coming from user input.
+   */
+  public static assertSingleTag(tag: string) {
+    let filter;
+    try {
+      filter = new TagParser(tag).parse();
+    } catch (err) {
+      throw new TagParseError(err instanceof Error ? err.message : "Unknown");
+    }
+    if (!(filter instanceof Tag || filter instanceof MetaTag)) {
+      throw new TagParseError(`Expected a single tag, got "${tag}"`);
     }
   }
 

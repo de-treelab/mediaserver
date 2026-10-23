@@ -1,4 +1,4 @@
-import { TagParser } from "@lars_hagemann/tags";
+import { MetaTag, Tag, TagParser } from "@lars_hagemann/tags";
 import React, {
   useCallback,
   useEffect,
@@ -31,6 +31,8 @@ type Props = {
   blurOnSubmit?: boolean;
   placeholder?: string;
   showSearchIcon?: boolean;
+  /** Only accept a single tag (e.g. `key` or `key:value`), no expressions */
+  singleTag?: boolean;
   onChange: (newValue: string) => void;
   onSubmit: (newValue: string) => void;
   onValidChange?: (isValid: boolean) => void;
@@ -57,13 +59,15 @@ export const TagInput = ({
   blurOnSubmit = false,
   placeholder,
   showSearchIcon = false,
+  singleTag = false,
   onChange,
   onValidChange,
   onSubmit,
 }: Props) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const easyMode = useSelector(selectTagInputEasyMode);
+  // Easy mode builds an expression out of chips, so it is not offered for single tags
+  const easyMode = useSelector(selectTagInputEasyMode) && !singleTag;
 
   // --- Advanced mode ---
   const advInputRef = useRef<HTMLInputElement>(null);
@@ -72,13 +76,20 @@ export const TagInput = ({
 
   const isValid = useMemo(() => {
     try {
-      new TagParser(value).parse();
+      const filter = new TagParser(value).parse();
+      if (
+        singleTag &&
+        value.trim() !== "" &&
+        !(filter instanceof Tag || filter instanceof MetaTag)
+      ) {
+        return [false, t("tagInput.singleTagOnly")] as const;
+      }
       return [true] as const;
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown";
       return [false, message] as const;
     }
-  }, [value]);
+  }, [value, singleTag, t]);
 
   useEffect(() => {
     onValidChange?.(isValid[0]);
@@ -94,12 +105,21 @@ export const TagInput = ({
   const onAdvKeyDown = useCallback(
     (event: KeyboardEvent) => {
       if (event.key === "Enter" && isValid[0]) {
+        if (singleTag && value.trim() === "") return;
         onSubmit(value);
         if (clearOnSubmit) onChange("");
         if (blurOnSubmit) advInputRef.current?.blur();
       }
     },
-    [value, onSubmit, isValid, clearOnSubmit, onChange, blurOnSubmit],
+    [
+      value,
+      onSubmit,
+      isValid,
+      singleTag,
+      clearOnSubmit,
+      onChange,
+      blurOnSubmit,
+    ],
   );
 
   const onAdvChange = useCallback(
@@ -297,7 +317,8 @@ export const TagInput = ({
         onChange={onAdvChange}
         onKeyDown={onAdvKeyDown}
         className={twMerge(
-          "p-2 pr-[52px] outline-0 w-full border-1",
+          "p-2 outline-0 w-full border-1",
+          !singleTag && "pr-[52px]",
           !isValid[0] ? "border-danger-strong" : "border-border-subtle",
           advFocused
             ? direction === "up"
@@ -313,9 +334,11 @@ export const TagInput = ({
         spellCheck="false"
         placeholder={placeholder}
       />
-      <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10">
-        {toggleButton}
-      </div>
+      {!singleTag && (
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10">
+          {toggleButton}
+        </div>
+      )}
       {advFocused && advSuggestions.length > 0 && (
         <Dropdown
           values={advSuggestions.map((s, index) => ({

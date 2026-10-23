@@ -41,6 +41,7 @@ export const BatchTagsControl = ({
         ))}
         <TagInput
           clearOnSubmit
+          singleTag
           value={inputValue}
           onChange={onInputChange}
           onSubmit={(tag) => {

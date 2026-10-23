@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TagService } from "../../tags/TagService.js";
+import { TagParseError } from "../../tags/TagParseError.js";
 import type { TagRepository, ApiTag } from "../../tags/TagRepository.js";
 import type { TagCache } from "../../tags/TagCache.js";
 
@@ -74,6 +75,22 @@ describe("TagService", () => {
         type: "default",
       });
     });
+  });
+
+  describe("assertSingleTag", () => {
+    it.each(["nature", "score:5", 'person:"John Doe"', "image/jpeg"])(
+      "accepts single tag %s",
+      (tag) => {
+        expect(() => TagService.assertSingleTag(tag)).not.toThrow();
+      },
+    );
+
+    it.each(["a & b", "a | b", "!a", "", "black and white", "a:b:c"])(
+      "rejects %j",
+      (tag) => {
+        expect(() => TagService.assertSingleTag(tag)).toThrow(TagParseError);
+      },
+    );
   });
 
   describe("toString", () => {

@@ -125,6 +125,7 @@ export const UploadQueueRow = ({
             (addingTag ? (
               <TagInput
                 clearOnSubmit
+                singleTag
                 value={tagValue}
                 onChange={setTagValue}
                 onSubmit={(tag) => {

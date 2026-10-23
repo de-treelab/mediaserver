@@ -305,5 +305,8 @@
       "no": "Nein",
       "untrusted": "Nicht vertrauenswürdig"
     }
+  },
+  "tagInput": {
+    "singleTagOnly": "Nur ein einzelner Tag ist erlaubt (z. B. \"key\" oder \"key:value\")"
   }
 }

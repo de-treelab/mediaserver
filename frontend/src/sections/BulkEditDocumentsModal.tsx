@@ -191,6 +191,7 @@ export const BulkEditDocumentsModal = ({
             <>
               <TagInput
                 className="z-100"
+                singleTag
                 onChange={setQuery}
                 placeholder={t("pages.gallery.searchTag")}
                 value={query}
