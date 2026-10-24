@@ -249,7 +249,7 @@ export class TagRepository {
 
     const scopeHaving = buildScopeHaving(scope, "u");
     if (scopeHaving) {
-      sql.stmt.filtered.having = `(${sql.stmt.filtered.having})${scopeHaving}`;
+      sql.stmt.filtered.where = `(${sql.stmt.filtered.where})${scopeHaving}`;
     }
 
     const isRandom = sql.stmt.sortBy === "random";

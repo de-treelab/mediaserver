@@ -105,7 +105,7 @@ export const buildQueryFromSelectStatement = (stmt: SelectStatement) => {
 };
 
 export type FilteredEntitiesQuery = {
-  // Grouped select producing the (unordered) filtered entity set.
+  // Select producing the (unordered) filtered entity set.
   filtered: SelectStatement;
   sortBy: "created_at" | "random";
   sortDirection: "asc" | "desc";
@@ -125,7 +125,8 @@ export type FilteredEntitiesQuery = {
  * - at: the `$limit` entities starting at query index `$at`, so callers can
  *   fetch any part of the listing without knowing a document there.
  *
- * Rows of "before"/"last" come back in reverse order. All placeholders besides
+ * Rows come back in no particular order, callers sort them by `query_index`.
+ * Every row carries the size of the whole set as `__total`. All placeholders besides
  * the ones listed above are $limit and (when sorting randomly) $seed.
  */
 export type FilteredEntitiesPosition =
@@ -136,8 +137,10 @@ export type FilteredEntitiesPosition =
   | "around"
   | "at";
 
+// Inlined even where it is referenced twice (rows and total): a materialized
+// set would have to be computed in full before the first row is returned.
 const filteredEntitiesCte = (q: FilteredEntitiesQuery) =>
-  `filtered AS (${buildQueryFromSelectStatement(q.filtered)})`;
+  `filtered AS NOT MATERIALIZED (${buildQueryFromSelectStatement(q.filtered)})`;
 
 export const buildFilteredEntitiesCountQuery = (q: FilteredEntitiesQuery) =>
   `WITH ${filteredEntitiesCte(q)} SELECT COUNT(*)::int AS total FROM filtered`;
@@ -155,7 +158,12 @@ export const buildFilteredEntitiesPageQuery = (
   const dir = q.sortDirection.toUpperCase();
   // The entity id breaks ties between equal sort keys (created_at of rows
   // inserted in one transaction, colliding hashes), keeping the order total.
+  // Slices are ordered by the sort key rather than by query_index, so that
+  // forward slices can stop once `$limit` rows are numbered instead of
+  // numbering the whole set.
+  const reverseDir = q.sortDirection === "asc" ? "DESC" : "ASC";
   const windowOrder = `${keyCol} ${dir}, ${id} ${dir}`;
+  const reverseOrder = `${keyCol} ${reverseDir}, ${id} ${reverseDir}`;
   const forward = q.sortDirection === "asc" ? ">" : "<";
   const backward = q.sortDirection === "asc" ? "<" : ">";
 
@@ -171,9 +179,10 @@ export const buildFilteredEntitiesPageQuery = (
   };
   const rowKey = `(${keyCol}, ${id})`;
 
+  // Inlined into both halves of "around" as well: numbering stops wherever a
+  // half has its rows, instead of numbering the whole set once up front.
   const ordered =
-    `ordered AS (SELECT *, ` +
-    `COUNT(*) OVER()::int AS __total, ` +
+    `ordered AS NOT MATERIALIZED (SELECT *, ` +
     `row_number() OVER w - 1 AS query_index, ` +
     `LAG(${id}) OVER w AS previous_id, ` +
     `LEAD(${id}) OVER w AS next_id, ` +
@@ -182,37 +191,41 @@ export const buildFilteredEntitiesPageQuery = (
 
   const slice = (
     where: string | undefined,
-    order: "ASC" | "DESC",
+    direction: "forward" | "backward",
     select = "*",
   ) =>
-    `SELECT ${select} FROM ordered ${where ? `WHERE ${where} ` : ""}ORDER BY query_index ${order} LIMIT $limit`;
+    `SELECT ${select} FROM ordered ${where ? `WHERE ${where} ` : ""}ORDER BY ${direction === "forward" ? windowOrder : reverseOrder} LIMIT $limit`;
 
   let body: string;
   switch (position) {
     case "first":
-      body = slice(undefined, "ASC");
+      body = slice(undefined, "forward");
       break;
     case "last":
-      body = slice(undefined, "DESC");
+      body = slice(undefined, "backward");
       break;
     case "after":
-      body = slice(`${rowKey} ${forward} ${keyOf("$cursorId")}`, "ASC");
+      body = slice(`${rowKey} ${forward} ${keyOf("$cursorId")}`, "forward");
       break;
     case "before":
-      body = slice(`${rowKey} ${backward} ${keyOf("$cursorId")}`, "DESC");
+      body = slice(`${rowKey} ${backward} ${keyOf("$cursorId")}`, "backward");
       break;
     case "around":
       body =
-        `(${slice(`${rowKey} ${backward} ${keyOf("$anchorId")}`, "DESC", "*, true AS before_anchor")}) ` +
+        `(${slice(`${rowKey} ${backward} ${keyOf("$anchorId")}`, "backward", "*, true AS before_anchor")}) ` +
         `UNION ALL ` +
-        `(${slice(`${rowKey} ${forward}= ${keyOf("$anchorId")}`, "ASC", "*, false AS before_anchor")})`;
+        `(${slice(`${rowKey} ${forward}= ${keyOf("$anchorId")}`, "forward", "*, false AS before_anchor")})`;
       break;
     case "at":
-      body = slice("query_index >= $at", "ASC");
+      body = slice("query_index >= $at", "forward");
       break;
   }
 
-  return `WITH ${filteredEntitiesCte(q)}, ${ordered} ${body}`;
+  // Counted separately: a window count would need the whole set numbered
+  return (
+    `WITH ${filteredEntitiesCte(q)}, ${ordered} ` +
+    `SELECT page.*, (SELECT COUNT(*) FROM filtered)::int AS __total FROM (${body}) page`
+  );
 };
 
 const buildOnConflictAction = (action: OnConflict) => {
@@ -340,7 +353,7 @@ export class TagSqlBuilder {
   }
 
   private tagIdCondition(ctx: BuildContext, tagId: string): string {
-    return `SUM(CASE WHEN ut.tag_id = ${this.addParam(ctx, tagId)} THEN 1 ELSE 0 END) > 0`;
+    return `EXISTS (SELECT 1 FROM userdata_tags ut WHERE ut.tag_id = ${this.addParam(ctx, tagId)} AND ut.userdata_id = u.id)`;
   }
 
   /**
@@ -490,10 +503,10 @@ export class TagSqlBuilder {
   }
 
   /**
-   * Builds the grouped select producing the filtered entity set together with
-   * the ordering it must be paginated by. Use `buildFilteredEntitiesPageQuery`
-   * / `buildFilteredEntitiesCountQuery` to turn it into SQL. Callers may extend
-   * `filtered.having` (e.g. with access scope conditions) beforehand.
+   * Builds the select producing the filtered entity set together with the
+   * ordering it must be paginated by. Use `buildFilteredEntitiesPageQuery` /
+   * `buildFilteredEntitiesCountQuery` to turn it into SQL. Callers may extend
+   * `filtered.where` (e.g. with access scope conditions) beforehand.
    */
   public async buildListFilteredEntitiesQuery(
     filter: Filter,
@@ -506,7 +519,10 @@ export class TagSqlBuilder {
     const staticCols = this.builderConfig.userdataTableColumns;
 
     try {
-      const havingCondition = await this.sqlFilterConditions(filter, ctx);
+      // Each tag is looked up by its own EXISTS rather than by aggregating all
+      // tags of every entity, so that selective filters use the index of
+      // userdata_tags instead of joining the whole table.
+      const condition = await this.sqlFilterConditions(filter, ctx);
 
       const select = [...staticCols.map((col) => `u.${col}`), "u.created_at"];
       if (ctx.sortBy === "random") {
@@ -522,15 +538,7 @@ export class TagSqlBuilder {
           filtered: {
             select,
             from: `${tableName} u`,
-            joins: [
-              {
-                join: "LEFT",
-                table: "userdata_tags ut",
-                on: `u.${idCol} = ut.userdata_id`,
-              },
-            ],
-            groupBy: `u.${idCol}`,
-            having: havingCondition,
+            where: condition,
           },
           sortBy: ctx.sortBy,
           sortDirection: ctx.sortBy === "random" ? "asc" : ctx.sortDirection,

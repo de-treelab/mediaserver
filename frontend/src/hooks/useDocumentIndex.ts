@@ -145,10 +145,11 @@ export const useDocumentIndex = ({
     coverage.has(windowKey({ around: anchorId }));
 
   // Windows to fetch next: around the anchor document if it is unknown, as
-  // its position is needed first. Else the windows at the gaps in `ranges`.
+  // its position is needed first. Else (or if it isn't part of the listing)
+  // the windows at the gaps in `ranges`.
   const missingWindows = useMemo((): Window[] => {
-    if (anchorId && !byId.has(anchorId)) {
-      return anchorMissing ? [] : [{ around: anchorId }];
+    if (anchorId && !byId.has(anchorId) && !anchorMissing) {
+      return [{ around: anchorId }];
     }
     if (total === undefined) {
       // Nothing loaded yet: the first requested window tells the total

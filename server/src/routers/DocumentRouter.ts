@@ -417,7 +417,13 @@ documentRouter.get(
       );
       return {
         status: 200,
-        body: new FileDownload(thumbnailPath, "image/jpeg"),
+        // Thumbnails don't change. Private, as access may be revoked: a browser
+        // keeps showing a thumbnail it still has for up to a day.
+        body: new FileDownload(
+          thumbnailPath,
+          "image/jpeg",
+          "private, max-age=86400",
+        ),
       };
     },
   ),

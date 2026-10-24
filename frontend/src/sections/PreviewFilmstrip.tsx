@@ -27,7 +27,7 @@ type Props = {
  */
 export const PreviewFilmstrip = ({ filmstrip, onSelect }: Props) => {
   const { t } = useTranslation();
-  const { slots, centerIndex, currentIndex, offset, setOffset, setRadius } =
+  const { slots, centerIndex, currentId, offset, setOffset, setRadius } =
     filmstrip;
   const containerRef = useRef<HTMLDivElement>(null);
   const [dragOffset, setDragOffset] = useState<number | undefined>();
@@ -120,7 +120,7 @@ export const PreviewFilmstrip = ({ filmstrip, onSelect }: Props) => {
     >
       {slots.map(({ index, document }) => {
         const x = (index - centerIndex) * SLOT_WIDTH + (dragOffset ?? 0);
-        const current = index === currentIndex;
+        const current = !!document && document.id === currentId;
         return (
           <div
             key={index}
